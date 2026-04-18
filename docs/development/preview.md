@@ -2,7 +2,7 @@
 
 jellycell has two "preview" flows depending on what you're developing.
 
-## A. Docs preview (available now)
+## A. Docs preview
 
 Live-reload Sphinx dev server:
 
@@ -19,21 +19,21 @@ Useful while working on:
 
 - Prose changes to file-format, getting-started, etc.
 - Docstring authoring (Ruff's D-rules flag missing docstrings; Sphinx renders what you wrote).
-- CLI reference (once Phase 1's `sphinxcontrib-typer` directive goes live).
+- CLI reference (driven by `sphinxcontrib-typer`).
 
-## B. HTML report preview (Phase 3+)
+## B. HTML report preview
 
-The production preview flow for jellycell's own HTML reports is `jellycell view`. Phase 3 ships the renderer; Phase 4 ships the live viewer (Starlette + SSE + watchfiles). Until Phase 3 lands:
+The production preview flow for jellycell's own HTML reports is `jellycell view` — see the [examples/](https://github.com/random-walks/jellycell/tree/main/examples) projects for real material to serve:
 
 ```bash
-make preview        # stub; prints instructions
+cd examples/demo
+jellycell view    # requires [server] extra; live-reloads on file changes
 ```
 
-For Phase 3 template work specifically (editing `.j2` templates before the server exists), use `sphinx-autobuild`-style ad-hoc scripting; there's no dedicated flow because templates will be exercised by `jellycell view` end-to-end.
+For template work specifically (editing `.j2` templates), run `jellycell render` in an example project to produce static HTML and reload your browser, or keep `jellycell view` open — it re-renders on template edits thanks to `watchfiles`.
 
-## Testing HTML output (Phase 3+)
+## Testing HTML output
 
-- **Snapshot**: `pytest-regressions` golden files for deterministic HTML chunks.
-- **Structural**: `pytest-playwright` with [ARIA snapshots](https://playwright.dev/python/docs/aria-snapshots) for rendered pages.
-
-Both are added to dev deps in Phase 3.
+- **Snapshot**: `pytest-regressions` golden files for deterministic HTML chunks — see `tests/integration/test_json_schemas.py` for the pattern.
+- **Parity**: `tests/integration/test_render_parity.py` asserts static render and server render are byte-equal.
+- **SSE end-to-end**: `tests/integration/test_server_sse_e2e.py` spawns a real uvicorn server and asserts reload events propagate.

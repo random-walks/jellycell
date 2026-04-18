@@ -11,7 +11,7 @@ help:
 	@echo "  make format           Apply ruff formatting"
 	@echo "  make docs             Build + serve docs with live reload (http://127.0.0.1:8001)"
 	@echo "  make docs-build       Build docs once (for CI)"
-	@echo "  make preview          HTML report preview (Phase 3+)"
+	@echo "  make preview          HTML report preview (see examples/)"
 	@echo "  make release-check    Dry-run build + version print"
 	@echo "  make clean            Remove build artifacts and caches"
 
@@ -44,7 +44,7 @@ docs-build:
 	uv run sphinx-build -W --keep-going -b html docs docs/_build/html
 
 preview:
-	@echo "HTML report preview ships in Phase 3+. Use 'jellycell view' once available."
+	@echo "HTML report preview: cd examples/demo && jellycell view (requires [server] extra)."
 
 release-check:
 	uv build

@@ -26,17 +26,19 @@ CLI → Server → Render → Run → API → Cache → Format → Paths+Config
 
 ## Phase budgets (spec §8)
 
-| Phase | src files | Purpose                                  | Ships    |
-| ----- | --------- | ---------------------------------------- | -------- |
-| 0     | 3         | Skeleton                                 | `v0.0.1` |
-| 1     | 13        | Format, config, init, lint               | (interim)|
-| 2     | 13        | Cache, run, API                          | `v0.0.2` |
-| 3     | 10        | Render (HTML)                            | (interim)|
-| 4     | 4         | Live viewer                              | `v0.0.3` |
-| 5     | 3         | Export (ipynb/md)                        | (interim)|
-| 6     | +2        | Agent surface + polish                   | `v0.1.0` |
+Phases are an **implementation-order artifact**, not a release plan — all six shipped together as `v1.0.0`. The per-phase src budgets are retained because they are still useful as scope-creep signals when extending one area.
 
-**If a phase's src count creeps past its budget, cut back — do not raise the ceiling.** Drift is a scope-creep signal. Run `/phase-status` to check.
+| Phase | src budget | Purpose                                  |
+| ----- | ---------- | ---------------------------------------- |
+| 0     | 3          | Skeleton                                 |
+| 1     | 13         | Format, config, init, lint               |
+| 2     | 13         | Cache, run, API                          |
+| 3     | 10         | Render (HTML)                            |
+| 4     | 4          | Live viewer                              |
+| 5     | 3          | Export (ipynb/md)                        |
+| 6     | +2         | Agent surface                            |
+
+**If a phase's src count creeps past its budget while you're extending it, cut back — do not raise the ceiling.** Drift is a scope-creep signal. Run `/phase-status` to check.
 
 ## Piggyback reminders (spec §1)
 
@@ -66,7 +68,11 @@ make release-check    # dry-run build + version print
 
 ## Agent surface
 
-`jellycell prompt` (Phase 6) emits the canonical agent guide — a single markdown doc covering layout, format, tags, API, and CLI reference. Content is **spec §10.3 stability contract**. Start by calling this in any new jellycell project.
+`jellycell prompt` emits the canonical agent guide — a single markdown doc covering layout, format, tags, API, and CLI reference. Content is **spec §10.3 stability contract**. Start by calling this in any new jellycell project.
+
+## Versioning
+
+Patch bumps are cheap — prefer frequent small releases over feature-batching. Full policy in [docs/development/releasing.md](docs/development/releasing.md). When finishing a user-visible change, invoke the `release-bump` skill or run `/bump` to move `[Unreleased]` into a numbered entry.
 
 ## Before merging
 

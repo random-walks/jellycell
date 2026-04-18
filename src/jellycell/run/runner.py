@@ -1,9 +1,9 @@
 """The :class:`Runner` — orchestrates per-cell execution, caching, manifests.
 
-Spec §2.5 / §3. Phase 2 scope:
+Spec §2.5 / §3:
 
 - Parse notebook (format.parse).
-- Iterate cells in source order (Phase 6 adds proper topo-sort by deps).
+- Iterate cells in source order.
 - For each cell, compute a cache key from source + declared deps + env_hash.
 - Cache hit → load manifest, skip execution.
 - Cache miss → execute via :class:`~jellycell.run.kernel.Kernel`, capture

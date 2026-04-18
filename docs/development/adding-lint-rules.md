@@ -1,9 +1,5 @@
 # Adding a lint rule
 
-:::{warning}
-This page describes the Phase 1+ pattern. Apply once `jellycell.lint` exists.
-:::
-
 Lint rules live in `src/jellycell/lint/rules.py`. Each rule is a function + metadata.
 
 ## Pattern

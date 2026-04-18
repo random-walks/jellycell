@@ -16,11 +16,21 @@ See CONTRIBUTING.md for the full PR checklist.
 - [ ] `test` — tests only
 - [ ] `chore` — tooling, CI, release
 
-## Phase
+## Version bump
 
-<!-- Which spec §8 phase does this touch? Is the phase's src file budget still respected? -->
+<!-- jellycell prefers frequent small bumps. See docs/development/releasing.md. -->
 
-- Phase: <!-- 0 / 1 / 2 / ... -->
+- [ ] patch (`1.0.X`) — bug fix / refactor / docs / non-user-visible plumbing (default)
+- [ ] minor (`1.X.0`) — new CLI flag / new `jc.*` function / new config key / additive `--json` field
+- [ ] major (`X.0.0`) — §10 contract break (cache key / agent-guide content / breaking `--json` schema)
+
+`__version__` bumped in `_version.py` and `CHANGELOG.md` updated under the new heading? If not, explain why.
+
+## Area / budget
+
+<!-- Which spec §8 area does this touch? Does the phase's src file budget still hold? -->
+
+- Area (phase): <!-- 0 / 1 / 2 / ... -->
 - File count after this PR: `src/jellycell/<subdir>/` has N files (budget M).
 
 ## Invariant check (spec §10)
@@ -34,9 +44,9 @@ Does this PR touch any of the three cross-cutting contracts?
 If any are checked, describe the ceremony followed:
 
 <!--
-- For cache key changes: MINOR_VERSION bumped? Regression snapshot updated? CHANGELOG entry?
-- For --json schema changes: schema_version incremented? Downstream parsers updated? CHANGELOG entry?
-- For agent guide changes: is this a minor-version release? CHANGELOG entry?
+- For cache key changes: MINOR_VERSION bumped? test_hashing snapshot regenerated? Major version bump? CHANGELOG entry?
+- For --json schema changes: schema_version incremented (breaking only)? Parsers updated? CHANGELOG entry?
+- For agent guide changes: classified correctly (typo=patch, additive=minor, breaking=major)? prompt snapshot regenerated? CHANGELOG entry?
 -->
 
 ## Testing

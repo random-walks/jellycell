@@ -1,6 +1,6 @@
 # API reference
 
-Auto-generated from docstrings via [sphinx-autodoc2](https://sphinx-autodoc2.readthedocs.io/). The API surface is thin in Phase 0 — meaningful modules land in Phases 1 and 2.
+Auto-generated from docstrings via [sphinx-autodoc2](https://sphinx-autodoc2.readthedocs.io/).
 
 ```{toctree}
 :maxdepth: 1

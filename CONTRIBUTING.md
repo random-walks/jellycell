@@ -41,13 +41,17 @@ Three contracts from spec §10. Touching any of them is a deliberate ceremony:
 
 2. **Cache key algorithm** (`src/jellycell/cache/hashing.py`). Any change bumps `MINOR_VERSION` in `src/jellycell/_version.py`. Regression snapshot in `tests/unit/test_hashing.py`.
 
-3. **Agent guide content** (`jellycell prompt` output). Stable across patch versions; changes require a minor release + changelog note.
+3. **Agent guide content** (`jellycell prompt` output). Typo/clarification edits are patch-safe; additive content is a minor; breaking changes to existing guidance force a major. See [docs/development/releasing.md](docs/development/releasing.md) for the full rule.
 
 If you touched one of these, **say so explicitly** in the PR description and describe the ceremony you followed.
 
 ## Phase budgets
 
-Spec §8 lists a file count per phase. If a phase creeps past its ceiling, that's a **scope-creep signal**. Cut features. Don't raise the ceiling.
+Spec §8 lists a soft file-count budget per phase (area of the codebase). Phases no longer map to releases — all six shipped as `v1.0.0` — but the budgets are retained as per-area ceilings. If a phase creeps past its ceiling while you're extending it, that's a **scope-creep signal**. Cut features. Don't raise the ceiling.
+
+## Versioning
+
+jellycell prefers **frequent small bumps**: a bug fix → patch, a new additive feature → minor, a §10 contract break → major. Full policy in [docs/development/releasing.md](docs/development/releasing.md). Include the version bump in your PR, don't split it out.
 
 ## Commit style
 
@@ -74,7 +78,8 @@ One commit per logical change. Rebase to clean history before merging when pract
 - [ ] New public functions have docstrings (ruff D100–D103 enforced).
 - [ ] **"Invariant touched?"** — yes/no in the PR description. If yes, describe the ceremony followed.
 - [ ] Phase budget respected (run `/phase-status` if using Claude Code).
-- [ ] `CHANGELOG.md` updated under `[Unreleased]` for user-visible changes.
+- [ ] **Version bumped** in `src/jellycell/_version.py` matching the change (patch default; minor/major per policy).
+- [ ] `CHANGELOG.md` updated under the version heading for user-visible changes.
 
 ## Reporting bugs
 

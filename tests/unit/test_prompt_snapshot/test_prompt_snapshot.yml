@@ -3,6 +3,6 @@ contains_canonical_headers:
   cli_commands_section: true
   invariants_section: true
   jc_api_section: true
-length: 7420
-sha256_first_32: dec647820fe3e3f15e3bd11f5190b5ac
+length: 7596
+sha256_first_32: b6fad62e19f9eb392e8e44bd0bebcf4b
 starts_with: '# Agent guide'

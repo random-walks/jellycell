@@ -1,4 +1,4 @@
-"""Export jellycell notebooks + manifests to other formats (spec §2.6 / Phase 5).
+"""Export jellycell notebooks + manifests to other formats (spec §2.6).
 
 Supported formats:
 

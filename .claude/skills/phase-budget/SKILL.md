@@ -1,29 +1,29 @@
 ---
 name: phase-budget
-description: Check against spec §8 phase file-count budgets before creating new files under src/jellycell/ or tests/. Prevents scope creep by treating drift as a cut-scope signal, not a raise-ceiling signal.
+description: Check against spec §8 phase file-count budgets before creating new files under src/jellycell/ or tests/. Prevents scope creep by treating drift as a cut-scope signal, not a raise-ceiling signal. Phases are implementation-order artifacts from the v1.0 build; the budgets remain useful as ceilings even though phases no longer map to releases.
 ---
 
 Each phase in `docs/spec/v0.md` §8 has a soft file-count budget. Significant drift is a **scope-creep signal** — cut features or defer them, don't raise the ceiling.
 
+All phases shipped together as `v1.0.0`; phases are no longer a release plan. They remain a useful mental map of the codebase and a ceiling for how many src files each area should contain.
+
 ## How to check
 
-**First: run `/phase-status`.** That slash command counts `git ls-files 'src/jellycell/**/*.py'` grouped by phase and reports drift. It is the authoritative source. The table below is a reference snapshot, updated manually on each release.
+**First: run `/phase-status`.** That slash command counts `git ls-files 'src/jellycell/**/*.py'` grouped by phase and reports drift. It is the authoritative source. The table below is a reference snapshot.
 
-## Snapshot as of v0.1.0 (May 2026)
+## Snapshot as of v1.0.0 (April 2026)
 
-| Phase | src .py | Spec target | Drift | Notes                                                 |
-| ----- | ------: | ----------: | ----: | ----------------------------------------------------- |
-| 0     |       3 |           3 |    =  | `__init__`, `__main__`, `_version`                    |
-| 1     |      14 |          13 |   +1  | `cli/commands/__init__.py` counted (spec didn't)      |
-| 2     |      13 |          13 |    =  | Cache + run + API                                     |
-| 3     |       5 |          10 |   −5  | Templates/static live as subdir, not counted as .py   |
-| 4     |       5 |           4 |   +1  | `cli/commands/view.py` counted                        |
-| 5     |       4 |           3 |   +1  | `cli/commands/export.py` counted                      |
-| 6     |       2 |           2 |    =  | `prompt`, `new`                                       |
+| Phase | src .py | Budget | Drift | Notes                                                 |
+| ----- | ------: | -----: | ----: | ----------------------------------------------------- |
+| 0     |       3 |      3 |    =  | `__init__`, `__main__`, `_version`                    |
+| 1     |      14 |     13 |   +1  | `cli/commands/__init__.py` counted (spec didn't)      |
+| 2     |      16 |     13 |   +3  | Added `run/pool.py`, `run/env_hash.py`, `cache/function_cache.py` |
+| 3     |       5 |     10 |   −5  | Templates/static live as subdir, not counted as .py   |
+| 4     |       5 |      4 |   +1  | `cli/commands/view.py` counted                        |
+| 5     |       4 |      3 |   +1  | `cli/commands/export.py` counted                      |
+| 6     |       3 |      2 |   +1  | `format/static_deps.py` landed with agent-surface work|
 
-Total: **46 src .py files** (spec target was ~45 across all phases).
-
-v0.2.0-in-progress adds ~4 new src files: `run/pool.py`, `run/env_hash.py`, `format/static_deps.py`, `cache/function_cache.py`. Target after this iteration: ≤50.
+Total: **~50 src .py files** (spec target was ~45 across all phases).
 
 ## When to use this skill
 
@@ -36,10 +36,10 @@ v0.2.0-in-progress adds ~4 new src files: `run/pool.py`, `run/env_hash.py`, `for
 1. **First run `/phase-status`** — get the real count.
 2. If drift ≤ +2: probably fine. Commit message should explain why the new file is necessary.
 3. If drift > +2 or phase chronically over: STOP. Ask:
-   - Is this genuinely part of this phase, or has scope crept?
+   - Is this genuinely within this phase's area, or has scope crept?
    - Could it go in a follow-up release?
    - Can existing files absorb the change instead of adding a new one?
-4. Updating the table above is a **manual** step on each release — do it as part of the CHANGELOG work, not as a drive-by edit.
+4. Updating the table above is a **manual** step — do it as part of a patch release when counts drift, not as a drive-by edit.
 
 ## Anti-pattern
 
@@ -48,5 +48,5 @@ Do not interpret "the budget was close to exceeded so I expanded it" as a reason
 ## Reference
 
 - `docs/spec/v0.md` §8 — authoritative phase descriptions and file lists.
-- `docs/spec/v0.md` §9 — "Total scope at v0.1.0" principle.
+- `docs/spec/v0.md` §9 — "Total scope at v1.0" principle.
 - `/phase-status` — live count command (always preferred over this table).

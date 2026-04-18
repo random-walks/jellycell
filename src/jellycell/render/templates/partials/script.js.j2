@@ -1,4 +1,4 @@
-// jellycell: collapsible cells + SSE live-reload (Phase 4 wires up the SSE side).
+// jellycell: collapsible cells + SSE live-reload.
 
 (function () {
   // Collapsible cells
@@ -12,9 +12,9 @@
     });
   });
 
-  // SSE live-reload. Only activates when served from the jellycell server
-  // (Phase 4+). When viewing static reports/ files, window.location.protocol
-  // is file: or the EventSource connect fails silently — either way, no-op.
+  // SSE live-reload. Only activates when served from the jellycell server.
+  // When viewing static reports/ files, window.location.protocol is file: or
+  // the EventSource connect fails silently — either way, no-op.
   if (typeof EventSource === "undefined") return;
   if (window.location.protocol.indexOf("http") !== 0) return;
 

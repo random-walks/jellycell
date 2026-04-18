@@ -2,94 +2,78 @@
 
 All notable changes to jellycell follow the [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format, and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-Pre-1.0: minor versions may include breaking changes; the spec version (see `_version.MINOR_VERSION`) is what guards cache invalidation.
+Versioning policy: **patch bumps are cheap**. See [docs/development/releasing.md](docs/development/releasing.md) for the full policy and the three §10 contracts that govern major bumps.
 
 ## [Unreleased]
 
-## [0.2.0] — 2026-04-18
+## [1.0.0] — 2026-04-18
 
-Comprehensive close-out of v0.1.0 deferred items and loose contracts. **This release bumps `MINOR_VERSION` 1 → 2; every existing cache entry invalidates on first run.** The invalidation is one-shot and intentional — see the cache-key changes below.
+Initial public release. The full v0 spec — notebook format, run + cache, render, live viewer, export, agent surface — is implemented end-to-end and covered by 271 tests across unit/integration/examples.
 
-### Added
-- **`jc.cache`** now actually memoizes via the content-addressed cache store (was: identity decorator). Keys on `(qualname, source, pickled args)`. Standalone mode is unchanged passthrough.
-- **`jc.load()` registers an implicit dep edge** on the producing cell (via new artifact lineage index). Cross-notebook dataflow now invalidates correctly without hand-written `deps=` tags.
-- **Static AST walk for `jc.deps("a", "b")`.** The runner parses `jc.deps(...)` out of cell source before executing, so declared deps enter the cache key (was: runtime-only, too late to affect the current cell's key).
-- **Lockfile-based `env_hash`.** Prefers `uv.lock` / `poetry.lock` bytes over PEP-723 dependency list. Two environments resolving to different concrete versions no longer share a cache.
-- **Artifact lineage reverse index** (`CacheIndex.find_producer`). Surfaces "which cell produced this file?" via the SQLite index; consumed by `jc.load` (dep registration) and `jc.path("name")` (artifact-by-name lookup).
-- **Three real lint rules** previously stubbed:
-  - `enforce-artifact-paths` — `jc.save/figure/table` must write under `paths.artifacts`.
-  - `enforce-declared-deps` — cells using `jc.load` from another cell's artifact must declare the dep.
-  - `warn-on-large-cell-output` — cached cells exceeding the size threshold get a non-fixable warning.
-- **`KernelPool`** reuses a kernel across multiple `Runner.run()` calls (for `render_all` + batch scripts). Opt-in via `Runner(project, kernel_pool=pool)`.
-- **`jellycell cache prune`** — remove cached entries by `--older-than` duration or `--keep-last N` per notebook. `--dry-run` lists without deleting. Manifests only in this release; ref-counted blob GC lands in a follow-up.
-- **PEP-723 `[tool.jellycell]` overrides are applied at runtime** (`Project.with_overrides`). Supported keys: `project.name`, `run.kernel`, `run.timeout_seconds`. Unknown keys raise `UnknownOverrideKeyError`.
-- **Wall-clock kernel timeout.** `Kernel.execute` now uses `time.monotonic()` for a true deadline (was: per-iopub-chunk poll that a slow-drip cell could outlast).
-- **Cell error tracebacks surface in `jellycell run` output.** The run-report table is followed by a formatted traceback block for each errored cell.
-- **Security warning on non-loopback `jellycell view`.** Binding `--host 0.0.0.0` (or any non-`127.0.0.1`/`localhost`/`::1` address) prints a stderr banner noting the exposure.
-- **Mixed cache-hit/miss note** at end of `jellycell run` when a single run touches both paths — flags the classic in-memory-dataflow foot-gun.
-- **Unified asset layout** (`reports/_assets/`). Static render + live server share one content-addressed asset tree; the old per-notebook `reports/<stem>/_assets/` subdirs are gone, and the server no longer forces `standalone=True` to work around the old mount gap.
-- **New tests**: `test_pep723_overrides.py`, `test_static_deps.py`, `test_function_cache.py`, `test_server_sse_e2e.py` (real uvicorn + broker → HTTP), `test_render_parity.py` (static vs. server byte-equal), `test_kernel_timeout.py`, `test_kernel_pool.py`, `tests/examples/test_examples_run.py` (CI runs every example notebook), plus regression snapshots for `jellycell prompt` (§10.3) and every `--json` command (§10.1).
-- **CI `examples` job** runs `pytest tests/examples/` on ubuntu/py3.12.
+We went straight to `1.0.0` instead of a staggered `0.0.x → 0.1.x → 0.2.x` ramp: the spec's build-phase numbering is an implementation-order artifact, not a release plan. All phases shipped together. Starting at `1.0.0` gives future agents a clean mental model — no phantom "we're at 0.2, what was 0.1" history to decode.
 
-### Changed
-- **Cache key inputs expanded** (§10.2 break). Deps from `jc.load` artifact lineage + AST-walked `jc.deps(...)` now enter the key. Lockfile bytes feed `env_hash` when present.
-- **Error-status manifests are no longer cache hits.** Transient failures re-execute on retry (was: cached error was returned silently).
-- **`.ipynb` export `execution_count`** now reflects the *last* `execute_result` (was: first). Matches nbformat convention.
-- **Server drops `standalone=True` workaround.** Live viewer now serves `_assets/*.png` via a real `/_assets/` mount; HTML is byte-identical to the static-render output.
-- **`phase-budget` skill** rewritten with accurate per-phase counts + explicit instruction to prefer `/phase-status` over the table.
+### Features — notebook format
 
-### Contracts (§10)
-- **§10.2 cache-key break:** `MINOR_VERSION` bumped 1 → 2. `tests/unit/test_hashing.py` regression snapshot regenerated.
-- **§10.1 JSON schemas:** now pinned by `tests/integration/test_json_schemas.py` (shape snapshots per command). Adding/removing/renaming a field fails the snapshot.
-- **§10.3 agent guide:** content updated (new `jc.cache` / `jc.load dep`, dataflow guidance, lockfile env_hash, cache prune). `jellycell prompt` output pinned by `tests/unit/test_prompt_snapshot.py`.
+- **Plain-text `.py` notebooks** in jupytext percent format with PEP-723 headers. Jellycell strip-and-re-inserts the PEP-723 block so jupytext's round-trip is byte-exact.
+- **Tag vocabulary** on `# %%` markers: `cell-id`, `name`, `kind`, `deps`, `timeout_s`. Parsed by `jellycell.format`; registry lives in `format/tags.py`.
+- **`[tool.jellycell]` file-scope overrides** inside the PEP-723 block. Allow-listed keys: `project.name`, `run.kernel`, `run.timeout_seconds`. Unknown keys raise `UnknownOverrideKeyError` — no silent typos.
 
-### Notes
-- **Ref-counted blob GC for `cache prune`** is deferred. Current prune removes manifests only; blobs linger but diskcache deduplicates content-addressed storage anyway.
-- **`jc.cache` arg hashing** uses pickle. Unpicklable inputs raise clearly at call time; a JSON-default fallback can come later.
+### Features — cache + run
 
-## [0.1.0] — 2026-04-17
+- **Content-addressed per-cell cache.** Key = `sha256(source, sorted_dep_keys, env_hash, MINOR_VERSION)`. Stored as JSON manifests + diskcache blobs with a SQLite catalogue accelerator.
+- **`jellycell run`** executes notebooks via a subprocess Jupyter kernel. Cache-hit cells skip execution; cache-miss cells stream outputs to the cache and write artifacts to `artifacts/`.
+- **`jc.*` runtime API**: `save`, `load`, `figure`, `table`, `path`, `deps`, `cache`, `ctx`. Works inside a run (reads `RunContext`) and as a plain script (standalone mode).
+- **`jc.cache` decorator** memoizes function calls via the same content-addressed store. Keys on `(qualname, normalized source, pickled args)`. Standalone mode is identity passthrough.
+- **`jc.load()` registers an implicit dep edge** on the producing cell via the artifact lineage index — cross-notebook dataflow invalidates correctly without hand-written `deps=` tags.
+- **Static AST walk for `jc.deps("a", "b")`.** The runner parses `jc.deps(...)` out of cell source *before* executing, so runtime-declared deps enter the current cell's cache key (not just downstream cells').
+- **Lockfile-aware `env_hash`.** Prefers `uv.lock` / `poetry.lock` bytes over the PEP-723 dependency list. Two environments that resolve to different concrete versions no longer share a cache.
+- **Artifact lineage reverse index** (`CacheIndex.find_producer`): "which cell produced this file?" via SQLite. Consumed by `jc.load` dep registration and `jc.path("name")` lookup.
+- **Wall-clock kernel timeout.** `Kernel.execute` uses `time.monotonic()` for a true deadline — slow-drip output no longer outruns the cap.
+- **`KernelPool`** reuses a single kernel across multiple `Runner.run()` calls for batch scripts and `render_all`. Opt-in via `Runner(project, kernel_pool=pool)`. Default stays fresh-per-run for isolation.
+- **`jellycell cache`** subcommands: `list`, `clear`, `prune` (`--older-than` / `--keep-last` / `--dry-run`), `rebuild-index`.
 
-First real release. All phases of the v0 spec shipped.
+### Features — lint + config
 
-### Added
-- **Phase 3: Render.** `jellycell render` produces self-contained HTML reports under `reports/`. Supports `--standalone` to base64-inline images. Templates use jinja2; code highlighting via Pygments; markdown via markdown-it-py + MyST plugins.
-- **Phase 4: Live viewer.** `jellycell view` serves a Starlette + SSE app with live reload on file changes. Routes: `/`, `/nb/<stem>`, `/artifacts/<...>`, `/api/state.json`, `/events`. Read-only. Requires the `[server]` extra.
-- **Phase 5: Export.** `jellycell export ipynb <nb>` produces a runnable `.ipynb` with cached outputs reattached. `jellycell export md <nb>` produces MyST markdown for Sphinx / Jupyter Book integration.
-- **Phase 6: Agent surface.** `jellycell prompt` emits the canonical agent guide — spec §10.3 contract. `jellycell new <name>` scaffolds a notebook from the starter template.
-- Docs: `getting-started.md`, `file-format.md`, `project-layout.md`, `cli-reference.md`, `agent-guide.md` are all authoritative. CLI reference auto-generated via `sphinxcontrib-typer`.
-- Examples: `examples/minimal/` (smallest-possible project) and `examples/demo/` (tour of cell types + `jc.*` API). `.claude/launch.json` points Claude Code's preview server at the demo.
+- **`jellycell lint`** with fixers: `layout`, `pep723-position`, `enforce-artifact-paths`, `enforce-declared-deps`, `warn-on-large-cell-output`.
+- **`jellycell init`** scaffolds a project with `jellycell.toml`, the canonical directory layout, and a starter notebook.
+- **`jellycell new <name>`** scaffolds a new notebook from the starter template.
 
-### Notes
-- Three §10 contracts locked: cache key algorithm (`_version.MINOR_VERSION`), `--json` schemas (`schema_version: 1`), agent guide content.
-- Future minor releases: more lint rules (`enforce_artifact_paths`, `enforce_declared_deps`, `warn_on_large_cell_output` — config gates exist; implementations deferred).
+### Features — render + view
 
-## [0.0.2] — 2026-04-17
+- **`jellycell render`** produces self-contained HTML under `reports/`. Templates use jinja2; code highlighting via Pygments; markdown via markdown-it-py + MyST plugins.
+- **`jellycell view`** (needs `[server]` extra) serves a Starlette + SSE app with live-reload on file changes. Routes: `/`, `/nb/<stem>`, `/artifacts/<...>`, `/_assets/<...>`, `/api/state.json`, `/events`. Read-only.
+- **Unified asset layout** (`reports/_assets/`): static render and the live server share one content-addressed asset tree. HTML is byte-identical across both paths.
+- **Security warning on non-loopback `jellycell view`.** Binding `--host 0.0.0.0` (or any non-`127.0.0.1`/`localhost`/`::1` host) prints a banner about the exposure.
 
-### Added
-- `jellycell run <notebook>` — execute a notebook via a subprocess Jupyter kernel, with per-cell content-addressed caching.
-- `jc.*` API (`save`, `figure`, `table`, `load`, `path`, `deps`, `cache`, `ctx`) — works inside a run and as a plain script (standalone mode).
-- `jellycell cache list`, `jellycell cache clear`, `jellycell cache rebuild-index`.
-- Cell execution manifests on disk (`.jellycell/cache/manifests/*.json`) plus SQLite catalogue accelerator (`state.db`).
-- Cache-key spec §10.2 locked by a regression snapshot (`tests/unit/test_hashing.py`).
-- Integration tests exercising real Jupyter kernels.
+### Features — export
 
-### Changed
-- `src/jellycell/__main__.py` now delegates to `jellycell.cli.app:app`.
-- `[project.scripts]` re-enabled in `pyproject.toml` now that `jellycell.cli.app` exists.
+- **`jellycell export ipynb <nb>`** produces a runnable `.ipynb` with cached outputs reattached. `execution_count` matches nbformat convention (last `execute_result`, not first).
+- **`jellycell export md <nb>`** produces MyST markdown for Sphinx / Jupyter Book integration.
 
-## [0.0.1] — 2026-04-17
+### Features — agent surface
 
-### Added
-- Package skeleton, CI, and PyPI trusted-publisher release pipeline.
-- Sphinx docs on ReadTheDocs with frozen v0 spec at `docs/spec/v0.md`.
-- Claude Code project infrastructure: CLAUDE.md, slash commands, subagent, skills for spec-invariant enforcement.
+- **`jellycell prompt`** emits the canonical agent guide — a single markdown doc covering layout, format, tags, API, and CLI reference. Content is the §10.3 stability contract; pinned by a regression snapshot.
+- Every CLI command supports `--json` with a versioned schema (§10.1). Shapes pinned by per-command regression snapshots.
 
-### Notes
-- This release is scaffolding only. No user-facing commands work yet.
-- PyPI name is reserved; trusted publisher flow is verified end-to-end.
+### Docs + infra
 
-[Unreleased]: https://github.com/random-walks/jellycell/compare/v0.2.0...HEAD
-[0.2.0]: https://github.com/random-walks/jellycell/releases/tag/v0.2.0
-[0.1.0]: https://github.com/random-walks/jellycell/releases/tag/v0.1.0
-[0.0.2]: https://github.com/random-walks/jellycell/releases/tag/v0.0.2
-[0.0.1]: https://github.com/random-walks/jellycell/releases/tag/v0.0.1
+- Docs on Read the Docs: getting-started, file-format, project-layout, cli-reference, agent-guide, plus the frozen v0 spec and dev guides.
+- Examples: `minimal/`, `demo/`, `timeseries/`. CI runs every example notebook end-to-end.
+- Claude Code infra: CLAUDE.md, slash commands (`/spec-check`, `/phase-status`), subagents, skills (`spec-invariant`, `phase-budget`, `piggyback-first`).
+- Release pipeline on PyPI via trusted publisher (OIDC).
+
+### Contracts locked (§10)
+
+1. **`--json` schemas** (`schema_version: 1`). Pinned by `tests/integration/test_json_schemas.py`.
+2. **Cache key algorithm** (`MINOR_VERSION = 1`). Pinned by `tests/unit/test_hashing.py`.
+3. **Agent guide content** (`jellycell prompt`). Pinned by `tests/unit/test_prompt_snapshot.py`.
+
+Each contract has a documented ceremony for changes — see [docs/development/releasing.md](docs/development/releasing.md) and CLAUDE.md.
+
+### Known limitations
+
+- `cache prune` removes manifests but not blobs. diskcache deduplicates content-addressed storage so disk impact is small; a ref-counted blob GC lands in a future release.
+- `jc.cache` argument hashing uses pickle. Unpicklable inputs raise clearly at call time; a JSON-default fallback can come later.
+
+[Unreleased]: https://github.com/random-walks/jellycell/compare/v1.0.0...HEAD
+[1.0.0]: https://github.com/random-walks/jellycell/releases/tag/v1.0.0

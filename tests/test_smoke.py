@@ -1,7 +1,4 @@
-"""Phase 0 smoke test — proves the package imports and version constants work.
-
-Purpose: give CI something to run. Replace with real suite as Phase 1+2 land.
-"""
+"""Smoke test — proves the package imports and version constants work."""
 
 from __future__ import annotations
 

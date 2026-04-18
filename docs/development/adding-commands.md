@@ -1,9 +1,5 @@
 # Adding a CLI command
 
-:::{warning}
-This page describes the Phase 1+ pattern. Apply once `jellycell.cli.app` exists.
-:::
-
 Every CLI command is one file under `src/jellycell/cli/commands/`. The typer app auto-registers them.
 
 ## Pattern

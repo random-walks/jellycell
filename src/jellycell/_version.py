@@ -1,33 +1,29 @@
-"""Version and spec-minor-version constants.
+"""Version and cache-key-version constants.
 
-``__version__`` follows semver; hatchling reads it for build metadata.
+``__version__`` is the public semver string. Hatchling reads it for build
+metadata. The versioning policy lives in
+:doc:`docs/development/releasing.md` — tl;dr: **patch-bump freely, minor
+for additive features, major only for breaking contracts**.
 
-``MINOR_VERSION`` is a component of the cache key (see spec §2.3 / §10.2).
-BUMP IT whenever:
+``MINOR_VERSION`` is a separate counter baked into the cache key so stale
+entries invalidate cleanly when the hash algorithm changes. It is **not**
+semver — it only moves when something in :mod:`jellycell.cache.hashing`
+(normalization, which inputs go in, or how they're combined) changes, or
+when a cached pydantic schema gains/renames a field.
 
-- :mod:`jellycell.cache.hashing` behavior changes (normalization,
-  which inputs go into the hash, or how they're combined).
-- Any pydantic JSON schema in the cache gains or renames a field.
-
-This forces all caches to invalidate cleanly on upgrade. See CLAUDE.md
-for the full ceremony.
+See CLAUDE.md and spec §10 for the full contract.
 """
 
 from __future__ import annotations
 
-__version__ = "0.2.0"
+__version__ = "1.0.0"
 
-MINOR_VERSION: int = 2
-"""Spec §10.2 contract: cache-key minor version. Bump on behavior change.
+MINOR_VERSION: int = 1
+"""Spec §10.2 cache-key counter. Bump on any cache/hashing behavior change.
 
-v2 (this release):
-  - Runner now resolves implicit deps from ``jc.load`` calls via the artifact
-    lineage index.
-  - Runner now AST-walks ``jc.deps("a", "b")`` calls statically so they enter
-    the cache key before the cell runs (was: runtime-only, too late).
-  - ``env_hash`` prefers lockfile (``uv.lock`` / ``poetry.lock``) bytes over
-    the PEP-723 dependency list when available.
+Post-1.0 bumps should be rare and each one gets a one-line note below with
+the date and what changed — so future agents can trace the history.
 
-v1 (original):
-  - Source + tag-declared deps + PEP-723-only env_hash + MINOR_VERSION.
+- v1 (2026-04-18, initial): source + sorted dep keys + env_hash (lockfile
+  preferred, PEP-723 fallback) + MINOR_VERSION.
 """
