@@ -110,7 +110,7 @@ def export_md_cmd(
 
 @export_app.command(
     "tearsheet",
-    help="Curated markdown tearsheet (manuscripts/<stem>.md) — figures + JSON summaries, no code dump.",
+    help="Curated markdown tearsheet → manuscripts/tearsheets/<stem>.md.",
 )
 def export_tearsheet_cmd(
     ctx: typer.Context,
@@ -119,14 +119,19 @@ def export_tearsheet_cmd(
         None,
         "--output",
         "-o",
-        help="Write to this path instead of manuscripts/<stem>.md.",
+        help="Write to this path instead of the default manuscripts/tearsheets/<stem>.md.",
     ),
 ) -> None:
-    """Write a curated markdown tearsheet. Defaults to ``manuscripts/<stem>.md``.
+    """Write a curated markdown tearsheet.
+
+    Defaults to ``manuscripts/tearsheets/<stem>.md`` so the auto-generated
+    subfolder stays separate from the hand-authored writeups that live at
+    the root of ``manuscripts/`` (paper drafts, memos, thesis chapters).
+    Use ``-o PATH`` to target anywhere else.
 
     Unlike ``export md``, this skips code source by default and only inlines
     what renders naturally in markdown (figures, JSON summaries, setup cells).
-    The result is safe to commit and renders on GitHub.
+    The result is safe to commit and renders inline on GitHub.
     """
     opts: GlobalOptions = ctx.obj
     opts_obj: GlobalOptions = ctx.obj
@@ -139,7 +144,8 @@ def export_tearsheet_cmd(
     store = CacheStore(project.cache_dir)
     try:
         manifests = _load_manifests(project, notebook_rel, store)
-        target = output.resolve() if output else project.manuscripts_dir / f"{source.stem}.md"
+        default_target = project.manuscripts_dir / "tearsheets" / f"{source.stem}.md"
+        target = output.resolve() if output else default_target
         target.parent.mkdir(parents=True, exist_ok=True)
         export_tearsheet(source, manifests, target, project.root)
     finally:

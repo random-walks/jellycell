@@ -89,9 +89,12 @@ jellycell view --host 0.0.0.0 --port 8080
 - `export ipynb` — `.ipynb` with cached outputs reattached.
 - `export md` — MyST markdown (full notebook + every cell's outputs).
 - `export tearsheet [-o PATH]` — curated markdown tearsheet. Defaults to
-  `manuscripts/<stem>.md`. Includes markdown narration, inlined image
-  artifacts via relative paths, and JSON summaries flattened as
-  two-column tables. Safe to commit; GitHub renders it inline.
+  `manuscripts/tearsheets/<stem>.md` so the auto-generated subfolder stays
+  separate from hand-authored writeups at the root of `manuscripts/`.
+  Includes markdown narration, inlined image artifacts via relative
+  paths, JSON summaries flattened as two-column tables, and a header
+  link to `reports/<stem>.html` when it exists. Safe to commit; GitHub
+  renders it inline.
 
 ### `jellycell new <name>`
 

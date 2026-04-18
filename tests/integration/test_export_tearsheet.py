@@ -86,7 +86,7 @@ def test_tearsheet_inlines_json_summary_end_to_end(tmp_path: Path) -> None:
     assert 'jc.save({"mean"' not in text
 
 
-def test_cli_tearsheet_writes_to_manuscripts(tmp_path: Path) -> None:
+def test_cli_tearsheet_writes_to_tearsheets_subfolder(tmp_path: Path) -> None:
     project, nb_path = _bootstrap(tmp_path)
     runner = CliRunner()
     result = runner.invoke(
@@ -94,8 +94,11 @@ def test_cli_tearsheet_writes_to_manuscripts(tmp_path: Path) -> None:
         ["--project", str(project.root), "export", "tearsheet", str(nb_path)],
     )
     assert result.exit_code == 0, result.output
-    expected = project.manuscripts_dir / "report.md"
+    expected = project.manuscripts_dir / "tearsheets" / "report.md"
     assert expected.exists()
+    # Root manuscripts/ must stay untouched so hand-authored drafts there
+    # aren't colliding with auto-generated files.
+    assert not (project.manuscripts_dir / "report.md").exists()
     assert "# Integration tearsheet" in expected.read_text(encoding="utf-8")
 
 
@@ -110,7 +113,7 @@ def test_cli_tearsheet_json_output(tmp_path: Path) -> None:
     payload = json.loads(result.stdout)
     assert payload["format"] == "tearsheet"
     assert payload["source"] == "notebooks/report.py"
-    assert payload["output"].endswith("manuscripts/report.md")
+    assert payload["output"].endswith("manuscripts/tearsheets/report.md")
 
 
 def test_cli_tearsheet_output_override(tmp_path: Path) -> None:
@@ -131,5 +134,5 @@ def test_cli_tearsheet_output_override(tmp_path: Path) -> None:
     )
     assert result.exit_code == 0, result.output
     assert custom.exists()
-    # manuscripts/ default should NOT have been written to.
-    assert not (project.manuscripts_dir / "report.md").exists()
+    # Default subfolder location should NOT have been written to.
+    assert not (project.manuscripts_dir / "tearsheets" / "report.md").exists()

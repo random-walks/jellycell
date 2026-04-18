@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="generator" content="jellycell">
-<meta name="jellycell:notebook" content="notebooks/tour.py">
-<title>tour — demo</title>
+<meta name="jellycell:notebook" content="notebooks/02-decompose.py">
+<title>02-decompose — timeseries</title>
 <style>
 :root {
   --bg: #fefefe;
@@ -435,11 +435,13 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <body class="jc-layout">
 <header class="jc-header">
   <nav class="jc-breadcrumb">
-    <a href="index.html">demo</a>
+    <a href="index.html">timeseries</a>
     <span class="sep">/</span>
-    <span>notebooks/tour.py</span>
+    <span>notebooks/02-decompose.py</span>
   </nav>
   <nav class="jc-prevnext">
+    <a class="jc-prev" href="01-explore.html" title="Previous notebook">← 01-explore</a>
+    <a class="jc-next" href="03-forecast.html" title="Next notebook">03-forecast →</a>
   </nav>
 </header>
 <div class="jc-shell">
@@ -448,43 +450,45 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
       <h3>Contents</h3>
       <ul class="jc-toc">
         <li class="jc-toc-lvl-1 jc-toc-heading">
-          <a href="#cell-0">jellycell tour</a>
-        </li>
-        <li class="jc-toc-lvl-2 jc-toc-heading">
-          <a href="#cell-1">1. Config — a `kind=setup` cell</a>
+          <a href="#cell-0">Decompose — trend, seasonality, residuals</a>
         </li>
         <li class="jc-toc-lvl-3 jc-toc-code">
-          <a href="#cell-2">config</a>
-        </li>
-        <li class="jc-toc-lvl-2 jc-toc-heading">
-          <a href="#cell-3">2. Load — simulate reading project inputs</a>
+          <a href="#cell-1">loaded</a>
         </li>
         <li class="jc-toc-lvl-3 jc-toc-code">
-          <a href="#cell-4">raw</a>
-        </li>
-        <li class="jc-toc-lvl-2 jc-toc-heading">
-          <a href="#cell-5">3. Transform with an explicit dep</a>
+          <a href="#cell-2">trend</a>
         </li>
         <li class="jc-toc-lvl-3 jc-toc-code">
-          <a href="#cell-6">rate</a>
-        </li>
-        <li class="jc-toc-lvl-2 jc-toc-heading">
-          <a href="#cell-7">4. Persist a JSON summary via `jc.save`</a>
+          <a href="#cell-3">seasonality</a>
         </li>
         <li class="jc-toc-lvl-3 jc-toc-code">
-          <a href="#cell-8">summary</a>
-        </li>
-        <li class="jc-toc-lvl-2 jc-toc-heading">
-          <a href="#cell-9">5. Round-trip via `jc.load`</a>
+          <a href="#cell-4">residuals</a>
         </li>
         <li class="jc-toc-lvl-3 jc-toc-code">
-          <a href="#cell-10">roundtrip</a>
-        </li>
-        <li class="jc-toc-lvl-2 jc-toc-heading">
-          <a href="#cell-11">6. Derived metric — exercises cache invalidation</a>
+          <a href="#cell-5">persist</a>
         </li>
         <li class="jc-toc-lvl-3 jc-toc-code">
-          <a href="#cell-12">derived</a>
+          <a href="#cell-6">decomp_plot</a>
+        </li>
+      </ul>
+    </section>
+    <section>
+      <h3>Notebooks</h3>
+      <ul class="jc-sibling-list">
+        <li>
+          <a href="01-explore.html">
+            01-explore
+          </a>
+        </li>
+        <li>
+          <a href="02-decompose.html" aria-current="page">
+            02-decompose
+          </a>
+        </li>
+        <li>
+          <a href="03-forecast.html">
+            03-forecast
+          </a>
         </li>
       </ul>
     </section>
@@ -492,8 +496,8 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
   <main class="jc-main">
     <article class="jc-notebook">
       <header class="jc-title">
-        <h1>tour</h1>
-        <p class="jc-path">notebooks/tour.py</p>
+        <h1>02-decompose</h1>
+        <p class="jc-path">notebooks/02-decompose.py</p>
       </header>
       <section class="jc-cells">
 <section class="jc-cell jc-cell-markdown" id="cell-0" data-cell-id="0">
@@ -504,144 +508,122 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
   </header>
   <div class="jc-cell-body">
     <div class="jc-cell-source">
-<h1>jellycell tour</h1>
-<p>Exercises the core <code>jc.*</code> API without external deps. Run with
-<code>jellycell run notebooks/tour.py</code>, then <code>jellycell export tearsheet notebooks/tour.py</code> to drop a curated summary into <code>manuscripts/</code>.</p>
+<h1>Decompose — trend, seasonality, residuals</h1>
+<p>Loads the Parquet artifact from <code>01-explore.py</code>, splits the series into
+three components using classical additive decomposition:</p>
+<p>[ y_t = T_t + S_t + R_t ]</p>
+<p>where the trend <code>T</code> is a centered 7-day rolling mean, the seasonality <code>S</code> is
+the average detrended value by weekday, and the residual <code>R</code> is whatever's
+left. All three are persisted as artifacts.</p>
 
     </div>
   </div>
 </section>
-<section class="jc-cell jc-cell-markdown" id="cell-1" data-cell-id="1">
+<section class="jc-cell jc-cell-code" id="cell-1" data-cell-id="1">
   <header class="jc-cell-head">
     <a class="jc-cell-ordinal" href="#cell-1" title="Link to this cell">#1</a>
-    <span class="jc-cell-kind jc-cell-kind-step">jc.step</span>
+<span class="jc-cell-name">loaded</span>    <span class="jc-cell-kind jc-cell-kind-load">jc.load</span>
+    <span class="jc-cell-stats">
+      <span class="jc-status jc-status-ok">ok</span>
+      <span class="jc-timing">338 ms</span>
+    </span>
     <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
   </header>
   <div class="jc-cell-body">
     <div class="jc-cell-source">
-<h2>1. Config — a <code>kind=setup</code> cell</h2>
-<p>Setup cells surface their source in the tearsheet so parameters are
-obvious at a glance.</p>
+<div class="jc-code"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
+<span class="kn">import</span><span class="w"> </span><span class="nn">jellycell.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jc</span>
+
+<span class="n">df</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span> <span class="o">=</span> <span class="n">jc</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;artifacts/daily.parquet&quot;</span><span class="p">)</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">df</span><span class="o">.</span><span class="n">set_index</span><span class="p">(</span><span class="s2">&quot;date&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">head</span><span class="p">())</span>
+</pre></div>
+
+    </div>
+    <div class="jc-cell-outputs">
+<pre class="jc-stream jc-stdout">                 value
+date                  
+2025-01-01  100.914151
+2025-01-02   96.934993
+2025-01-03  102.361244
+2025-01-04  107.986529
+2025-01-05   99.366675
+</pre>
     </div>
   </div>
 </section>
 <section class="jc-cell jc-cell-code" id="cell-2" data-cell-id="2">
   <header class="jc-cell-head">
     <a class="jc-cell-ordinal" href="#cell-2" title="Link to this cell">#2</a>
-<span class="jc-cell-name">config</span>    <span class="jc-cell-kind jc-cell-kind-setup">jc.setup</span>
+<span class="jc-cell-name">trend</span>    <span class="jc-cell-deps">
+      deps:
+<code>loaded</code>    </span>
     <span class="jc-cell-stats">
       <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">129 ms</span>
+      <span class="jc-timing">5 ms</span>
     </span>
     <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
   </header>
   <div class="jc-cell-body">
     <div class="jc-cell-source">
-<div class="jc-code"><pre><span></span><span class="n">USERS</span> <span class="o">=</span> <span class="mi">120</span>
-<span class="n">SESSIONS</span> <span class="o">=</span> <span class="mi">450</span>
-<span class="n">CONVERSIONS</span> <span class="o">=</span> <span class="mi">38</span>
+<div class="jc-code"><pre><span></span><span class="n">trend</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">rolling</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="n">center</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;trend span: </span><span class="si">{</span><span class="n">trend</span><span class="o">.</span><span class="n">first_valid_index</span><span class="p">()</span><span class="o">.</span><span class="n">date</span><span class="p">()</span><span class="si">}</span><span class="s2"> </span><span class="se">\u2013</span><span class="s2"> </span><span class="si">{</span><span class="n">trend</span><span class="o">.</span><span class="n">last_valid_index</span><span class="p">()</span><span class="o">.</span><span class="n">date</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 
     </div>
+    <div class="jc-cell-outputs">
+<pre class="jc-stream jc-stdout">trend span: 2025-01-04 – 2025-12-28
+</pre>
+    </div>
   </div>
 </section>
-<section class="jc-cell jc-cell-markdown" id="cell-3" data-cell-id="3">
+<section class="jc-cell jc-cell-code" id="cell-3" data-cell-id="3">
   <header class="jc-cell-head">
     <a class="jc-cell-ordinal" href="#cell-3" title="Link to this cell">#3</a>
-    <span class="jc-cell-kind jc-cell-kind-step">jc.step</span>
+<span class="jc-cell-name">seasonality</span>    <span class="jc-cell-deps">
+      deps:
+<code>trend</code>    </span>
+    <span class="jc-cell-stats">
+      <span class="jc-status jc-status-ok">ok</span>
+      <span class="jc-timing">9 ms</span>
+    </span>
     <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
   </header>
   <div class="jc-cell-body">
     <div class="jc-cell-source">
-<h2>2. Load — simulate reading project inputs</h2>
-<p>Real projects would read from <code>data/</code>; we keep this demo dep-free by
-constructing a literal.</p>
+<div class="jc-code"><pre><span></span><span class="n">detrended</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">trend</span>
+<span class="n">by_dow</span> <span class="o">=</span> <span class="n">detrended</span><span class="o">.</span><span class="n">groupby</span><span class="p">(</span><span class="n">detrended</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">dayofweek</span><span class="p">)</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span>
+<span class="n">seasonality</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">by_dow</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="o">.</span><span class="n">dayofweek</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">df</span><span class="o">.</span><span class="n">index</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;mean seasonal effect by weekday:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span>
+    <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">{</span><span class="s2">&quot;dow&quot;</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;Mon&quot;</span><span class="p">,</span> <span class="s2">&quot;Tue&quot;</span><span class="p">,</span> <span class="s2">&quot;Wed&quot;</span><span class="p">,</span> <span class="s2">&quot;Thu&quot;</span><span class="p">,</span> <span class="s2">&quot;Fri&quot;</span><span class="p">,</span> <span class="s2">&quot;Sat&quot;</span><span class="p">,</span> <span class="s2">&quot;Sun&quot;</span><span class="p">],</span> <span class="s2">&quot;effect&quot;</span><span class="p">:</span> <span class="n">by_dow</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">}</span>
+    <span class="p">)</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">index</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+<span class="p">)</span>
+</pre></div>
 
+    </div>
+    <div class="jc-cell-outputs">
+<pre class="jc-stream jc-stdout">mean seasonal effect by weekday:
+dow  effect
+Mon   -3.29
+Tue   -0.93
+Wed   -0.93
+Thu   -0.83
+Fri   -1.11
+Sat    4.28
+Sun    2.80
+</pre>
     </div>
   </div>
 </section>
 <section class="jc-cell jc-cell-code" id="cell-4" data-cell-id="4">
   <header class="jc-cell-head">
     <a class="jc-cell-ordinal" href="#cell-4" title="Link to this cell">#4</a>
-<span class="jc-cell-name">raw</span>    <span class="jc-cell-kind jc-cell-kind-load">jc.load</span>
-    <span class="jc-cell-stats">
-      <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">4 ms</span>
-    </span>
-    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
-  </header>
-  <div class="jc-cell-body">
-    <div class="jc-cell-source">
-<div class="jc-code"><pre><span></span><span class="n">raw</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;users&quot;</span><span class="p">:</span> <span class="n">USERS</span><span class="p">,</span> <span class="s2">&quot;sessions&quot;</span><span class="p">:</span> <span class="n">SESSIONS</span><span class="p">,</span> <span class="s2">&quot;conversions&quot;</span><span class="p">:</span> <span class="n">CONVERSIONS</span><span class="p">}</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;loaded </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span><span class="si">}</span><span class="s2"> metrics&quot;</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-    <div class="jc-cell-outputs">
-<pre class="jc-stream jc-stdout">loaded 3 metrics
-</pre>
-    </div>
-  </div>
-</section>
-<section class="jc-cell jc-cell-markdown" id="cell-5" data-cell-id="5">
-  <header class="jc-cell-head">
-    <a class="jc-cell-ordinal" href="#cell-5" title="Link to this cell">#5</a>
-    <span class="jc-cell-kind jc-cell-kind-step">jc.step</span>
-    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
-  </header>
-  <div class="jc-cell-body">
-    <div class="jc-cell-source">
-<h2>3. Transform with an explicit dep</h2>
-
-    </div>
-  </div>
-</section>
-<section class="jc-cell jc-cell-code" id="cell-6" data-cell-id="6">
-  <header class="jc-cell-head">
-    <a class="jc-cell-ordinal" href="#cell-6" title="Link to this cell">#6</a>
-<span class="jc-cell-name">rate</span>    <span class="jc-cell-deps">
+<span class="jc-cell-name">residuals</span>    <span class="jc-cell-deps">
       deps:
-<code>raw</code>    </span>
-    <span class="jc-cell-stats">
-      <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">4 ms</span>
-    </span>
-    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
-  </header>
-  <div class="jc-cell-body">
-    <div class="jc-cell-source">
-<div class="jc-code"><pre><span></span><span class="n">conversion_rate</span> <span class="o">=</span> <span class="n">raw</span><span class="p">[</span><span class="s2">&quot;conversions&quot;</span><span class="p">]</span> <span class="o">/</span> <span class="n">raw</span><span class="p">[</span><span class="s2">&quot;sessions&quot;</span><span class="p">]</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;conversion rate: </span><span class="si">{</span><span class="n">conversion_rate</span><span class="si">:</span><span class="s2">.2%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-    <div class="jc-cell-outputs">
-<pre class="jc-stream jc-stdout">conversion rate: 8.44%
-</pre>
-    </div>
-  </div>
-</section>
-<section class="jc-cell jc-cell-markdown" id="cell-7" data-cell-id="7">
-  <header class="jc-cell-head">
-    <a class="jc-cell-ordinal" href="#cell-7" title="Link to this cell">#7</a>
-    <span class="jc-cell-kind jc-cell-kind-step">jc.step</span>
-    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
-  </header>
-  <div class="jc-cell-body">
-    <div class="jc-cell-source">
-<h2>4. Persist a JSON summary via <code>jc.save</code></h2>
-<p>The tearsheet auto-renders the saved JSON as a key/value table.</p>
-
-    </div>
-  </div>
-</section>
-<section class="jc-cell jc-cell-code" id="cell-8" data-cell-id="8">
-  <header class="jc-cell-head">
-    <a class="jc-cell-ordinal" href="#cell-8" title="Link to this cell">#8</a>
-<span class="jc-cell-name">summary</span>    <span class="jc-cell-deps">
-      deps:
-<code>rate</code>    </span>
+<code>trend</code> <code>seasonality</code>    </span>
     <span class="jc-cell-stats">
       <span class="jc-status jc-status-ok">ok</span>
       <span class="jc-timing">6 ms</span>
@@ -650,113 +632,102 @@ constructing a literal.</p>
   </header>
   <div class="jc-cell-body">
     <div class="jc-cell-source">
-<div class="jc-code"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">jellycell.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jc</span>
-
-<span class="n">summary</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;total_users&quot;</span><span class="p">:</span> <span class="n">raw</span><span class="p">[</span><span class="s2">&quot;users&quot;</span><span class="p">],</span>
-    <span class="s2">&quot;total_sessions&quot;</span><span class="p">:</span> <span class="n">raw</span><span class="p">[</span><span class="s2">&quot;sessions&quot;</span><span class="p">],</span>
-    <span class="s2">&quot;conversion_rate&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">conversion_rate</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
-    <span class="s2">&quot;conversions&quot;</span><span class="p">:</span> <span class="n">raw</span><span class="p">[</span><span class="s2">&quot;conversions&quot;</span><span class="p">],</span>
-<span class="p">}</span>
-<span class="n">jc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="s2">&quot;artifacts/summary.json&quot;</span><span class="p">)</span>
+<div class="jc-code"><pre><span></span><span class="n">residuals</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="n">trend</span> <span class="o">-</span> <span class="n">seasonality</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;residual std: </span><span class="si">{</span><span class="n">residuals</span><span class="o">.</span><span class="n">std</span><span class="p">()</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;residual mean: </span><span class="si">{</span><span class="n">residuals</span><span class="o">.</span><span class="n">mean</span><span class="p">()</span><span class="si">:</span><span class="s2">.3f</span><span class="si">}</span><span class="s2"> (should be near 0)&quot;</span><span class="p">)</span>
 </pre></div>
 
     </div>
     <div class="jc-cell-outputs">
-<pre class="jc-text-plain">PosixPath(&#x27;/Users/blaise/Desktop/blaise-oss/jellycell/examples/demo/artifacts/summary.json&#x27;)</pre>
+<pre class="jc-stream jc-stdout">residual std: 2.618
+residual mean: -0.000 (should be near 0)
+</pre>
+    </div>
+  </div>
+</section>
+<section class="jc-cell jc-cell-code" id="cell-5" data-cell-id="5">
+  <header class="jc-cell-head">
+    <a class="jc-cell-ordinal" href="#cell-5" title="Link to this cell">#5</a>
+<span class="jc-cell-name">persist</span>    <span class="jc-cell-deps">
+      deps:
+<code>trend</code> <code>seasonality</code> <code>residuals</code>    </span>
+    <span class="jc-cell-stats">
+      <span class="jc-status jc-status-ok">ok</span>
+      <span class="jc-timing">8 ms</span>
+    </span>
+    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
+  </header>
+  <div class="jc-cell-body">
+    <div class="jc-cell-source">
+<div class="jc-code"><pre><span></span><span class="n">decomposed</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+    <span class="p">{</span>
+        <span class="s2">&quot;observed&quot;</span><span class="p">:</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">],</span>
+        <span class="s2">&quot;trend&quot;</span><span class="p">:</span> <span class="n">trend</span><span class="p">,</span>
+        <span class="s2">&quot;seasonal&quot;</span><span class="p">:</span> <span class="n">seasonality</span><span class="p">,</span>
+        <span class="s2">&quot;residual&quot;</span><span class="p">:</span> <span class="n">residuals</span><span class="p">,</span>
+    <span class="p">}</span>
+<span class="p">)</span><span class="o">.</span><span class="n">reset_index</span><span class="p">()</span>
+<span class="n">jc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">decomposed</span><span class="p">,</span> <span class="s2">&quot;artifacts/decomposed.parquet&quot;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+    <div class="jc-cell-outputs">
+<pre class="jc-text-plain">PosixPath(&#x27;/Users/blaise/Desktop/blaise-oss/jellycell/examples/timeseries/artifacts/decomposed.parquet&#x27;)</pre>
     </div>
     <div class="jc-cell-artifacts">
       <span class="jc-label">artifacts</span>
-      <a class="jc-artifact-chip" href="/artifacts/summary.json" download="summary.json" title="artifacts/summary.json">
-        <span class="jc-chip-name">summary.json</span>
-        <span class="jc-chip-size">99 B</span>
+      <a class="jc-artifact-chip" href="/artifacts/decomposed.parquet" download="decomposed.parquet" title="artifacts/decomposed.parquet">
+        <span class="jc-chip-name">decomposed.parquet</span>
+        <span class="jc-chip-size">16.5 KB</span>
       </a>
     </div>
   </div>
 </section>
-<section class="jc-cell jc-cell-markdown" id="cell-9" data-cell-id="9">
+<section class="jc-cell jc-cell-code" id="cell-6" data-cell-id="6">
   <header class="jc-cell-head">
-    <a class="jc-cell-ordinal" href="#cell-9" title="Link to this cell">#9</a>
-    <span class="jc-cell-kind jc-cell-kind-step">jc.step</span>
-    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
-  </header>
-  <div class="jc-cell-body">
-    <div class="jc-cell-source">
-<h2>5. Round-trip via <code>jc.load</code></h2>
-<p><code>jc.load</code> registers an implicit dep edge on the producing cell
-(<code>name=summary</code>). Edit the summary cell → this cell's cache invalidates
-automatically, no hand-written <code>deps=</code> needed.</p>
-
-    </div>
-  </div>
-</section>
-<section class="jc-cell jc-cell-code" id="cell-10" data-cell-id="10">
-  <header class="jc-cell-head">
-    <a class="jc-cell-ordinal" href="#cell-10" title="Link to this cell">#10</a>
-<span class="jc-cell-name">roundtrip</span>    <span class="jc-cell-stats">
-      <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">5 ms</span>
-    </span>
-    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
-  </header>
-  <div class="jc-cell-body">
-    <div class="jc-cell-source">
-<div class="jc-code"><pre><span></span><span class="n">reloaded</span> <span class="o">=</span> <span class="n">jc</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;artifacts/summary.json&quot;</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">reloaded</span> <span class="o">==</span> <span class="n">summary</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;reloaded </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">reloaded</span><span class="p">)</span><span class="si">}</span><span class="s2"> keys: </span><span class="si">{</span><span class="nb">sorted</span><span class="p">(</span><span class="n">reloaded</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-    <div class="jc-cell-outputs">
-<pre class="jc-stream jc-stdout">reloaded 4 keys: [&#x27;conversion_rate&#x27;, &#x27;conversions&#x27;, &#x27;total_sessions&#x27;, &#x27;total_users&#x27;]
-</pre>
-    </div>
-  </div>
-</section>
-<section class="jc-cell jc-cell-markdown" id="cell-11" data-cell-id="11">
-  <header class="jc-cell-head">
-    <a class="jc-cell-ordinal" href="#cell-11" title="Link to this cell">#11</a>
-    <span class="jc-cell-kind jc-cell-kind-step">jc.step</span>
-    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
-  </header>
-  <div class="jc-cell-body">
-    <div class="jc-cell-source">
-<h2>6. Derived metric — exercises cache invalidation</h2>
-<p>Change <code>CONVERSIONS</code> in the setup cell and only the downstream
-subgraph (<code>rate</code> → <code>summary</code> → this cell) re-runs.</p>
-
-    </div>
-  </div>
-</section>
-<section class="jc-cell jc-cell-code" id="cell-12" data-cell-id="12">
-  <header class="jc-cell-head">
-    <a class="jc-cell-ordinal" href="#cell-12" title="Link to this cell">#12</a>
-<span class="jc-cell-name">derived</span>    <span class="jc-cell-deps">
+    <a class="jc-cell-ordinal" href="#cell-6" title="Link to this cell">#6</a>
+<span class="jc-cell-name">decomp_plot</span>    <span class="jc-cell-kind jc-cell-kind-figure">jc.figure</span>
+    <span class="jc-cell-deps">
       deps:
-<code>summary</code>    </span>
+<code>persist</code>    </span>
     <span class="jc-cell-stats">
       <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">4 ms</span>
+      <span class="jc-timing">382 ms</span>
     </span>
     <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
   </header>
   <div class="jc-cell-body">
     <div class="jc-cell-source">
-<div class="jc-code"><pre><span></span><span class="n">headline</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">raw</span><span class="p">[</span><span class="s1">&#39;conversions&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="n">raw</span><span class="p">[</span><span class="s1">&#39;sessions&#39;</span><span class="p">]</span><span class="si">}</span><span class="s2"> sessions converted&quot;</span>
-<span class="n">jc</span><span class="o">.</span><span class="n">save</span><span class="p">({</span><span class="s2">&quot;headline&quot;</span><span class="p">:</span> <span class="n">headline</span><span class="p">},</span> <span class="s2">&quot;artifacts/headline.json&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">headline</span><span class="p">)</span>
+<div class="jc-code"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="n">fig</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">4</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">9</span><span class="p">),</span> <span class="n">sharex</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+<span class="n">plots</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="p">(</span><span class="s2">&quot;observed&quot;</span><span class="p">,</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;value&quot;</span><span class="p">],</span> <span class="s2">&quot;#1a1a1a&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;trend&quot;</span><span class="p">,</span> <span class="n">trend</span><span class="p">,</span> <span class="s2">&quot;#4f46e5&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;seasonal&quot;</span><span class="p">,</span> <span class="n">seasonality</span><span class="p">,</span> <span class="s2">&quot;#0891b2&quot;</span><span class="p">),</span>
+    <span class="p">(</span><span class="s2">&quot;residual&quot;</span><span class="p">,</span> <span class="n">residuals</span><span class="p">,</span> <span class="s2">&quot;#dc2626&quot;</span><span class="p">),</span>
+<span class="p">]</span>
+<span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="p">(</span><span class="n">label</span><span class="p">,</span> <span class="n">series</span><span class="p">,</span> <span class="n">color</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">plots</span><span class="p">,</span> <span class="n">strict</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">series</span><span class="o">.</span><span class="n">index</span><span class="p">,</span> <span class="n">series</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.1</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="n">label</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Additive decomposition&quot;</span><span class="p">)</span>
+<span class="n">axes</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Date&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">jc</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;artifacts/decomposition.png&quot;</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">)</span>
 </pre></div>
 
     </div>
     <div class="jc-cell-outputs">
-<pre class="jc-stream jc-stdout">38 of 450 sessions converted
-</pre>
+<pre class="jc-text-plain">PosixPath(&#x27;/Users/blaise/Desktop/blaise-oss/jellycell/examples/timeseries/artifacts/decomposition.png&#x27;)</pre>
+<pre class="jc-text-plain">&lt;Figure size 1000x900 with 4 Axes&gt;</pre>
+<img class="jc-image" src="_assets/eda42c77efd939d2.png" alt="" />
     </div>
     <div class="jc-cell-artifacts">
       <span class="jc-label">artifacts</span>
-      <a class="jc-artifact-chip" href="/artifacts/headline.json" download="headline.json" title="artifacts/headline.json">
-        <span class="jc-chip-name">headline.json</span>
-        <span class="jc-chip-size">48 B</span>
+      <a class="jc-artifact-chip" href="/artifacts/decomposition.png" download="decomposition.png" title="artifacts/decomposition.png">
+        <span class="jc-chip-name">decomposition.png</span>
+        <span class="jc-chip-size">172.9 KB</span>
       </a>
     </div>
   </div>

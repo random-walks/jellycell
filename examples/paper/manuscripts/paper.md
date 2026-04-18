@@ -1,9 +1,10 @@
 # Mortality trends (paper draft)
 
 A minimal manuscript showing how a jellycell project layers a hand-authored
-writeup (this file) on top of an auto-generated [tearsheet](tearsheet.md).
-Both reference the same `artifacts/` tree; edits to the notebook flow
-through to the tearsheet automatically while this narrative stays under the
+writeup (this file, at the root of `manuscripts/`) on top of an auto-generated
+[tearsheet](tearsheets/analysis.md) (under `manuscripts/tearsheets/`). Both
+reference the same `artifacts/` tree — edits to the notebook flow through
+to the tearsheet automatically while this narrative stays under the
 author's control.
 
 ## Background
@@ -44,7 +45,7 @@ nearly flat; JP and US both rise moderately.
 ```bash
 cd examples/paper
 jellycell run notebooks/analysis.py
-jellycell export tearsheet notebooks/analysis.py -o manuscripts/tearsheet.md
+jellycell export tearsheet notebooks/analysis.py    # → manuscripts/tearsheets/analysis.md
 jellycell render                                    # HTML catalogue
 ```
 

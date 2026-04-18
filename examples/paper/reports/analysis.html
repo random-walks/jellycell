@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en" data-jc-page="notebook">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="generator" content="jellycell">
+<meta name="jellycell:notebook" content="notebooks/analysis.py">
+<title>analysis — paper-2026</title>
+<style>
+:root {
+  --bg: #fefefe;
+  --fg: #1a1a1a;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+  --accent: #4f46e5;
+  --accent-weak: #eef2ff;
+  --code-bg: #f6f8fa;
+  --code-border: #e1e4e8;
+  --ok: #16a34a;
+  --error: #dc2626;
+  --cached: #0891b2;
+  --warning: #d97706;
+  --mono: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Inter, sans-serif;
+  --radius: 6px;
+  --shadow: 0 1px 2px rgba(0,0,0,.04);
+  --sidebar-width: 220px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  background: var(--bg);
+  color: var(--fg);
+  font: 15px/1.55 var(--sans);
+  margin: 0;
+  padding: 0;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* -------------------------------------------------------------- Header */
+
+.jc-header {
+  position: sticky; top: 0; z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 24px;
+}
+.jc-breadcrumb { display: flex; gap: 8px; align-items: center; color: var(--muted); font-size: 14px; flex: 1; }
+.jc-breadcrumb .sep { opacity: .5; }
+.jc-prevnext { display: flex; gap: 8px; font-size: 13px; }
+.jc-prevnext a {
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--muted);
+}
+.jc-prevnext a:hover { background: var(--accent-weak); color: var(--accent); text-decoration: none; }
+
+/* -------------------------------------------------------------- Shell / layout */
+
+.jc-shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+.jc-shell-index { grid-template-columns: minmax(0, 1fr); max-width: 960px; }
+
+@media (max-width: 760px) {
+  .jc-shell { grid-template-columns: 1fr; }
+  .jc-sidebar { display: none; }
+}
+
+.jc-main { min-width: 0; }
+
+/* -------------------------------------------------------------- Sidebar */
+
+.jc-sidebar {
+  position: sticky;
+  top: 60px;
+  align-self: start;
+  font-size: 13px;
+  max-height: calc(100vh - 80px);
+  overflow-y: auto;
+}
+.jc-sidebar h3 {
+  margin: 0 0 6px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .08em;
+  color: var(--muted);
+  font-weight: 600;
+}
+.jc-sidebar section + section { margin-top: 20px; }
+.jc-sidebar ul { list-style: none; margin: 0; padding: 0; }
+.jc-sidebar li { margin: 2px 0; }
+.jc-sidebar a {
+  display: block;
+  padding: 3px 8px;
+  border-radius: 4px;
+  color: var(--fg);
+  line-height: 1.4;
+}
+.jc-sidebar a:hover { background: var(--accent-weak); color: var(--accent); text-decoration: none; }
+.jc-sidebar a[aria-current="page"] { color: var(--accent); font-weight: 600; background: var(--accent-weak); }
+
+.jc-toc li.jc-toc-lvl-1 { font-weight: 600; }
+.jc-toc li.jc-toc-lvl-2 a { padding-left: 20px; }
+.jc-toc li.jc-toc-lvl-3 a { padding-left: 32px; font-size: 12px; color: var(--muted); }
+.jc-toc li.jc-toc-code a { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.jc-toc li.jc-toc-code a::before { content: "# "; color: var(--accent); opacity: .6; }
+
+/* -------------------------------------------------------------- Title */
+
+.jc-title h1 { margin: 0 0 4px; font-size: 28px; }
+.jc-path { color: var(--muted); font-family: var(--mono); font-size: 13px; margin: 0; }
+.jc-subtitle { color: var(--muted); margin: 0; }
+
+/* -------------------------------------------------------------- Cells */
+
+.jc-cells { margin-top: 32px; display: flex; flex-direction: column; gap: 16px; }
+
+.jc-cell {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  scroll-margin-top: 60px;
+}
+.jc-cell-markdown { border-color: transparent; box-shadow: none; background: transparent; }
+.jc-cell-markdown .jc-cell-head { display: none; }
+.jc-cell-markdown .jc-cell-source { padding: 0; background: transparent; }
+
+.jc-cell-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #fafbfc;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  color: var(--muted);
+}
+.jc-cell-ordinal { font-family: var(--mono); color: var(--muted); }
+.jc-cell-ordinal:hover { color: var(--accent); text-decoration: none; }
+.jc-cell-name { font-weight: 600; color: var(--fg); }
+.jc-cell-kind {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--accent-weak);
+  color: var(--accent);
+}
+.jc-cell-deps { font-family: var(--mono); font-size: 12px; color: var(--muted); }
+.jc-cell-deps code {
+  background: var(--accent-weak);
+  color: var(--accent);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+.jc-cell-stats { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+.jc-timing { font-family: var(--mono); font-size: 12px; }
+
+.jc-status {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .04em;
+}
+.jc-status-ok { background: #dcfce7; color: var(--ok); }
+.jc-status-cached { background: #cffafe; color: var(--cached); }
+.jc-status-error { background: #fee2e2; color: var(--error); }
+
+.jc-toggle {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  font-family: var(--mono);
+  font-size: 12px;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  color: var(--muted);
+  display: inline-flex; align-items: center; justify-content: center;
+}
+.jc-toggle:hover { background: var(--accent-weak); color: var(--accent); }
+
+.jc-cell-body { display: block; }
+.jc-cell[aria-collapsed="true"] .jc-cell-body { display: none; }
+
+/* -------------------------------------------------------------- Source */
+
+.jc-cell-source {
+  padding: 0;
+  background: var(--code-bg);
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.5;
+}
+.jc-cell-source pre,
+.jc-cell-source .highlight,
+.jc-cell-source .jc-code {
+  margin: 0;
+  padding: 12px 16px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+.jc-cell-markdown .jc-cell-source { font-size: 15px; font-family: var(--sans); }
+.jc-cell-markdown .jc-cell-source p,
+.jc-cell-markdown .jc-cell-source h2,
+.jc-cell-markdown .jc-cell-source h3,
+.jc-cell-markdown .jc-cell-source ul,
+.jc-cell-markdown .jc-cell-source ol,
+.jc-cell-markdown .jc-cell-source pre {
+  margin: 0 0 .8em;
+}
+.jc-cell-markdown .jc-cell-source h1 { font-size: 24px; margin-top: 24px; }
+.jc-cell-markdown .jc-cell-source h2 { font-size: 20px; margin-top: 20px; }
+.jc-cell-markdown .jc-cell-source h3 { font-size: 17px; margin-top: 16px; }
+.jc-cell-markdown .jc-cell-source code {
+  background: var(--code-bg);
+  padding: 1px 5px;
+  border-radius: 3px;
+  font-size: 90%;
+}
+
+/* -------------------------------------------------------------- Outputs */
+
+.jc-cell-outputs { border-top: 1px solid var(--border); padding: 12px 16px; display: flex; flex-direction: column; gap: 10px; }
+.jc-cell-outputs pre { margin: 0; white-space: pre-wrap; word-wrap: break-word; }
+
+.jc-stream {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 8px 12px;
+  background: #f6f8fa;
+  border-radius: 4px;
+}
+.jc-stderr { background: #fef3c7; color: #92400e; }
+
+.jc-text-plain {
+  font-family: var(--mono);
+  font-size: 13px;
+  padding: 8px 12px;
+  background: var(--code-bg);
+  border-radius: 4px;
+}
+
+.jc-image { max-width: 100%; height: auto; display: block; border-radius: 4px; }
+
+.jc-error {
+  border: 1px solid var(--error);
+  background: #fef2f2;
+  border-radius: 4px;
+  padding: 10px 12px;
+}
+.jc-error-head { font-family: var(--mono); font-weight: 700; color: var(--error); }
+.jc-error-tb { background: transparent; font-family: var(--mono); font-size: 12px; }
+
+/* -------------------------------------------------------------- Artifacts */
+
+.jc-cell-artifacts {
+  border-top: 1px solid var(--border);
+  padding: 10px 16px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  background: #fafbfc;
+}
+.jc-cell-artifacts .jc-label {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--muted);
+  margin-right: 4px;
+  font-weight: 600;
+}
+.jc-artifact-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: #fff;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--fg);
+}
+.jc-artifact-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  text-decoration: none;
+}
+.jc-chip-name { font-weight: 500; }
+.jc-chip-size { color: var(--muted); font-size: 11px; }
+
+/* -------------------------------------------------------------- Index */
+
+.jc-main > .jc-index { max-width: 960px; }
+
+.jc-list { list-style: none; padding: 0; margin: 12px 0 0; display: flex; flex-direction: column; gap: 8px; }
+.jc-list-item {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: #fff;
+  box-shadow: var(--shadow);
+  align-items: baseline;
+  color: inherit;
+}
+.jc-list-item:hover { background: var(--accent-weak); text-decoration: none; }
+.jc-list-title { font-weight: 600; color: var(--accent); font-size: 16px; }
+.jc-list-meta { color: var(--muted); font-size: 13px; }
+.jc-list-path { font-family: var(--mono); font-size: 12px; color: var(--muted); text-align: right; }
+
+.jc-recent { margin-top: 40px; }
+.jc-recent-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.jc-recent-table th, .jc-recent-table td {
+  padding: 8px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.jc-recent-table th { font-weight: 600; color: var(--muted); }
+.jc-num { font-family: var(--mono); text-align: right; }
+
+.jc-empty { color: var(--muted); font-style: italic; }
+
+/* -------------------------------------------------------------- Footer */
+
+.jc-footer {
+  padding: 32px 24px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 12px;
+  border-top: 1px solid var(--border);
+  margin-top: 48px;
+}</style>
+<style>
+pre { line-height: 125%; }
+td.linenos .normal { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #666666; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.jc-code .hll { background-color: #ffffcc }
+.jc-code { background: #f0f0f0; }
+.jc-code .c { color: #60A0B0; font-style: italic } /* Comment */
+.jc-code .err { border: 1px solid #F00 } /* Error */
+.jc-code .k { color: #007020; font-weight: bold } /* Keyword */
+.jc-code .o { color: #666 } /* Operator */
+.jc-code .ch { color: #60A0B0; font-style: italic } /* Comment.Hashbang */
+.jc-code .cm { color: #60A0B0; font-style: italic } /* Comment.Multiline */
+.jc-code .cp { color: #007020 } /* Comment.Preproc */
+.jc-code .cpf { color: #60A0B0; font-style: italic } /* Comment.PreprocFile */
+.jc-code .c1 { color: #60A0B0; font-style: italic } /* Comment.Single */
+.jc-code .cs { color: #60A0B0; background-color: #FFF0F0 } /* Comment.Special */
+.jc-code .gd { color: #A00000 } /* Generic.Deleted */
+.jc-code .ge { font-style: italic } /* Generic.Emph */
+.jc-code .ges { font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.jc-code .gr { color: #F00 } /* Generic.Error */
+.jc-code .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.jc-code .gi { color: #00A000 } /* Generic.Inserted */
+.jc-code .go { color: #888 } /* Generic.Output */
+.jc-code .gp { color: #C65D09; font-weight: bold } /* Generic.Prompt */
+.jc-code .gs { font-weight: bold } /* Generic.Strong */
+.jc-code .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.jc-code .gt { color: #04D } /* Generic.Traceback */
+.jc-code .kc { color: #007020; font-weight: bold } /* Keyword.Constant */
+.jc-code .kd { color: #007020; font-weight: bold } /* Keyword.Declaration */
+.jc-code .kn { color: #007020; font-weight: bold } /* Keyword.Namespace */
+.jc-code .kp { color: #007020 } /* Keyword.Pseudo */
+.jc-code .kr { color: #007020; font-weight: bold } /* Keyword.Reserved */
+.jc-code .kt { color: #902000 } /* Keyword.Type */
+.jc-code .m { color: #40A070 } /* Literal.Number */
+.jc-code .s { color: #4070A0 } /* Literal.String */
+.jc-code .na { color: #4070A0 } /* Name.Attribute */
+.jc-code .nb { color: #007020 } /* Name.Builtin */
+.jc-code .nc { color: #0E84B5; font-weight: bold } /* Name.Class */
+.jc-code .no { color: #60ADD5 } /* Name.Constant */
+.jc-code .nd { color: #555; font-weight: bold } /* Name.Decorator */
+.jc-code .ni { color: #D55537; font-weight: bold } /* Name.Entity */
+.jc-code .ne { color: #007020 } /* Name.Exception */
+.jc-code .nf { color: #06287E } /* Name.Function */
+.jc-code .nl { color: #002070; font-weight: bold } /* Name.Label */
+.jc-code .nn { color: #0E84B5; font-weight: bold } /* Name.Namespace */
+.jc-code .nt { color: #062873; font-weight: bold } /* Name.Tag */
+.jc-code .nv { color: #BB60D5 } /* Name.Variable */
+.jc-code .ow { color: #007020; font-weight: bold } /* Operator.Word */
+.jc-code .w { color: #BBB } /* Text.Whitespace */
+.jc-code .mb { color: #40A070 } /* Literal.Number.Bin */
+.jc-code .mf { color: #40A070 } /* Literal.Number.Float */
+.jc-code .mh { color: #40A070 } /* Literal.Number.Hex */
+.jc-code .mi { color: #40A070 } /* Literal.Number.Integer */
+.jc-code .mo { color: #40A070 } /* Literal.Number.Oct */
+.jc-code .sa { color: #4070A0 } /* Literal.String.Affix */
+.jc-code .sb { color: #4070A0 } /* Literal.String.Backtick */
+.jc-code .sc { color: #4070A0 } /* Literal.String.Char */
+.jc-code .dl { color: #4070A0 } /* Literal.String.Delimiter */
+.jc-code .sd { color: #4070A0; font-style: italic } /* Literal.String.Doc */
+.jc-code .s2 { color: #4070A0 } /* Literal.String.Double */
+.jc-code .se { color: #4070A0; font-weight: bold } /* Literal.String.Escape */
+.jc-code .sh { color: #4070A0 } /* Literal.String.Heredoc */
+.jc-code .si { color: #70A0D0; font-style: italic } /* Literal.String.Interpol */
+.jc-code .sx { color: #C65D09 } /* Literal.String.Other */
+.jc-code .sr { color: #235388 } /* Literal.String.Regex */
+.jc-code .s1 { color: #4070A0 } /* Literal.String.Single */
+.jc-code .ss { color: #517918 } /* Literal.String.Symbol */
+.jc-code .bp { color: #007020 } /* Name.Builtin.Pseudo */
+.jc-code .fm { color: #06287E } /* Name.Function.Magic */
+.jc-code .vc { color: #BB60D5 } /* Name.Variable.Class */
+.jc-code .vg { color: #BB60D5 } /* Name.Variable.Global */
+.jc-code .vi { color: #BB60D5 } /* Name.Variable.Instance */
+.jc-code .vm { color: #BB60D5 } /* Name.Variable.Magic */
+.jc-code .il { color: #40A070 } /* Literal.Number.Integer.Long */
+</style>
+</head>
+<body class="jc-layout">
+<header class="jc-header">
+  <nav class="jc-breadcrumb">
+    <a href="index.html">paper-2026</a>
+    <span class="sep">/</span>
+    <span>notebooks/analysis.py</span>
+  </nav>
+  <nav class="jc-prevnext">
+  </nav>
+</header>
+<div class="jc-shell">
+  <aside class="jc-sidebar" aria-label="Notebook navigation">
+    <section>
+      <h3>Contents</h3>
+      <ul class="jc-toc">
+        <li class="jc-toc-lvl-1 jc-toc-heading">
+          <a href="#cell-0">Mortality trend analysis</a>
+        </li>
+        <li class="jc-toc-lvl-3 jc-toc-code">
+          <a href="#cell-1">raw</a>
+        </li>
+        <li class="jc-toc-lvl-3 jc-toc-code">
+          <a href="#cell-2">per_country_totals</a>
+        </li>
+        <li class="jc-toc-lvl-3 jc-toc-code">
+          <a href="#cell-3">yoy_change</a>
+        </li>
+        <li class="jc-toc-lvl-3 jc-toc-code">
+          <a href="#cell-4">country_totals</a>
+        </li>
+        <li class="jc-toc-lvl-3 jc-toc-code">
+          <a href="#cell-5">yoy_chart</a>
+        </li>
+        <li class="jc-toc-lvl-3 jc-toc-code">
+          <a href="#cell-6">summary</a>
+        </li>
+      </ul>
+    </section>
+  </aside>
+  <main class="jc-main">
+    <article class="jc-notebook">
+      <header class="jc-title">
+        <h1>analysis</h1>
+        <p class="jc-path">notebooks/analysis.py</p>
+      </header>
+      <section class="jc-cells">
+<section class="jc-cell jc-cell-markdown" id="cell-0" data-cell-id="0">
+  <header class="jc-cell-head">
+    <a class="jc-cell-ordinal" href="#cell-0" title="Link to this cell">#0</a>
+    <span class="jc-cell-kind jc-cell-kind-step">jc.step</span>
+    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
+  </header>
+  <div class="jc-cell-body">
+    <div class="jc-cell-source">
+<h1>Mortality trend analysis</h1>
+<p>A paper-shaped jellycell project: compute goes here, narrative lives in
+<code>manuscripts/paper.md</code>, figures are saved under <code>artifacts/</code> and linked
+from both the paper and the auto-generated tearsheet.</p>
+
+    </div>
+  </div>
+</section>
+<section class="jc-cell jc-cell-code" id="cell-1" data-cell-id="1">
+  <header class="jc-cell-head">
+    <a class="jc-cell-ordinal" href="#cell-1" title="Link to this cell">#1</a>
+<span class="jc-cell-name">raw</span>    <span class="jc-cell-kind jc-cell-kind-load">jc.load</span>
+    <span class="jc-cell-stats">
+      <span class="jc-status jc-status-ok">ok</span>
+      <span class="jc-timing">132 ms</span>
+    </span>
+    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
+  </header>
+  <div class="jc-cell-body">
+    <div class="jc-cell-source">
+<div class="jc-code"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">csv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+
+<span class="k">with</span> <span class="n">Path</span><span class="p">(</span><span class="s2">&quot;data/sample.csv&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">open</span><span class="p">()</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">csv</span><span class="o">.</span><span class="n">DictReader</span><span class="p">(</span><span class="n">f</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+    <span class="n">row</span><span class="p">[</span><span class="s2">&quot;deaths&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;deaths&quot;</span><span class="p">])</span>
+    <span class="n">row</span><span class="p">[</span><span class="s2">&quot;year&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;year&quot;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;loaded </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">)</span><span class="si">}</span><span class="s2"> rows across </span><span class="si">{</span><span class="nb">len</span><span class="p">({</span><span class="n">r</span><span class="p">[</span><span class="s1">&#39;country&#39;</span><span class="p">]</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">r</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">rows</span><span class="p">})</span><span class="si">}</span><span class="s2"> countries&quot;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+    <div class="jc-cell-outputs">
+<pre class="jc-stream jc-stdout">loaded 8 rows across 4 countries
+</pre>
+    </div>
+  </div>
+</section>
+<section class="jc-cell jc-cell-code" id="cell-2" data-cell-id="2">
+  <header class="jc-cell-head">
+    <a class="jc-cell-ordinal" href="#cell-2" title="Link to this cell">#2</a>
+<span class="jc-cell-name">per_country_totals</span>    <span class="jc-cell-deps">
+      deps:
+<code>raw</code>    </span>
+    <span class="jc-cell-stats">
+      <span class="jc-status jc-status-ok">ok</span>
+      <span class="jc-timing">5 ms</span>
+    </span>
+    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
+  </header>
+  <div class="jc-cell-body">
+    <div class="jc-cell-source">
+<div class="jc-code"><pre><span></span><span class="n">totals</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+    <span class="n">totals</span><span class="p">[</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;country&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">totals</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;country&quot;</span><span class="p">],</span> <span class="mi">0</span><span class="p">)</span> <span class="o">+</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;deaths&quot;</span><span class="p">]</span>
+<span class="n">ranked</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">totals</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">kv</span><span class="p">:</span> <span class="o">-</span><span class="n">kv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="k">for</span> <span class="n">country</span><span class="p">,</span> <span class="n">total</span> <span class="ow">in</span> <span class="n">ranked</span><span class="p">:</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">country</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">total</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+    <div class="jc-cell-outputs">
+<pre class="jc-stream jc-stdout">US: 765,000
+UK: 145,000
+DE: 101,000
+JP: 26,000
+</pre>
+    </div>
+  </div>
+</section>
+<section class="jc-cell jc-cell-code" id="cell-3" data-cell-id="3">
+  <header class="jc-cell-head">
+    <a class="jc-cell-ordinal" href="#cell-3" title="Link to this cell">#3</a>
+<span class="jc-cell-name">yoy_change</span>    <span class="jc-cell-deps">
+      deps:
+<code>raw</code>    </span>
+    <span class="jc-cell-stats">
+      <span class="jc-status jc-status-ok">ok</span>
+      <span class="jc-timing">5 ms</span>
+    </span>
+    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
+  </header>
+  <div class="jc-cell-body">
+    <div class="jc-cell-source">
+<div class="jc-code"><pre><span></span><span class="c1"># Year-over-year percent change per country, where both years are present.</span>
+<span class="n">by_country_year</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">int</span><span class="p">,</span> <span class="nb">int</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">:</span>
+    <span class="n">by_country_year</span><span class="o">.</span><span class="n">setdefault</span><span class="p">(</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;country&quot;</span><span class="p">],</span> <span class="p">{})[</span><span class="n">row</span><span class="p">[</span><span class="s2">&quot;year&quot;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">row</span><span class="p">[</span><span class="s2">&quot;deaths&quot;</span><span class="p">]</span>
+<span class="n">yoy</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">country</span><span class="p">,</span> <span class="n">years</span> <span class="ow">in</span> <span class="n">by_country_year</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+    <span class="k">if</span> <span class="mi">2020</span> <span class="ow">in</span> <span class="n">years</span> <span class="ow">and</span> <span class="mi">2021</span> <span class="ow">in</span> <span class="n">years</span> <span class="ow">and</span> <span class="n">years</span><span class="p">[</span><span class="mi">2020</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">yoy</span><span class="p">[</span><span class="n">country</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">years</span><span class="p">[</span><span class="mi">2021</span><span class="p">]</span> <span class="o">-</span> <span class="n">years</span><span class="p">[</span><span class="mi">2020</span><span class="p">])</span> <span class="o">/</span> <span class="n">years</span><span class="p">[</span><span class="mi">2020</span><span class="p">]</span>
+<span class="k">for</span> <span class="n">country</span><span class="p">,</span> <span class="n">pct</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">yoy</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">kv</span><span class="p">:</span> <span class="o">-</span><span class="n">kv</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">country</span><span class="si">}</span><span class="s2">: </span><span class="si">{</span><span class="n">pct</span><span class="si">:</span><span class="s2">+.1%</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+    <div class="jc-cell-outputs">
+<pre class="jc-stream jc-stdout">DE: +59.0%
+US: +18.6%
+JP: +16.7%
+UK: +1.4%
+</pre>
+    </div>
+  </div>
+</section>
+<section class="jc-cell jc-cell-code" id="cell-4" data-cell-id="4">
+  <header class="jc-cell-head">
+    <a class="jc-cell-ordinal" href="#cell-4" title="Link to this cell">#4</a>
+<span class="jc-cell-name">country_totals</span>    <span class="jc-cell-kind jc-cell-kind-figure">jc.figure</span>
+    <span class="jc-cell-deps">
+      deps:
+<code>per_country_totals</code>    </span>
+    <span class="jc-cell-stats">
+      <span class="jc-status jc-status-ok">ok</span>
+      <span class="jc-timing">316 ms</span>
+    </span>
+    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
+  </header>
+  <div class="jc-cell-body">
+    <div class="jc-cell-source">
+<div class="jc-code"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">jellycell.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jc</span>
+
+<span class="n">countries</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">ranked</span><span class="p">]</span>
+<span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="n">t</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">ranked</span><span class="p">]</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">))</span>
+<span class="n">bars</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">countries</span><span class="p">,</span> <span class="n">values</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;#4f46e5&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Total deaths (2020–2021)&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Cumulative mortality by country&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">bar_label</span><span class="p">(</span><span class="n">bars</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{:,.0f}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">jc</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;artifacts/country_totals.png&quot;</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+    <div class="jc-cell-outputs">
+<pre class="jc-text-plain">PosixPath(&#x27;/Users/blaise/Desktop/blaise-oss/jellycell/examples/paper/artifacts/country_totals.png&#x27;)</pre>
+<pre class="jc-text-plain">&lt;Figure size 700x320 with 1 Axes&gt;</pre>
+<img class="jc-image" src="_assets/91f922ce79febe15.png" alt="" />
+    </div>
+    <div class="jc-cell-artifacts">
+      <span class="jc-label">artifacts</span>
+      <a class="jc-artifact-chip" href="/artifacts/country_totals.png" download="country_totals.png" title="artifacts/country_totals.png">
+        <span class="jc-chip-name">country_totals.png</span>
+        <span class="jc-chip-size">16.8 KB</span>
+      </a>
+    </div>
+  </div>
+</section>
+<section class="jc-cell jc-cell-code" id="cell-5" data-cell-id="5">
+  <header class="jc-cell-head">
+    <a class="jc-cell-ordinal" href="#cell-5" title="Link to this cell">#5</a>
+<span class="jc-cell-name">yoy_chart</span>    <span class="jc-cell-kind jc-cell-kind-figure">jc.figure</span>
+    <span class="jc-cell-deps">
+      deps:
+<code>yoy_change</code>    </span>
+    <span class="jc-cell-stats">
+      <span class="jc-status jc-status-ok">ok</span>
+      <span class="jc-timing">51 ms</span>
+    </span>
+    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
+  </header>
+  <div class="jc-cell-body">
+    <div class="jc-cell-source">
+<div class="jc-code"><pre><span></span><span class="n">order</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">yoy</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">kv</span><span class="p">:</span> <span class="o">-</span><span class="n">kv</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="n">labels</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">_</span> <span class="ow">in</span> <span class="n">order</span><span class="p">]</span>
+<span class="n">pcts</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="o">*</span> <span class="mi">100</span> <span class="k">for</span> <span class="n">_</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">order</span><span class="p">]</span>
+<span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;#dc2626&quot;</span> <span class="k">if</span> <span class="n">p</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="s2">&quot;#0891b2&quot;</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pcts</span><span class="p">]</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">pcts</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">axhline</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;#6b7280&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.8</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;2021 vs 2020 (%)&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Year-over-year change in mortality&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
+<span class="n">jc</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;artifacts/yoy_change.png&quot;</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+    <div class="jc-cell-outputs">
+<pre class="jc-text-plain">PosixPath(&#x27;/Users/blaise/Desktop/blaise-oss/jellycell/examples/paper/artifacts/yoy_change.png&#x27;)</pre>
+<pre class="jc-text-plain">&lt;Figure size 700x320 with 1 Axes&gt;</pre>
+<img class="jc-image" src="_assets/446b37cd9e012abe.png" alt="" />
+    </div>
+    <div class="jc-cell-artifacts">
+      <span class="jc-label">artifacts</span>
+      <a class="jc-artifact-chip" href="/artifacts/yoy_change.png" download="yoy_change.png" title="artifacts/yoy_change.png">
+        <span class="jc-chip-name">yoy_change.png</span>
+        <span class="jc-chip-size">12.9 KB</span>
+      </a>
+    </div>
+  </div>
+</section>
+<section class="jc-cell jc-cell-code" id="cell-6" data-cell-id="6">
+  <header class="jc-cell-head">
+    <a class="jc-cell-ordinal" href="#cell-6" title="Link to this cell">#6</a>
+<span class="jc-cell-name">summary</span>    <span class="jc-cell-deps">
+      deps:
+<code>per_country_totals</code> <code>yoy_change</code>    </span>
+    <span class="jc-cell-stats">
+      <span class="jc-status jc-status-ok">ok</span>
+      <span class="jc-timing">5 ms</span>
+    </span>
+    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
+  </header>
+  <div class="jc-cell-body">
+    <div class="jc-cell-source">
+<div class="jc-code"><pre><span></span><span class="n">summary</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;countries&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">totals</span><span class="p">),</span>
+    <span class="s2">&quot;years_covered&quot;</span><span class="p">:</span> <span class="nb">sorted</span><span class="p">({</span><span class="n">r</span><span class="p">[</span><span class="s2">&quot;year&quot;</span><span class="p">]</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">rows</span><span class="p">}),</span>
+    <span class="s2">&quot;top_country&quot;</span><span class="p">:</span> <span class="n">ranked</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span>
+    <span class="s2">&quot;top_country_total&quot;</span><span class="p">:</span> <span class="n">ranked</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">],</span>
+    <span class="s2">&quot;combined_total&quot;</span><span class="p">:</span> <span class="nb">sum</span><span class="p">(</span><span class="n">totals</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span>
+    <span class="s2">&quot;largest_yoy_increase_country&quot;</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="n">yoy</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">yoy</span><span class="o">.</span><span class="n">get</span><span class="p">),</span>
+    <span class="s2">&quot;largest_yoy_increase_pct&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">yoy</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="mi">4</span><span class="p">),</span>
+<span class="p">}</span>
+<span class="n">jc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="s2">&quot;artifacts/summary.json&quot;</span><span class="p">)</span>
+<span class="n">jc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">totals</span><span class="p">,</span> <span class="s2">&quot;artifacts/totals.json&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">summary</span><span class="p">)</span>
+</pre></div>
+
+    </div>
+    <div class="jc-cell-outputs">
+<pre class="jc-stream jc-stdout">{&#x27;countries&#x27;: 4, &#x27;years_covered&#x27;: [2020, 2021], &#x27;top_country&#x27;: &#x27;US&#x27;, &#x27;top_country_total&#x27;: 765000, &#x27;combined_total&#x27;: 1037000, &#x27;largest_yoy_increase_country&#x27;: &#x27;DE&#x27;, &#x27;largest_yoy_increase_pct&#x27;: 0.5897}
+</pre>
+    </div>
+    <div class="jc-cell-artifacts">
+      <span class="jc-label">artifacts</span>
+      <a class="jc-artifact-chip" href="/artifacts/summary.json" download="summary.json" title="artifacts/summary.json">
+        <span class="jc-chip-name">summary.json</span>
+        <span class="jc-chip-size">226 B</span>
+      </a>
+      <a class="jc-artifact-chip" href="/artifacts/totals.json" download="totals.json" title="artifacts/totals.json">
+        <span class="jc-chip-name">totals.json</span>
+        <span class="jc-chip-size">65 B</span>
+      </a>
+    </div>
+  </div>
+</section>
+      </section>
+    </article>
+  </main>
+</div>
+<footer class="jc-footer">
+  <span>Generated by <a href="https://jellycell.readthedocs.io">jellycell</a></span>
+</footer>
+<script>
+// jellycell: collapsible cells + SSE live-reload.
+
+(function () {
+  // Collapsible cells
+  document.querySelectorAll(".jc-toggle").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      const cell = btn.closest(".jc-cell");
+      const collapsed = cell.getAttribute("aria-collapsed") === "true";
+      cell.setAttribute("aria-collapsed", collapsed ? "false" : "true");
+      btn.textContent = collapsed ? "−" : "+";
+      btn.setAttribute("aria-expanded", collapsed ? "true" : "false");
+    });
+  });
+
+  // SSE live-reload. Only activates when served from the jellycell server.
+  // When viewing static reports/ files, window.location.protocol is file: or
+  // the EventSource connect fails silently — either way, no-op.
+  if (typeof EventSource === "undefined") return;
+  if (window.location.protocol.indexOf("http") !== 0) return;
+
+  function connect() {
+    const es = new EventSource("/events");
+    es.addEventListener("reload", function (evt) {
+      const data = safeJson(evt.data);
+      if (!data) return;
+      const currentPath = window.location.pathname;
+      if (!data.path || data.path === currentPath) {
+        window.location.reload();
+      }
+    });
+    es.addEventListener("artifact", function (evt) {
+      const data = safeJson(evt.data);
+      if (!data || !data.path) return;
+      document.querySelectorAll("img.jc-image").forEach(function (img) {
+        const src = img.getAttribute("src");
+        if (src && src.indexOf(data.path) !== -1) {
+          img.setAttribute("src", data.path + "?t=" + Date.now());
+        }
+      });
+    });
+    es.onerror = function () {
+      es.close();
+      setTimeout(connect, 2000);
+    };
+  }
+  function safeJson(s) {
+    try { return JSON.parse(s); } catch (e) { return null; }
+  }
+  connect();
+})();</script>
+</body>
+</html>

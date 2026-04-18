@@ -47,7 +47,7 @@ First public release.
 
 - **`jellycell export ipynb <nb>`** produces a runnable `.ipynb` with cached outputs reattached. `execution_count` matches nbformat convention (last `execute_result`, not first).
 - **`jellycell export md <nb>`** produces MyST markdown for Sphinx / Jupyter Book integration.
-- **`jellycell export tearsheet <nb>`** writes a curated markdown tearsheet to `manuscripts/<stem>.md` by default (override with `-o PATH`). Pulls markdown cell prose, inlines image artifacts via relative paths, and flattens JSON summaries into two-column tables. Safe to commit — GitHub renders it inline. Example tearsheets ship under `examples/*/manuscripts/`.
+- **`jellycell export tearsheet <nb>`** writes a curated markdown tearsheet to `manuscripts/tearsheets/<stem>.md` by default (override with `-o PATH`). The `tearsheets/` subfolder convention keeps auto-generated output separate from hand-authored writeups (paper drafts, memos, thesis chapters) that live at the root of `manuscripts/`. Pulls markdown cell prose, inlines image artifacts via relative paths, and flattens JSON summaries into two-column tables. Header block labels the file as a tearsheet with a link to the source notebook, to `reports/<stem>.html` when it exists, and the last-run timestamp. Safe to commit — GitHub renders it inline. Example tearsheets ship under `examples/*/manuscripts/tearsheets/`.
 
 ### Features — agent surface
 

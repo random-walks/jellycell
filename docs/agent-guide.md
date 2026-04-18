@@ -135,7 +135,7 @@ Supported `jc.save` formats: `.parquet`, `.csv`, `.json`, `.pkl`, `.png`.
 | `jellycell cache rebuild-index`    | Rebuild SQLite index from manifests              |
 | `jellycell export ipynb <nb>`      | Export to `.ipynb` with cached outputs           |
 | `jellycell export md <nb>`         | Export to MyST markdown (full notebook + outputs) |
-| `jellycell export tearsheet <nb>`  | Curated markdown tearsheet → `manuscripts/<stem>.md` |
+| `jellycell export tearsheet <nb>`  | Curated markdown tearsheet → `manuscripts/tearsheets/<stem>.md` |
 | `jellycell new <name>`             | Scaffold a new notebook                          |
 | `jellycell prompt`                 | Emit this guide to stdout                        |
 
@@ -166,11 +166,14 @@ Every command supports `--json` for machine-readable output with
 - **Don't mock the cache**. If tests need the cache, use a real
   `CacheStore` against `tmp_path`.
 - **Share results via tearsheets.** `jellycell export tearsheet <nb>`
-  writes a curated markdown file to `manuscripts/<stem>.md`: prose from
-  markdown cells, inlined figures via relative paths, JSON summaries
-  flattened to two-column tables. GitHub renders the result inline (no
-  HTML preview service needed); commit it alongside the notebook so
-  reviewers see the latest run without cloning.
+  writes a curated markdown file to `manuscripts/tearsheets/<stem>.md`:
+  prose from markdown cells, inlined figures via relative paths, JSON
+  summaries flattened to two-column tables. The `tearsheets/` subfolder
+  convention keeps auto-generated files separate from hand-authored
+  writeups (paper drafts, memos, thesis chapters) that live at the root
+  of `manuscripts/`. GitHub renders the result inline — no HTML preview
+  service needed; commit it alongside the notebook so reviewers see the
+  latest run without cloning.
 
 ## Invariants (spec §10 contracts)
 

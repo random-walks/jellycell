@@ -94,25 +94,37 @@ A notebook's PEP-723 block can override any field at file scope via a
 The block-scoped value wins for that file. Other `[tool.*]` tables are
 preserved unchanged.
 
-## `manuscripts/` — tearsheets and hand-authored writeups
+## `manuscripts/` — hand-authored writeups + tearsheets
 
 The `manuscripts/` directory holds markdown files that live alongside
-notebooks. Two flavors:
+notebooks. By convention it has a clean two-way split:
 
-- **Auto-generated tearsheets** from `jellycell export tearsheet <nb>` —
-  curated one-pagers with prose, inlined figures via relative paths
-  (`![](../artifacts/foo.png)`), and JSON summaries flattened into
-  two-column tables. The file goes to `manuscripts/<stem>.md` by default;
-  override with `--output PATH`. GitHub renders the file inline when you
-  browse it — no HTML preview service needed.
-- **Hand-authored writeups** (e.g. a paper draft, a decision memo) —
-  commit them under a different filename to avoid the tearsheet
-  regenerator overwriting your prose. Pattern: keep `tearsheet.md` auto,
-  write `paper.md` / `notes.md` / `reviewer-memo.md` by hand. Both can
-  reference the same `artifacts/` tree.
+```
+manuscripts/
+├── README.md              # explains the layout (optional but helpful)
+├── paper.md               # hand-authored; you own this
+├── reviewer-memo.md       # hand-authored; you own this
+└── tearsheets/            # auto-generated; regenerate overwrites
+    ├── analysis.md        # = notebooks/analysis.py
+    └── exploration.md     # = notebooks/exploration.py
+```
 
-Commit `manuscripts/` so reviewers and agents see the latest tearsheet
-without re-running anything.
+- **Root `manuscripts/*.md`** — hand-authored writeups: paper drafts,
+  thesis chapters, decision memos, reviewer notes. Stable across any
+  tearsheet regeneration. You edit freely; nothing overwrites your work.
+- **`manuscripts/tearsheets/*.md`** — produced by
+  `jellycell export tearsheet <nb>`, which writes
+  `manuscripts/tearsheets/<stem>.md` by default. Markdown narration +
+  inlined figures (via `../../artifacts/foo.png` relative paths) + JSON
+  summaries as two-column tables. Header links back to the source
+  notebook and the rendered HTML report when it exists. Regenerating
+  overwrites the file, so never hand-edit; use the `-o PATH` override
+  to target somewhere else if you need custom layouts.
+
+Both reference the same `artifacts/` tree, so figures in the hand-authored
+paper and the tearsheet dashboard are always byte-identical to the latest
+run. Commit `manuscripts/` so reviewers and agents see the latest
+tearsheets + writeups without re-running anything.
 
 ## The `.jellycell/` directory
 
