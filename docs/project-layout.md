@@ -202,4 +202,4 @@ Override with `--project /path/to/root`.
   storage for large), `artifacts/` if they're outputs worth reviewing,
   `jellycell.toml`. Git-ignore `.jellycell/` and `site/`.
 - **pre-commit**: `jellycell lint` fits cleanly as a pre-commit hook.
-- **CI**: run `jellycell run notebooks/*.py` to recompute reports on PR.
+- **CI**: run `jellycell run notebooks/*.py` to refresh the cache on PR.

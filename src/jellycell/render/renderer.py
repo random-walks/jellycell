@@ -178,8 +178,7 @@ class Renderer:
         # Per-render handles — short-lived by design for SQLite thread safety.
         self.store = CacheStore(project.cache_dir)
         self.index = CacheIndex(project.cache_dir / "state.db")
-        # Preserve the historical public attributes so existing callers
-        # (templates, tests) keep working without edits.
+        # Convenience aliases used throughout the render methods.
         self.env = self.env_data.jinja
         self._pygments_css = self.env_data.pygments_css
 

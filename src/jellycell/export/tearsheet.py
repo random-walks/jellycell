@@ -118,25 +118,18 @@ def _header_lines(
     """Clear provenance block: what this file is, what produced it, when.
 
     Renders as a blockquote so it sits apart from the body text without
-    being a second heading. Includes a link to the rendered HTML page
-    (``site/<stem>.html``, or the legacy ``reports/<stem>.html`` for
-    pre-rename projects) when one exists on disk — readers who want
-    the richer view can click through.
+    being a second heading. Includes a link to ``site/<stem>.html`` when
+    one exists on disk — readers who want the richer view can click
+    through.
     """
     nb_link = _relative(project_root / notebook_rel, out_dir)
     stem = notebook_rel.stem
     parts = [f"**Tearsheet** for [`{notebook_rel}`]({nb_link})"]
 
-    # Optional link to the rendered HTML if `jellycell render` has produced
-    # one — cheap lookup, silently skipped when absent. Checks both the new
-    # `site/` layout and the legacy `reports/` name so a tearsheet generated
-    # in a project that hasn't migrated still finds its HTML neighbour.
-    for site_name in ("site", "reports"):
-        html = project_root / site_name / f"{stem}.html"
-        if html.exists():
-            html_link = _relative(html, out_dir)
-            parts.append(f"[HTML report]({html_link})")
-            break
+    html = project_root / "site" / f"{stem}.html"
+    if html.exists():
+        html_link = _relative(html, out_dir)
+        parts.append(f"[HTML report]({html_link})")
 
     latest = _latest_executed_at(manifests_by_cell)
     if latest is not None:

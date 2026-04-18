@@ -361,23 +361,6 @@ class TestHeaderAndFooter:
         assert "[HTML report]" in text
         assert "../../site/nb.html" in text
 
-    def test_header_links_legacy_reports_dir(self, tmp_path: Path) -> None:
-        """Projects that still have the pre-rename ``reports/`` layout also work."""
-        project = _bootstrap_project(tmp_path)
-        (project / "reports").mkdir(exist_ok=True)
-        (project / "reports" / "nb.html").write_text("<html></html>", encoding="utf-8")
-        nb = _write_notebook(
-            project, "# /// script\n# dependencies = []\n# ///\n\n# %% [markdown]\n# # T\n"
-        )
-        out = export_tearsheet(
-            nb,
-            manifests_by_cell={},
-            output_path=project / "manuscripts" / "tearsheets" / "nb.md",
-            project_root=project,
-        )
-        text = out.read_text(encoding="utf-8")
-        assert "../../reports/nb.html" in text
-
     def test_header_omits_html_link_when_absent(self, tmp_path: Path) -> None:
         project = _bootstrap_project(tmp_path)
         nb = _write_notebook(

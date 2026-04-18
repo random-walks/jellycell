@@ -111,12 +111,14 @@ Minimum to carry in your head when navigating the tree:
 - **`export/`** — derived-output generators: ipynb, MyST markdown,
   tearsheets.
 
-## How the live viewer differs from `jellycell render`
+## Two render paths
 
-Both paths share the same Jinja templates + output helpers, but diverge
-deliberately in two ways:
+The render pipeline has two first-class modes, both built on the same
+Jinja templates + `nbconvert` output helpers. A `RendererEnv` factory
+picks the mode — `for_static(project)` for the CLI, `for_server(project)`
+for the live server.
 
-| Concern               | `jellycell render` (CLI)       | `jellycell view` (server)              |
+| Concern               | Static (`jellycell render`)    | Live (`jellycell view`)                |
 | --------------------- | ------------------------------ | -------------------------------------- |
 | HTML pages            | `site/<stem>.html` on disk     | streamed HTML string, no disk write    |
 | Image assets          | `site/_assets/<hash>.png`      | `.jellycell/cache/assets/<hash>.png`   |
@@ -124,18 +126,19 @@ deliberately in two ways:
 | Jinja / Pygments      | built per-invocation           | built once at app startup, reused      |
 | Cache + SQLite        | opened per render              | same (per-request, thread-local)       |
 
-**Why two assets dirs**: `site/_assets/` is part of the portable static
-site you'd upload to a server or GitHub Pages. `.jellycell/cache/assets/`
-is content-addressed blob storage parallel to the rest of the cache;
-it's always gitignored, doesn't bloat the committed repo, and the live
-server mounts it directly at `/_assets/`. If you use both modes in the
-same project, you get assets in both places — small files, content-
-hashed, no sync logic needed.
+Static mode's assets live under `site/_assets/` so the whole `site/`
+directory is a portable, self-contained static site you can upload to
+GitHub Pages or any static host. Live mode's assets live under
+`.jellycell/cache/assets/` — content-addressed blob storage parallel to
+the rest of the cache, always git-ignored, mounted directly at
+`/_assets/`. Running both modes in the same project produces assets in
+both trees; content-hashed filenames dedupe within each tree.
 
-**Why response caching**: re-rendering an unchanged notebook on every
-page reload is pure waste. The view-key changes on any edit (source
-bytes) or any run (new cell cache keys), so the cache is always
-correct without explicit busting.
+The live-mode response cache is keyed on `notebook_view_key` — sha256
+of the notebook's source bytes combined with its ordered cell cache
+keys. Any source edit or any run rotates the key, so the cache is
+correct by construction without explicit busting. The index page caches
+off a rollup of every notebook's view-key.
 
 ## When to update this page
 

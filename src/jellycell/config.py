@@ -112,7 +112,8 @@ class ArtifactsConfig(BaseModel):
     layout: ArtifactLayout = "flat"
     """Default artifact layout:
 
-    - ``flat`` (default): ``artifacts/<name>.<ext>``. Backwards-compatible.
+    - ``flat`` (default): ``artifacts/<name>.<ext>``. Simplest; fine for
+      single-notebook projects.
     - ``by_notebook``: ``artifacts/<notebook-stem>/<name>.<ext>``. Good when
       one project has many notebooks producing similarly-named artifacts.
     - ``by_cell``: ``artifacts/<notebook-stem>/<cell-name>/<name>.<ext>``.

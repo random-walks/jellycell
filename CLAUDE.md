@@ -74,7 +74,7 @@ make release-check    # dry-run build + version print
 
 ## Server vs. static
 
-`jellycell view` (live server) is **disk-write-free for HTML pages** — it renders in memory and caches responses by a notebook view-key. `jellycell render` (CLI) is the only path that populates `site/`. Live-mode assets land under `.jellycell/cache/assets/`; static-mode under `site/_assets/`. Both share the same Jinja templates. See [`docs/reference/architecture.md`](docs/reference/architecture.md#how-the-live-viewer-differs-from-jellycell-render).
+`jellycell view` (live server) is **disk-write-free for HTML pages** — it renders in memory and caches responses by a notebook view-key. `jellycell render` (CLI) is the only path that populates `site/`. Live-mode assets land under `.jellycell/cache/assets/`; static-mode under `site/_assets/`. Both share the same Jinja templates. See [`docs/reference/architecture.md`](docs/reference/architecture.md#two-render-paths).
 
 ## Versioning
 

@@ -38,16 +38,21 @@ First public release.
 
 ### Features — render + view
 
-- **`jellycell render`** produces self-contained HTML under `reports/`. Templates use jinja2; code highlighting via Pygments; markdown via markdown-it-py + MyST plugins.
+`site/` (HTML catalogue for browsers) and `manuscripts/` (prose for humans + GitHub) are separate output folders by design: neither is source; edit `notebooks/` and regenerate both.
+
+- **`jellycell render`** produces self-contained HTML under `site/`. Templates use jinja2; code highlighting via Pygments; markdown via markdown-it-py + MyST plugins.
 - **`jellycell view`** (needs `[server]` extra) serves a Starlette + SSE app with live-reload on file changes. Routes: `/`, `/nb/<stem>`, `/artifacts/<...>`, `/_assets/<...>`, `/api/state.json`, `/events`. Read-only.
-- **Unified asset layout** (`reports/_assets/`): static render and the live server share one content-addressed asset tree. HTML is byte-identical across both paths.
+- **Disk-write-free live viewer.** `jellycell view` renders every HTML page in memory; `jellycell render` is the only command that populates `site/`. `Renderer` carries a `write_pages: bool = True` kwarg — the CLI writes HTML to disk; the server passes `write_pages=False` and streams responses straight from memory.
+- **Response cache on the live server.** Per-notebook and index caches are keyed on a view-key that combines the notebook's source bytes + its ordered cell cache keys — any edit or any run rotates the key, so cache correctness falls out of the keying. `JELLYCELL_VIEW_NOCACHE=1` disables the cache for template iteration.
+- **Long-lived `RendererEnv`.** Jinja templates + Pygments CSS + assets dir are compiled once at server startup (`RendererEnv.for_server(project)`) and reused across requests; per-request `CacheStore` / `CacheIndex` handles stay short-lived for SQLite thread safety. `RendererEnv.for_static(project)` is the CLI factory.
+- **Two asset trees.** Static `jellycell render` writes image blobs to `site/_assets/` (portable — upload the folder). `jellycell view` writes to `.jellycell/cache/assets/` (content-addressed, always git-ignored) and mounts it at `/_assets/`. Independent trees; content-hashed filenames dedupe within each tree, no sync logic.
 - **Security warning on non-loopback `jellycell view`.** Binding `--host 0.0.0.0` (or any non-`127.0.0.1`/`localhost`/`::1` host) prints a banner about the exposure.
 
 ### Features — export
 
 - **`jellycell export ipynb <nb>`** produces a runnable `.ipynb` with cached outputs reattached. `execution_count` matches nbformat convention (last `execute_result`, not first).
 - **`jellycell export md <nb>`** produces MyST markdown for Sphinx / Jupyter Book integration.
-- **`jellycell export tearsheet <nb>`** writes a curated markdown tearsheet to `manuscripts/tearsheets/<stem>.md` by default (override with `-o PATH`). The `tearsheets/` subfolder convention keeps auto-generated output separate from hand-authored writeups (paper drafts, memos, thesis chapters) that live at the root of `manuscripts/`. Pulls markdown cell prose, inlines image artifacts via relative paths, and flattens JSON summaries into two-column tables. Header block labels the file as a tearsheet with a link to the source notebook, to `reports/<stem>.html` when it exists, and the last-run timestamp. Safe to commit — GitHub renders it inline. Example tearsheets ship under `examples/*/manuscripts/tearsheets/`.
+- **`jellycell export tearsheet <nb>`** writes a curated markdown tearsheet to `manuscripts/tearsheets/<stem>.md` by default (override with `-o PATH`). The `tearsheets/` subfolder convention keeps auto-generated output separate from hand-authored writeups (paper drafts, memos, thesis chapters) that live at the root of `manuscripts/`. Pulls markdown cell prose, inlines image artifacts via relative paths, and flattens JSON summaries into two-column tables. Header block labels the file as a tearsheet with a link to the source notebook, to `site/<stem>.html` when it exists, and the last-run timestamp. Safe to commit — GitHub renders it inline. Example tearsheets ship under `examples/*/manuscripts/tearsheets/`.
 
 ### Features — agent surface
 
@@ -61,70 +66,18 @@ First public release.
 - Claude Code infra: CLAUDE.md, slash commands (`/spec-check`, `/phase-status`), subagents, skills (`spec-invariant`, `phase-budget`, `piggyback-first`).
 - Release pipeline on PyPI via trusted publisher (OIDC).
 
-### Features — live viewer: disk-write-free + response cache + long-lived env
+### Features — live viewer: manuscripts + journal + tearsheet nav
 
-`jellycell view` no longer writes HTML pages to disk on request. The
-server is a read-only view over notebooks + cache; `jellycell render`
-is the only thing that populates `site/`. Three coupled changes:
-
-- **In-memory rendering** — `Renderer` gains a `write_pages: bool = True`
-  kwarg (default preserves CLI behavior) and returns the HTML string
-  via `RenderedNotebook.html` / new `RenderedIndex.html` when pages
-  aren't written. The server uses `write_pages=False` and streams
-  responses straight from memory.
-- **Response cache** — per-notebook in-memory cache in `_ServerState`,
-  keyed by `CacheIndex.notebook_view_key(project_root, rel)` — the
-  sha256 of the notebook's source bytes combined with its ordered cell
-  cache keys. Any edit (source) or any run (new manifests) rotates the
-  key, so the cache is always correct without explicit busting. Index
-  page caches off a rollup of every notebook's view-key.
-- **Long-lived `RendererEnv`** — Jinja templates + Pygments CSS +
-  assets dir bundle built once at server startup via
-  `RendererEnv.for_server(project)` and reused across all requests.
-  Per-request still opens short-lived `CacheStore` / `CacheIndex`
-  handles so SQLite stays thread-local. `for_static(project)` is the
-  CLI factory.
-- **Assets relocated for the live path** — the `/_assets/` mount now
-  points at `.jellycell/cache/assets/` (content-addressed, always
-  git-ignored). `site/_assets/` stays the static-CLI-only destination.
-  If you use both modes, you get assets in both places — small files,
-  content-hashed filenames dedupe within each tree, no sync logic.
-- **`JELLYCELL_VIEW_NOCACHE=1`** env var disables the response cache
-  for template-iteration workflows.
-
-§10 contracts: none touched. Pure additive / backwards-compatible
-API — default `Renderer()` call writes to disk as before.
-
-### Renamed — `reports/` → `site/`
-
-Clearer separation from `manuscripts/`. The old name conflated HTML
-output with "the report I'm writing" (which lives in `manuscripts/`
-now). **The new mental model**:
-
-- `manuscripts/` — prose for humans + GitHub (markdown, committed).
-- `site/` — rendered HTML catalogue for browsers (`.html`, `_assets/`,
-  optional to commit).
-- Both are outputs; neither is source. Edit `notebooks/`, regenerate.
-
-Concretely: `PathsConfig.reports → site`, `Project.reports_dir →
-site_dir`. The `jellycell export tearsheet` HTML-report link checks
-``site/<stem>.html`` first, falls back to the legacy ``reports/<stem>.html``
-so pre-rename projects still get the cross-link. `jellycell.toml`
-field renamed — existing configs need `reports = …` swapped to
-`site = …` (pydantic rejects the old field name; clean break).
-
-### Features — live viewer lifts (manuscripts + journal + tearsheet nav)
-
-- **Manuscript previewer**: new `/manuscripts/` landing page + dynamic
+- **Manuscript previewer**: `/manuscripts/` landing page + dynamic
   `/manuscripts/<path>.md` route serves any markdown under
   `manuscripts/` through the project's template stack. Authored
   writeups, auto-generated tearsheets, and the journal all render
   in-browser with the same chrome as notebook pages.
 - **Journal viewer**: `/journal` is a first-class route aliasing the
   configured journal file. Live-reloads on every `jellycell run`
-  through the existing watchfiles → SSE pipeline so the trajectory
-  appears in-browser as it's written.
-- **Tearsheet ↔ notebook cross-links**: each notebook HTML page now
+  through the watchfiles → SSE pipeline so the trajectory appears
+  in-browser as it's written.
+- **Tearsheet ↔ notebook cross-links**: each notebook HTML page
   shows a `Tearsheet →` button when `manuscripts/tearsheets/<stem>.md`
   exists; tearsheet pages show a matching `Notebook →` link when the
   source notebook is present. One click to flip between source and
@@ -133,43 +86,36 @@ field renamed — existing configs need `reports = …` swapped to
   the header carries `← previous / next →` links to the adjacent
   tearsheets in alphabetical order. Authored writeups don't get the
   prev/next pair since they're standalone documents.
-- **Sidebar reorganization on manuscript pages**: three groups
+- **Sidebar on manuscript pages**: three groups
   (Authored / Tearsheets / Log) with the active page highlighted.
-- **Targeted SSE reloads**: `manuscripts/**/*.md` edits now publish a
+- **Targeted SSE reloads**: `manuscripts/**/*.md` edits publish a
   `ReloadEvent` for the specific page (`/manuscripts/<path>` or
-  `/journal`) instead of broadly reloading the index.
-- **`/api/state.json`** gains a `manuscripts` payload
-  (authored + tearsheets + journal catalog). Additive — no
-  `schema_version` bump.
+  `/journal`) rather than broadly reloading the index.
+- **`/api/state.json`** carries a `manuscripts` payload
+  (authored + tearsheets + journal catalog).
 
 ### Features — artifact metadata + journal + checkpoint
 
 - **Artifact metadata via `jc.*` kwargs** — `jc.save`, `jc.figure`, and
-  `jc.table` accept optional `caption="..."`, `notes="..."`, `tags=[...]`.
-  Captured in the `ArtifactRecord` inside the cell manifest (additive
-  optional fields; §10.1 safe — no `schema_version` bump, no
-  `MINOR_VERSION` bump). Tearsheets render caption as the figure /
-  table heading, notes as an italic subcaption, tags as a searchable
-  line below.
+  `jc.table` accept optional `caption="..."`, `notes="..."`, `tags=[...]`,
+  captured on the `ArtifactRecord` inside the cell manifest. Tearsheets
+  render caption as the figure / table heading, notes as an italic
+  subcaption, tags as a searchable line below.
 - **Analysis journal** — `manuscripts/journal.md` gets one append-only
   section per `jellycell run`: timestamp, notebook, cell counts,
   duration, new artifacts (with captions), large-artifact warnings,
   any errors, and the optional `-m "..."` message. Default-on (opt-out
   via `[journal] enabled = false`). Append-only from jellycell's side
-  so hand-edited commentary survives future runs. New `-m / --message`
-  flag on `jellycell run`.
+  so hand-edited commentary survives future runs. `-m / --message` flag
+  on `jellycell run` adds freeform commentary to the entry.
 - **`jellycell checkpoint`** — reproducible `.tar.gz` snapshots with
   `create`, `list`, `restore` subcommands. Archives notebooks, data,
-  artifacts, reports, manuscripts, `jellycell.toml`, and
+  artifacts, site, manuscripts, `jellycell.toml`, and
   `.jellycell/cache/`. Junk dirs (`__pycache__`, `.venv`, `.git`, etc.)
   are skipped. **Restore is safe by default**: lands in a new sibling
   directory (`<project>-restored-<name>/`) so the live project is
   never touched. `--into PATH` lets you pick a location; `--force` is
   required to merge into a non-empty target.
-- **Contracts doc clarification** — [reference/contracts](docs/reference/contracts.md)
-  now makes explicit that additive optional fields on manifest schemas
-  are backwards-compatible (no `MINOR_VERSION` bump) so long as
-  defaults preserve old-manifest deserialization.
 
 ### Features — artifact layout + large-file handling
 
@@ -179,29 +125,29 @@ field renamed — existing configs need `reports = …` swapped to
     writes. `"by_cell"` makes every artifact path name its producer
     (`artifacts/<notebook>/<cell>/<name>.<ext>`) — agent-friendly for
     "what generated what" lookups. Explicit `jc.save(x, "...")` paths
-    always win, so existing notebooks keep working unchanged.
+    always win.
   - **`max_committed_size_mb`** (default `50`): post-run soft threshold.
     `jellycell run` flags any single artifact above the limit with a
     `.gitignore` / Git LFS reminder. Set to `0` to disable.
-- **New `large-data` example** under `examples/large-data/`
+- **`large-data` example** under `examples/large-data/`
   demonstrates the full pattern: `[artifacts] layout = "by_notebook"`,
   low `max_committed_size_mb`, a tiny committed `headline.json` digest
   next to a git-ignored generated parquet, and a reproducible seed so
   reviewers regenerate locally.
-- **Additive `RunReport.large_artifacts` field** — a list of
+- **`RunReport.large_artifacts` field** — a list of
   `LargeArtifactWarning` entries surfaced to both the JSON and rich
-  outputs of `jellycell run`. §10.1 additive (no `schema_version` bump).
+  outputs of `jellycell run`.
 
 ### Examples — READMEs + hand-authored manuscripts
 
-Every example now ships a top-level `README.md` with bootstrap commands
+Every example ships a top-level `README.md` with bootstrap commands
 (both `uv` and `pip`), a layout diagram, and "what this example shows."
 Every example's `manuscripts/` folder carries a hand-authored
 `.md` alongside the auto-generated tearsheet(s):
 
 - `minimal/manuscripts/notes.md` — first-run reflection.
 - `demo/manuscripts/analysis.md` — analyst's read on the conversion numbers.
-- `paper/manuscripts/paper.md` — paper draft (already existed; now cross-linked).
+- `paper/manuscripts/paper.md` — paper draft, cross-linked to the tearsheet.
 - `timeseries/manuscripts/findings.md` — interpretation of decomposition + forecast.
 - `ml-experiment/manuscripts/model-card.md` — training-run log.
 - `large-data/manuscripts/data-notes.md` — reproducibility protocol.

@@ -1,7 +1,7 @@
 """The live viewer never writes HTML pages to disk.
 
-These are the regression tests for the server's disk-write-free + response-
-cached refactor. They assert three things that matter to DX:
+Pin the three disk-write-free + response-cache contracts of the live
+server. They assert:
 
 1. `jellycell view` requests never populate `site/` — only `jellycell
    render` does. The live server reads inputs (notebooks, manifests) and
@@ -154,7 +154,7 @@ class TestNoCacheEscape:
 
 class TestStaticStillWrites:
     def test_jellycell_render_still_writes_site_html(self, tmp_path: Path) -> None:
-        """CLI-path rendering (the default ``write_pages=True``) is unchanged."""
+        """CLI-path rendering (``write_pages=True``) writes ``site/<stem>.html`` to disk."""
         from jellycell.render import Renderer
 
         project = _bootstrap(tmp_path)
