@@ -1,0 +1,50 @@
+// jellycell: collapsible cells + SSE live-reload (Phase 4 wires up the SSE side).
+
+(function () {
+  // Collapsible cells
+  document.querySelectorAll(".jc-toggle").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      const cell = btn.closest(".jc-cell");
+      const collapsed = cell.getAttribute("aria-collapsed") === "true";
+      cell.setAttribute("aria-collapsed", collapsed ? "false" : "true");
+      btn.textContent = collapsed ? "−" : "+";
+      btn.setAttribute("aria-expanded", collapsed ? "true" : "false");
+    });
+  });
+
+  // SSE live-reload. Only activates when served from the jellycell server
+  // (Phase 4+). When viewing static reports/ files, window.location.protocol
+  // is file: or the EventSource connect fails silently — either way, no-op.
+  if (typeof EventSource === "undefined") return;
+  if (window.location.protocol.indexOf("http") !== 0) return;
+
+  function connect() {
+    const es = new EventSource("/events");
+    es.addEventListener("reload", function (evt) {
+      const data = safeJson(evt.data);
+      if (!data) return;
+      const currentPath = window.location.pathname;
+      if (!data.path || data.path === currentPath) {
+        window.location.reload();
+      }
+    });
+    es.addEventListener("artifact", function (evt) {
+      const data = safeJson(evt.data);
+      if (!data || !data.path) return;
+      document.querySelectorAll("img.jc-image").forEach(function (img) {
+        const src = img.getAttribute("src");
+        if (src && src.indexOf(data.path) !== -1) {
+          img.setAttribute("src", data.path + "?t=" + Date.now());
+        }
+      });
+    });
+    es.onerror = function () {
+      es.close();
+      setTimeout(connect, 2000);
+    };
+  }
+  function safeJson(s) {
+    try { return JSON.parse(s); } catch (e) { return null; }
+  }
+  connect();
+})();

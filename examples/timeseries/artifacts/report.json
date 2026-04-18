@@ -1,0 +1,17 @@
+{
+  "alpha": 0.3,
+  "in_sample": {
+    "mae": 2.25,
+    "rmse": 2.856
+  },
+  "residuals": {
+    "mean": 0.123,
+    "std": 2.858,
+    "lag1": 0.007
+  },
+  "forecast_horizon_days": 30,
+  "forecast_range": {
+    "first": "2026-01-01",
+    "last": "2026-01-30"
+  }
+}

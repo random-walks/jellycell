@@ -1,0 +1,8 @@
+entries:
+- cached_count: int
+  cell_count: int
+  notebook: str
+  output_path: str
+index: 'null'
+project: str
+schema_version: int

@@ -1,0 +1,6 @@
+dry_run: bool
+kept: int
+project: str
+removed:
+- <empty>
+schema_version: int

@@ -1,0 +1,324 @@
+"""Notebook + manifests → self-contained HTML.
+
+Spec §2.6 pipeline:
+
+1. Parse notebook (format.parse).
+2. Match cells to cached manifests.
+3. Render each cell via jinja partial; outputs via :mod:`jellycell.render.outputs`.
+4. Assemble via :file:`templates/page.html.j2`.
+5. Write to ``<reports>/<notebook-stem>.html``.
+
+``--standalone`` mode base64-inlines image blobs instead of writing
+external assets.
+"""
+
+from __future__ import annotations
+
+import html as html_std
+import re
+from dataclasses import dataclass
+from pathlib import Path
+from types import TracebackType
+
+from jinja2 import Environment, PackageLoader, select_autoescape
+from pygments import highlight
+from pygments.formatters import HtmlFormatter
+from pygments.lexers import PythonLexer
+
+from jellycell.cache.index import CacheIndex
+from jellycell.cache.manifest import Manifest
+from jellycell.cache.store import CacheStore
+from jellycell.format import parse as format_parse
+from jellycell.format.cells import Cell
+from jellycell.paths import Project
+from jellycell.render.markdown import render_markdown
+from jellycell.render.outputs import render_output
+
+_PYGMENTS_STYLE = "friendly"
+_HEADER_RE = re.compile(r"^\s*(#{1,3})\s+(.+?)\s*$", re.MULTILINE)
+
+
+@dataclass(frozen=True)
+class RenderedNotebook:
+    """Outcome of rendering a single notebook."""
+
+    notebook: str
+    """Path of the source notebook, relative to project root."""
+
+    output_path: Path
+    """Absolute path to the generated HTML file."""
+
+    cell_count: int
+    cached_count: int
+
+
+@dataclass(frozen=True)
+class TocItem:
+    """A single table-of-contents entry for the notebook sidebar."""
+
+    anchor: str
+    label: str
+    level: int
+    kind: str
+
+
+@dataclass(frozen=True)
+class SiblingNotebook:
+    """Adjacent-notebook link data for cross-navigation."""
+
+    href: str
+    title: str
+    current: bool
+
+
+class Renderer:
+    """Converts notebooks + cached manifests into a browsable HTML catalogue."""
+
+    def __init__(self, project: Project, *, standalone: bool = False) -> None:
+        self.project = project
+        self.standalone = standalone
+        self.store = CacheStore(project.cache_dir)
+        self.index = CacheIndex(project.cache_dir / "state.db")
+        self.env = Environment(
+            loader=PackageLoader("jellycell.render", "templates"),
+            autoescape=select_autoescape(["html", "xml"]),
+            trim_blocks=True,
+            lstrip_blocks=True,
+        )
+        self._pygments_css = HtmlFormatter(style=_PYGMENTS_STYLE).get_style_defs(".jc-code")
+
+    # ------------------------------------------------------------ high level
+    def render_notebook(self, notebook_path: Path) -> RenderedNotebook:
+        """Render a single notebook to ``reports/<stem>.html``. Returns the result."""
+        nb = format_parse(notebook_path)
+        notebook_rel = str(notebook_path.relative_to(self.project.root))
+        stem = notebook_path.stem
+
+        manifests = self._collect_manifests(notebook_rel)
+
+        output_path = self.project.reports_dir / f"{stem}.html"
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+        # Shared assets dir under reports/_assets/ — content-hashed filenames
+        # deduplicate naturally and one /_assets/ mount serves both the static
+        # files and the live server.
+        assets_dir = self.project.reports_dir / "_assets"
+
+        cells_html: list[str] = []
+        cached_count = 0
+        toc: list[TocItem] = []
+        for ordinal, cell in enumerate(nb.cells):
+            cell_id = f"{stem}:{ordinal}"
+            manifest = manifests.get(cell_id)
+            if manifest is not None:
+                cached_count += 1
+            toc.extend(_build_toc_for_cell(cell, ordinal))
+            cells_html.append(self._render_cell(cell, ordinal, manifest, assets_dir))
+
+        siblings = self._collect_siblings(notebook_path)
+        prev_nb, next_nb = _prev_next(siblings)
+
+        page = self.env.get_template("page.html.j2").render(
+            title=stem,
+            notebook=notebook_rel,
+            project_name=self.project.config.project.name,
+            cells_html="\n".join(cells_html),
+            pygments_css=self._pygments_css,
+            standalone=self.standalone,
+            toc=toc,
+            siblings=siblings,
+            prev_nb=prev_nb,
+            next_nb=next_nb,
+        )
+        output_path.write_text(page, encoding="utf-8")
+        return RenderedNotebook(
+            notebook=notebook_rel,
+            output_path=output_path,
+            cell_count=len(nb.cells),
+            cached_count=cached_count,
+        )
+
+    def render_index(self) -> Path:
+        """Render a project-level index listing every notebook + recent cache entries."""
+        self.project.reports_dir.mkdir(parents=True, exist_ok=True)
+        notebook_paths = sorted(self.project.notebooks_dir.rglob("*.py"))
+        notebooks = []
+        for path in notebook_paths:
+            rel = str(path.relative_to(self.project.root))
+            entries = self.index.list_by_notebook(rel)
+            notebooks.append(
+                {
+                    "href": f"{path.stem}.html",
+                    "title": path.stem,
+                    "path": rel,
+                    "cell_count": len(entries),
+                    "last_run": entries[-1]["executed_at"] if entries else None,
+                }
+            )
+        recent_raw = self.index.list_all()[:20]
+        recent: list[dict[str, object]] = []
+        for row in recent_raw:
+            nb_path = str(row["notebook"])
+            recent.append(
+                {
+                    **row,
+                    # Use the notebook's stem, not a fragile prefix/suffix replace.
+                    "href": f"{Path(nb_path).stem}.html",
+                }
+            )
+        page = self.env.get_template("index.html.j2").render(
+            project_name=self.project.config.project.name,
+            notebooks=notebooks,
+            recent_runs=recent,
+            pygments_css=self._pygments_css,
+        )
+        output = self.project.reports_dir / "index.html"
+        output.write_text(page, encoding="utf-8")
+        return output
+
+    def render_all(self) -> list[RenderedNotebook]:
+        """Render every notebook in the project plus the index."""
+        results = []
+        for path in sorted(self.project.notebooks_dir.rglob("*.py")):
+            results.append(self.render_notebook(path))
+        self.render_index()
+        return results
+
+    # ------------------------------------------------------------ internals
+    def _collect_siblings(self, current: Path) -> list[SiblingNotebook]:
+        siblings: list[SiblingNotebook] = []
+        for path in sorted(self.project.notebooks_dir.rglob("*.py")):
+            is_current = path.resolve() == current.resolve()
+            siblings.append(
+                SiblingNotebook(
+                    href=f"{path.stem}.html",
+                    title=path.stem,
+                    current=is_current,
+                )
+            )
+        return siblings
+
+    def _collect_manifests(self, notebook_rel: str) -> dict[str, Manifest]:
+        entries = self.index.list_by_notebook(notebook_rel)
+        manifests: dict[str, Manifest] = {}
+        for row in entries:
+            try:
+                m = self.store.get_manifest(row["cache_key"])
+            except KeyError:
+                continue
+            manifests[m.cell_id] = m
+        return manifests
+
+    def _render_cell(
+        self,
+        cell: Cell,
+        ordinal: int,
+        manifest: Manifest | None,
+        assets_dir: Path,
+    ) -> str:
+        if cell.cell_type == "markdown":
+            source_html = render_markdown(cell.source)
+            kind = "markdown"
+        elif cell.cell_type == "code":
+            source_html = highlight(
+                cell.source,
+                PythonLexer(),
+                HtmlFormatter(cssclass="jc-code", style=_PYGMENTS_STYLE),
+            )
+            kind = "code"
+        else:
+            source_html = f"<pre>{html_std.escape(cell.source)}</pre>"
+            kind = "raw"
+
+        outputs_html = ""
+        if manifest is not None and manifest.outputs:
+            outputs_html = "\n".join(
+                render_output(o, store=self.store, assets_dir=assets_dir, inline=self.standalone)
+                for o in manifest.outputs
+            )
+
+        artifacts: list[dict[str, object]] = []
+        if manifest is not None:
+            for art in manifest.artifacts:
+                artifacts.append(
+                    {
+                        "path": art.path,
+                        "href": f"/{art.path}",
+                        "basename": Path(art.path).name,
+                        "size_human": _human_size(art.size),
+                        "mime": art.mime,
+                    }
+                )
+
+        return self.env.get_template("partials/cell.html.j2").render(
+            ordinal=ordinal,
+            kind=kind,
+            source_html=source_html,
+            outputs_html=outputs_html,
+            manifest=manifest,
+            cell=cell,
+            artifacts=artifacts,
+        )
+
+    # -------------------------------------------------------------- lifetime
+    def close(self) -> None:
+        """Close cache store + index."""
+        self.store.close()
+        self.index.close()
+
+    def __enter__(self) -> Renderer:
+        return self
+
+    def __exit__(
+        self,
+        exc_type: type[BaseException] | None,
+        exc: BaseException | None,
+        tb: TracebackType | None,
+    ) -> None:
+        self.close()
+
+
+def _build_toc_for_cell(cell: Cell, ordinal: int) -> list[TocItem]:
+    """Extract TOC entries from a cell.
+
+    - Markdown cells contribute H1/H2/H3 headings.
+    - Named code cells contribute one entry with the cell name.
+    - Anonymous code cells are skipped (too noisy).
+    """
+    items: list[TocItem] = []
+    anchor = f"cell-{ordinal}"
+    if cell.cell_type == "markdown":
+        for match in _HEADER_RE.finditer(cell.source):
+            level = len(match.group(1))
+            label = match.group(2).strip()
+            if label:
+                items.append(TocItem(anchor=anchor, label=label, level=level, kind="heading"))
+    elif cell.cell_type == "code" and cell.spec.name:
+        items.append(TocItem(anchor=anchor, label=cell.spec.name, level=3, kind="code"))
+    return items
+
+
+def _prev_next(
+    siblings: list[SiblingNotebook],
+) -> tuple[SiblingNotebook | None, SiblingNotebook | None]:
+    """Find the prev/next notebook relative to the current one."""
+    prev_nb: SiblingNotebook | None = None
+    next_nb: SiblingNotebook | None = None
+    for i, s in enumerate(siblings):
+        if s.current:
+            if i > 0:
+                prev_nb = siblings[i - 1]
+            if i + 1 < len(siblings):
+                next_nb = siblings[i + 1]
+            break
+    return prev_nb, next_nb
+
+
+def _human_size(n: int) -> str:
+    """Format byte counts as `123 B`, `4.2 KB`, `1.7 MB`, etc."""
+    if n < 1024:
+        return f"{n} B"
+    if n < 1024**2:
+        return f"{n / 1024:.1f} KB"
+    if n < 1024**3:
+        return f"{n / 1024**2:.1f} MB"
+    return f"{n / 1024**3:.1f} GB"

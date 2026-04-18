@@ -1,0 +1,25 @@
+[project]
+name = "minimal"
+
+[paths]
+notebooks = "notebooks"
+data = "data"
+artifacts = "artifacts"
+reports = "reports"
+manuscripts = "manuscripts"
+cache = ".jellycell/cache"
+
+[run]
+kernel = "python3"
+subprocess = true
+timeout_seconds = 60
+
+[viewer]
+host = "127.0.0.1"
+port = 5180
+watch = ["notebooks", "manuscripts", "artifacts"]
+
+[lint]
+enforce_artifact_paths = true
+enforce_declared_deps = false
+warn_on_large_cell_output = "10MB"

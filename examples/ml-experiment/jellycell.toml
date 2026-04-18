@@ -1,0 +1,25 @@
+[project]
+name = "ml-experiment"
+
+[paths]
+notebooks = "notebooks"
+data = "data"
+artifacts = "artifacts"
+reports = "reports"
+manuscripts = "manuscripts"
+cache = ".jellycell/cache"
+
+[run]
+kernel = "python3"
+subprocess = true
+timeout_seconds = 900              # training cells can be long
+
+[viewer]
+host = "127.0.0.1"
+port = 5182
+watch = ["notebooks", "manuscripts", "artifacts"]
+
+[lint]
+enforce_artifact_paths = true
+enforce_declared_deps = false       # exploratory ML projects move fast
+warn_on_large_cell_output = "50MB"

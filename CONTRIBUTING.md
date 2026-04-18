@@ -1,0 +1,90 @@
+# Contributing to jellycell
+
+Thanks for your interest. jellycell is a small, opinionated project. Read this page before opening a PR — the rules here keep the codebase coherent.
+
+## Before you start
+
+1. **Read [`docs/spec/v0.md`](docs/spec/v0.md)**, especially:
+   - §1 — the piggyback map (libraries we depend on and what they do for us).
+   - §8 — phase file-count budgets.
+   - §10 — the three cross-cutting contracts.
+2. **Read [`CLAUDE.md`](CLAUDE.md)** for the tl;dr of architecture rules.
+3. Open an issue for anything non-trivial before writing code. A short discussion up front saves a long re-review later.
+
+## Local setup
+
+Full guide: [docs/development/dev-setup.md](docs/development/dev-setup.md). Quick version:
+
+```bash
+git clone https://github.com/random-walks/jellycell
+cd jellycell
+make dev       # uv sync + pre-commit install
+make test      # pytest
+```
+
+## Dev loop
+
+```bash
+make test             # full test suite
+make test-unit        # fast tests only
+make lint             # ruff + mypy
+make format           # apply ruff formatting + autofix
+make docs             # live-reload docs at :8001
+make docs-build       # sphinx-build -W (CI-mirror)
+```
+
+## Invariants (DO NOT CHANGE SILENTLY)
+
+Three contracts from spec §10. Touching any of them is a deliberate ceremony:
+
+1. **`--json` output schemas.** Every command's JSON output carries `schema_version: 1`. Adding/removing/renaming a field bumps the schema version.
+
+2. **Cache key algorithm** (`src/jellycell/cache/hashing.py`). Any change bumps `MINOR_VERSION` in `src/jellycell/_version.py`. Regression snapshot in `tests/unit/test_hashing.py`.
+
+3. **Agent guide content** (`jellycell prompt` output). Stable across patch versions; changes require a minor release + changelog note.
+
+If you touched one of these, **say so explicitly** in the PR description and describe the ceremony you followed.
+
+## Phase budgets
+
+Spec §8 lists a file count per phase. If a phase creeps past its ceiling, that's a **scope-creep signal**. Cut features. Don't raise the ceiling.
+
+## Commit style
+
+[Conventional Commits](https://www.conventionalcommits.org/):
+
+- `feat(cache): add cache rebuild-index CLI command`
+- `fix(format): handle PEP-723 block with trailing whitespace`
+- `docs: clarify agent guide stability contract`
+- `refactor(run): extract Kernel context manager`
+- `test(lint): cover pep723-position edge cases`
+
+One commit per logical change. Rebase to clean history before merging when practical.
+
+## Branch naming
+
+- `feat/…`, `fix/…`, `docs/…`, `refactor/…`, `test/…`
+- `agentic/…` optional prefix for AI-authored work.
+
+## PR checklist
+
+- [ ] `make lint` green.
+- [ ] `make test` green.
+- [ ] `make docs-build` green (`sphinx-build -W` — warnings are errors).
+- [ ] New public functions have docstrings (ruff D100–D103 enforced).
+- [ ] **"Invariant touched?"** — yes/no in the PR description. If yes, describe the ceremony followed.
+- [ ] Phase budget respected (run `/phase-status` if using Claude Code).
+- [ ] `CHANGELOG.md` updated under `[Unreleased]` for user-visible changes.
+
+## Reporting bugs
+
+Use the [bug report issue template](.github/ISSUE_TEMPLATE/bug.md). Include:
+
+- jellycell version (`jellycell --version` or `python -m jellycell --version`).
+- Python version, OS.
+- Minimal reproduction — notebook + command.
+- Expected vs actual output.
+
+## License
+
+By contributing you agree your work is released under [Apache-2.0](LICENSE).

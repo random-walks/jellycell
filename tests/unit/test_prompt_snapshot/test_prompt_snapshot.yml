@@ -1,0 +1,8 @@
+contains_canonical_headers:
+  agent_guide_title: true
+  cli_commands_section: true
+  invariants_section: true
+  jc_api_section: true
+length: 7420
+sha256_first_32: dec647820fe3e3f15e3bd11f5190b5ac
+starts_with: '# Agent guide'

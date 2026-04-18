@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "jellycell-view",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": ["run", "jellycell", "view", "examples/demo"],
+      "port": 5179
+    },
+    {
+      "name": "jellycell-timeseries",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": ["run", "jellycell", "view", "examples/timeseries", "--port", "5183"],
+      "port": 5183
+    }
+  ]
+}

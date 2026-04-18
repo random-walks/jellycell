@@ -1,0 +1,159 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "jellycell"
+dynamic = ["version"]
+description = "A living catalogue for reproducible analyses: plain-text notebooks, content-hashed output caching, live HTML viewer."
+readme = "README.md"
+requires-python = ">=3.11"
+license = "Apache-2.0"
+authors = [{ name = "Blaise", email = "blaise@ubik.studio" }]
+keywords = ["notebook", "jupyter", "reproducibility", "data-science", "agents"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "jupytext>=1.16",
+    "jupyter-client>=8",
+    "ipykernel>=6",
+    "nbformat>=5",
+    "nbconvert>=7",
+    "diskcache>=5",
+    "typer>=0.12",
+    "rich>=13",
+    "pydantic>=2",
+    "markdown-it-py[linkify,plugins]>=3",
+    "mdit-py-plugins>=0.4",
+    "pygments>=2.17",
+    "jinja2>=3",
+    "platformdirs>=4",
+    "tomli-w>=1",
+]
+
+[project.optional-dependencies]
+server = [
+    "uvicorn>=0.30",
+    "starlette>=0.37",
+    "watchfiles>=0.22",
+    "sse-starlette>=2",
+]
+docs = [
+    "sphinx>=7",
+    "sphinx-autobuild>=2024.10",
+    "sphinx-autodoc2>=0.5",
+    "myst-parser>=3",
+    "myst-nb>=1.1",
+    "furo>=2024.8",
+    "sphinxcontrib-typer>=0.5",
+    "sphinx-design>=0.6",
+    "sphinx-copybutton>=0.5",
+]
+examples = [
+    "numpy>=1.26",
+    "pandas>=2.0",
+    "matplotlib>=3.7",
+    "pyarrow>=15",
+]
+all = ["jellycell[server]"]
+dev = [
+    "jellycell[all,docs,examples]",
+    "pytest>=8",
+    "pytest-cov",
+    "pytest-asyncio",
+    "pytest-regressions>=2",
+    "ruff>=0.6",
+    "mypy>=1.10",
+    "pre-commit>=3",
+    "hatch",
+]
+
+[project.scripts]
+jellycell = "jellycell.cli.app:app"
+
+[project.urls]
+Homepage = "https://jellycell.readthedocs.io"
+Repository = "https://github.com/random-walks/jellycell"
+Documentation = "https://jellycell.readthedocs.io"
+Issues = "https://github.com/random-walks/jellycell/issues"
+Changelog = "https://github.com/random-walks/jellycell/blob/main/CHANGELOG.md"
+
+[tool.hatch.version]
+path = "src/jellycell/_version.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/jellycell"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"docs/agent-guide.md" = "jellycell/agent-guide.md"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF", "N", "PTH"]
+extend-select = ["D100", "D101", "D102", "D103", "D200"]
+ignore = ["E501", "D203", "D213"]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**/*.py" = ["D"]
+"docs/**/*.py" = ["D"]
+# typer's idiomatic pattern is `x: T = typer.Option(...)` — B008 is a false positive here.
+"src/jellycell/cli/**/*.py" = ["B008"]
+# Notebooks in examples/ are jupytext percent-format files — D100 and E402 don't apply.
+# Greek letters in matplotlib labels (α, σ, ρ, μ) are intentional.
+"examples/**/*.py" = ["D", "E402", "RUF001"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src/jellycell"]
+
+[[tool.mypy.overrides]]
+module = [
+    "jupytext", "jupytext.*",
+    "nbformat", "nbformat.*",
+    "jupyter_client", "jupyter_client.*",
+    "diskcache", "diskcache.*",
+    "pandas", "pandas.*",
+    "matplotlib", "matplotlib.*",
+    "pygments", "pygments.*",
+    "markdown_it", "markdown_it.*",
+    "mdit_py_plugins", "mdit_py_plugins.*",
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# Format/export layers bridge to untyped jupytext/nbformat; allow Any-typed calls.
+module = ["jellycell.format.parse", "jellycell.export.ipynb"]
+disallow_untyped_calls = false
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra --strict-markers --strict-config"
+asyncio_mode = "auto"
+markers = [
+    "integration: tests that spawn subprocesses (Jupyter kernels) or write real files",
+]
+
+[tool.coverage.run]
+source = ["src/jellycell"]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "raise NotImplementedError",
+    "if TYPE_CHECKING:",
+]

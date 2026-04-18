@@ -1,0 +1,43 @@
+<section class="jc-cell jc-cell-{{ kind }}" id="cell-{{ ordinal }}" data-cell-id="{{ ordinal }}">
+  <header class="jc-cell-head">
+    <a class="jc-cell-ordinal" href="#cell-{{ ordinal }}" title="Link to this cell">#{{ ordinal }}</a>
+    {% if cell.spec.name %}<span class="jc-cell-name">{{ cell.spec.name }}</span>{% endif %}
+    {% if cell.spec.kind != "step" or kind != "code" %}
+    <span class="jc-cell-kind jc-cell-kind-{{ cell.spec.kind }}">jc.{{ cell.spec.kind }}</span>
+    {% endif %}
+    {% if cell.spec.deps %}
+    <span class="jc-cell-deps">
+      deps:
+      {% for d in cell.spec.deps %}<code>{{ d }}</code>{% if not loop.last %} {% endif %}{% endfor %}
+    </span>
+    {% endif %}
+    {% if manifest %}
+    <span class="jc-cell-stats">
+      <span class="jc-status jc-status-{{ manifest.status }}">{{ manifest.status }}</span>
+      <span class="jc-timing">{{ manifest.duration_ms }} ms</span>
+    </span>
+    {% endif %}
+    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
+  </header>
+  <div class="jc-cell-body">
+    <div class="jc-cell-source">
+{{ source_html|safe }}
+    </div>
+    {% if outputs_html %}
+    <div class="jc-cell-outputs">
+{{ outputs_html|safe }}
+    </div>
+    {% endif %}
+    {% if artifacts %}
+    <div class="jc-cell-artifacts">
+      <span class="jc-label">artifacts</span>
+      {% for art in artifacts %}
+      <a class="jc-artifact-chip" href="{{ art.href }}" download="{{ art.basename }}" title="{{ art.path }}">
+        <span class="jc-chip-name">{{ art.basename }}</span>
+        <span class="jc-chip-size">{{ art.size_human }}</span>
+      </a>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</section>

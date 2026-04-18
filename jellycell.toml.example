@@ -1,0 +1,69 @@
+# jellycell.toml — canonical reference with every field explained.
+#
+# Put this file at your project root. `jellycell init` creates one for you.
+# A PEP-723 `[tool.jellycell]` block at the top of a notebook can override
+# any of these at file scope (see docs/file-format.md).
+
+[project]
+# Human-readable project name. Shown in the HTML catalogue.
+name = "my-project"
+
+
+[paths]
+# All paths are relative to the project root (the directory containing this file).
+# Anything jellycell writes goes under one of these roots — nothing escapes them.
+
+# Where your notebook source files live (*.py in jupytext percent format).
+notebooks = "notebooks"
+
+# Input data. Conventionally where `jc.load("data/...")` pulls from.
+data = "data"
+
+# Where `jc.save`, `jc.figure`, `jc.table` write. Mirrored to <notebook>/ subdirs.
+artifacts = "artifacts"
+
+# Rendered HTML output lives here when you run `jellycell render`.
+reports = "reports"
+
+# Prose companion docs (manuscripts, blog posts, narrative). Rendered in the
+# catalogue alongside notebooks. Optional — set to an empty string to disable.
+manuscripts = "manuscripts"
+
+# Content-addressed cache + SQLite index + manifests. Normally git-ignored.
+cache = ".jellycell/cache"
+
+
+[run]
+# The Jupyter kernel name. `python3` works for the default ipykernel.
+# For project-specific kernels: register with `python -m ipykernel install --name myenv`.
+kernel = "python3"
+
+# Subprocess-only is the only supported mode. This field is kept for forward-compat;
+# do not change it.
+subprocess = true
+
+# Per-cell timeout in seconds. Override per-cell with a `timeout=N` tag.
+timeout_seconds = 600
+
+
+[viewer]
+# `jellycell view` binds here. Requires the [server] extra.
+host = "127.0.0.1"
+port = 5179
+
+# Paths that, when changed, trigger a re-render + browser reload.
+watch = ["notebooks", "manuscripts", "artifacts"]
+
+
+[lint]
+# When true, jc.save/figure/table calls with paths outside `paths.artifacts`
+# raise a lint error.
+enforce_artifact_paths = true
+
+# When true, every cell must declare its deps explicitly (via tag or jc.deps()).
+# Off by default — auto-inferred deps are permissive during exploration.
+enforce_declared_deps = false
+
+# Warn when a cached cell's total output exceeds this size.
+# Accepts "N", "NKB", "NMB", "NGB".
+warn_on_large_cell_output = "10MB"

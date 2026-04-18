@@ -1,0 +1,7 @@
+fixed: int
+project: str
+rules_run:
+- str
+schema_version: int
+violations:
+- <empty>

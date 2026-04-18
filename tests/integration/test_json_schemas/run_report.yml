@@ -1,0 +1,11 @@
+cell_results:
+- cache_key: str
+  cell_id: str
+  cell_name: NoneType
+  duration_ms: int
+  error: NoneType
+  status: str
+notebook: str
+schema_version: int
+status: str
+total_duration_ms: int

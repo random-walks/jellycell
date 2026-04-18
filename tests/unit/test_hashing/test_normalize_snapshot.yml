@@ -1,0 +1,15 @@
+blank_lines: 'x
+
+  '
+crlf: 'a
+
+  b
+
+  '
+empty: ''
+simple: 'x = 1
+
+  '
+trailing_ws: 'x = 1
+
+  '
