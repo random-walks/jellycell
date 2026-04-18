@@ -61,6 +61,41 @@ First public release.
 - Claude Code infra: CLAUDE.md, slash commands (`/spec-check`, `/phase-status`), subagents, skills (`spec-invariant`, `phase-budget`, `piggyback-first`).
 - Release pipeline on PyPI via trusted publisher (OIDC).
 
+### Features — artifact layout + large-file handling
+
+- **`[artifacts]` config section** in `jellycell.toml`:
+  - **`layout`** (`"flat"` / `"by_notebook"` / `"by_cell"`, default
+    `"flat"`): controls where path-less `jc.figure()` / `jc.table()`
+    writes. `"by_cell"` makes every artifact path name its producer
+    (`artifacts/<notebook>/<cell>/<name>.<ext>`) — agent-friendly for
+    "what generated what" lookups. Explicit `jc.save(x, "...")` paths
+    always win, so existing notebooks keep working unchanged.
+  - **`max_committed_size_mb`** (default `50`): post-run soft threshold.
+    `jellycell run` flags any single artifact above the limit with a
+    `.gitignore` / Git LFS reminder. Set to `0` to disable.
+- **New `large-data` example** under `examples/large-data/`
+  demonstrates the full pattern: `[artifacts] layout = "by_notebook"`,
+  low `max_committed_size_mb`, a tiny committed `headline.json` digest
+  next to a git-ignored generated parquet, and a reproducible seed so
+  reviewers regenerate locally.
+- **Additive `RunReport.large_artifacts` field** — a list of
+  `LargeArtifactWarning` entries surfaced to both the JSON and rich
+  outputs of `jellycell run`. §10.1 additive (no `schema_version` bump).
+
+### Examples — READMEs + hand-authored manuscripts
+
+Every example now ships a top-level `README.md` with bootstrap commands
+(both `uv` and `pip`), a layout diagram, and "what this example shows."
+Every example's `manuscripts/` folder carries a hand-authored
+`.md` alongside the auto-generated tearsheet(s):
+
+- `minimal/manuscripts/notes.md` — first-run reflection.
+- `demo/manuscripts/analysis.md` — analyst's read on the conversion numbers.
+- `paper/manuscripts/paper.md` — paper draft (already existed; now cross-linked).
+- `timeseries/manuscripts/findings.md` — interpretation of decomposition + forecast.
+- `ml-experiment/manuscripts/model-card.md` — training-run log.
+- `large-data/manuscripts/data-notes.md` — reproducibility protocol.
+
 ### Contracts locked (§10)
 
 1. **`--json` schemas** (`schema_version: 1`). Pinned by `tests/integration/test_json_schemas.py`.

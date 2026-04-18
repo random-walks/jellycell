@@ -174,6 +174,19 @@ Every command supports `--json` for machine-readable output with
   of `manuscripts/`. GitHub renders the result inline — no HTML preview
   service needed; commit it alongside the notebook so reviewers see the
   latest run without cloning.
+- **Pick an artifact layout that matches the project.** `[artifacts]
+  layout` in `jellycell.toml` controls where path-less `jc.figure()` /
+  `jc.table()` writes: `"flat"` (default), `"by_notebook"` →
+  `artifacts/<notebook>/<name>.<ext>`, or `"by_cell"` →
+  `artifacts/<notebook>/<cell>/<name>.<ext>`. `"by_cell"` makes every
+  artifact self-identifying — handy for agents that need to trace
+  "which cell produced this file?" without opening manifests.
+- **Commit the story, git-ignore the bulk.** For datasets too big to
+  commit, set `[artifacts] max_committed_size_mb` and let `jellycell
+  run` warn you when an artifact crosses the line. Commit a tiny
+  `headline.json` summary instead, git-ignore (or Git-LFS) the bytes,
+  and reviewers regenerate from the seed + notebook locally. See
+  `examples/large-data/` for the full pattern.
 
 ## Invariants (spec §10 contracts)
 

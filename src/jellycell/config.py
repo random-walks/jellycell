@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import tomllib
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import tomli_w
 from pydantic import BaseModel, ConfigDict, Field
@@ -66,6 +66,39 @@ class LintConfig(BaseModel):
     warn_on_large_cell_output: str = "10MB"
 
 
+#: Allowed layouts for the ``[artifacts] layout`` setting.
+ArtifactLayout = Literal["flat", "by_notebook", "by_cell"]
+
+
+class ArtifactsConfig(BaseModel):
+    """The ``[artifacts]`` table — how jellycell picks default artifact paths.
+
+    Only affects **path-less** ``jc.figure()`` / ``jc.table()`` calls where
+    jellycell chooses the location. Explicit paths (``jc.save(x, "artifacts/foo.json")``)
+    always win unchanged.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    layout: ArtifactLayout = "flat"
+    """Default artifact layout:
+
+    - ``flat`` (default): ``artifacts/<name>.<ext>``. Backwards-compatible.
+    - ``by_notebook``: ``artifacts/<notebook-stem>/<name>.<ext>``. Good when
+      one project has many notebooks producing similarly-named artifacts.
+    - ``by_cell``: ``artifacts/<notebook-stem>/<cell-name>/<name>.<ext>``.
+      Every artifact's path makes its producer obvious to agents and humans
+      without opening the manifest.
+    """
+
+    max_committed_size_mb: int = 50
+    """Soft warning threshold (MB) for individual artifacts.
+
+    ``jellycell run`` flags any artifact exceeding this with a reminder to
+    either git-ignore the file or move it to LFS. Set to 0 to disable.
+    """
+
+
 class Config(BaseModel):
     """Full jellycell.toml schema."""
 
@@ -76,6 +109,7 @@ class Config(BaseModel):
     run: RunConfig = Field(default_factory=RunConfig)
     viewer: ViewerConfig = Field(default_factory=ViewerConfig)
     lint: LintConfig = Field(default_factory=LintConfig)
+    artifacts: ArtifactsConfig = Field(default_factory=ArtifactsConfig)
 
     @classmethod
     def load(cls, path: Path) -> Config:

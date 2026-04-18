@@ -64,6 +64,34 @@ port = 5179
 watch = ["notebooks", "manuscripts", "artifacts"]     # paths triggering reloads
 ```
 
+### `[artifacts]`
+
+Controls where path-less `jc.figure()` / `jc.table()` calls save, and
+when jellycell warns about outsized outputs. Explicit paths in
+`jc.save(x, "artifacts/foo.json")` always win — the layout setting is
+only consulted when jellycell picks the location.
+
+```toml
+[artifacts]
+layout = "flat"                   # "flat" | "by_notebook" | "by_cell"
+max_committed_size_mb = 50        # post-run warning threshold; 0 to disable
+```
+
+- **`layout = "flat"`** (default) — every artifact lands under
+  `artifacts/<name>.<ext>`. Non-breaking with any existing notebook.
+- **`layout = "by_notebook"`** — path-less figures and tables land under
+  `artifacts/<notebook-stem>/<name>.<ext>`. Good when one project has
+  many notebooks producing similarly-named outputs.
+- **`layout = "by_cell"`** —
+  `artifacts/<notebook-stem>/<cell-name>/<name>.<ext>`. Every artifact's
+  path names its producer, which agents and human reviewers can read
+  at a glance without opening the manifest.
+
+The `max_committed_size_mb` threshold drives a post-run warning from
+`jellycell run` when any single artifact exceeds the limit — pointing
+at either `.gitignore` or Git LFS. See the [`large-data`](https://github.com/random-walks/jellycell/tree/main/examples/large-data)
+example for the "commit the story, git-ignore the bulk" workflow.
+
 ### `[lint]`
 
 Rules with a policy gate. Rules without a gate (like `pep723-position`) always

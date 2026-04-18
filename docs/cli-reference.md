@@ -58,6 +58,10 @@ jellycell run notebooks/foo.py
 jellycell run notebooks/foo.py --force    # re-execute all cells
 ```
 
+After the run, `jellycell run` warns about any artifact larger than
+`[artifacts] max_committed_size_mb` (default 50) with `.gitignore` / Git
+LFS guidance. Set the threshold to `0` in `jellycell.toml` to silence.
+
 ### `jellycell render [notebook]`
 
 Render HTML reports.

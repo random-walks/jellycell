@@ -6,8 +6,8 @@ Two kinds of markdown files live here:
   produced by `jellycell export tearsheet notebooks/<name>.py`.
   Regenerating overwrites them, so never hand-edit.
 - **Hand-authored writeups** at the root of this folder — model cards,
-  reviewer notes, meeting prep. None yet in this example; the training
-  loop is small enough that the tearsheet carries most of the story.
+  reviewer notes, meeting prep:
+  - [`model-card.md`](model-card.md) — the training-run log.
 
 ## Tearsheets in this project
 

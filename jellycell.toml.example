@@ -67,3 +67,19 @@ enforce_declared_deps = false
 # Warn when a cached cell's total output exceeds this size.
 # Accepts "N", "NKB", "NMB", "NGB".
 warn_on_large_cell_output = "10MB"
+
+
+[artifacts]
+# How jellycell picks a default path for *path-less* jc.figure() / jc.table()
+# calls — explicit jc.save(x, "artifacts/foo.json") always wins unchanged.
+#
+# - "flat"         — artifacts/<name>.<ext>                (default, simplest)
+# - "by_notebook"  — artifacts/<notebook-stem>/<name>.<ext>  (scales with # of notebooks)
+# - "by_cell"      — artifacts/<notebook-stem>/<cell-name>/<name>.<ext>
+#                    (every file's path names its producer — agent-friendly)
+layout = "flat"
+
+# Post-run soft warning for individual artifacts. `jellycell run` flags any
+# single file above this many megabytes with a reminder to either git-ignore
+# it or move it to Git LFS. Set to 0 to disable.
+max_committed_size_mb = 50

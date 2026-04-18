@@ -40,7 +40,12 @@ def figure(
     caption: str | None = None,
     fig: Any = None,
 ) -> Path:
-    """Save a matplotlib figure. If ``path`` is ``None``, a sensible default is chosen."""
+    """Save a matplotlib figure. If ``path`` is ``None``, a sensible default is chosen.
+
+    When no path is given inside a run, the default location respects the
+    project's ``[artifacts] layout`` setting (``flat`` / ``by_notebook`` /
+    ``by_cell``). Explicit paths are always taken verbatim.
+    """
     ctx = get_context()
     if path is None:
         stem = "figure"
@@ -48,7 +53,7 @@ def figure(
             stem = ctx.cell_name
         elif ctx is not None:
             stem = ctx.cell_id.replace(":", "_")
-        path_ = f"artifacts/{stem}.png"
+        path_ = _layout_path(ctx, stem, "png")
     else:
         path_ = str(path)
 
@@ -68,13 +73,35 @@ def table(
     caption: str | None = None,
     name: str | None = None,
 ) -> Path:
-    """Save a tabular (pandas DataFrame) to a parquet artifact."""
+    """Save a tabular (pandas DataFrame) to a parquet artifact.
+
+    Like :func:`figure`, the default path honors ``[artifacts] layout``.
+    """
     ctx = get_context()
     stem = name or (ctx.cell_name if ctx and ctx.cell_name else "table")
-    target = _resolve_out(f"artifacts/{stem}.parquet")
+    target = _resolve_out(_layout_path(ctx, stem, "parquet"))
     target.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(target)
     return target
+
+
+def _layout_path(ctx: RunContext | None, stem: str, ext: str) -> str:
+    """Pick the default artifact path per ``[artifacts] layout``.
+
+    Standalone (no RunContext): always flat — we don't know notebook/cell
+    context. Inside a run: ``flat`` / ``by_notebook`` / ``by_cell``.
+    """
+    if ctx is None:
+        return f"artifacts/{stem}.{ext}"
+    artifacts_dir = ctx.project.config.paths.artifacts
+    layout = ctx.project.config.artifacts.layout
+    notebook_stem = Path(ctx.notebook).stem if ctx.notebook else ""
+    cell = ctx.cell_name or ctx.cell_id.replace(":", "_")
+    if layout == "by_cell":
+        return f"{artifacts_dir}/{notebook_stem}/{cell}/{stem}.{ext}"
+    if layout == "by_notebook":
+        return f"{artifacts_dir}/{notebook_stem}/{stem}.{ext}"
+    return f"{artifacts_dir}/{stem}.{ext}"
 
 
 # ----------------------------------------------------------------------- reads

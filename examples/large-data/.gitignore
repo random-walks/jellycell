@@ -1,0 +1,9 @@
+# A typical large-data project commits the notebook + data seed + tearsheets,
+# but leaves bulky generated artifacts out of version control. Anyone cloning
+# re-runs `jellycell run` to reproduce them deterministically.
+#
+# The tearsheet itself IS committed (it's small markdown) — readers see the
+# last-run summary on GitHub without needing the underlying parquet.
+
+artifacts/large_data/sample_*.parquet
+artifacts/large_data/features_*.parquet

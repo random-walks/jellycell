@@ -67,6 +67,16 @@ class CellResult(BaseModel):
     """Populated when ``status == "error"``. Optional, additive field (§10.1 safe)."""
 
 
+class LargeArtifactWarning(BaseModel):
+    """One artifact that exceeded ``[artifacts] max_committed_size_mb``."""
+
+    path: str
+    size_mb: float
+    limit_mb: int
+    cell_id: str
+    cell_name: str | None = None
+
+
 class RunReport(BaseModel):
     """JSON schema for ``jellycell run --json``. Spec §10.1 contract."""
 
@@ -75,6 +85,12 @@ class RunReport(BaseModel):
     cell_results: list[CellResult] = Field(default_factory=list)
     total_duration_ms: int = 0
     status: Literal["ok", "error"] = "ok"
+    large_artifacts: list[LargeArtifactWarning] = Field(default_factory=list)
+    """Per-run soft warnings — artifacts above ``max_committed_size_mb``.
+
+    Additive, optional field (§10.1 safe). Consumers that ignore it keep
+    working unchanged.
+    """
 
 
 class Runner:
@@ -136,6 +152,14 @@ class Runner:
                 if result.cache_key is not None:
                     name = cell.spec.name or f"{_stem(notebook_rel)}:{ordinal}"
                     name_to_key[name] = result.cache_key
+                    report.large_artifacts.extend(
+                        self._collect_large_artifact_warnings(
+                            cache_key=result.cache_key,
+                            cell_id=result.cell_id,
+                            cell_name=result.cell_name,
+                            limit_mb=effective.config.artifacts.max_committed_size_mb,
+                        )
+                    )
                 if result.status == "error":
                     report.status = "error"
                     break
@@ -144,6 +168,38 @@ class Runner:
                 kernel.stop()
         report.total_duration_ms = int((time.perf_counter() - start) * 1000)
         return report
+
+    def _collect_large_artifact_warnings(
+        self,
+        *,
+        cache_key: str,
+        cell_id: str,
+        cell_name: str | None,
+        limit_mb: int,
+    ) -> list[LargeArtifactWarning]:
+        """Check this cell's manifest for artifacts larger than ``limit_mb``.
+
+        ``limit_mb = 0`` disables the check. Missing manifest is a no-op so
+        cache hits for entries that were pruned don't crash the run.
+        """
+        if limit_mb <= 0:
+            return []
+        try:
+            manifest = self.store.get_manifest(cache_key)
+        except KeyError:
+            return []
+        threshold = limit_mb * 1024 * 1024
+        return [
+            LargeArtifactWarning(
+                path=art.path,
+                size_mb=round(art.size / (1024 * 1024), 2),
+                limit_mb=limit_mb,
+                cell_id=cell_id,
+                cell_name=cell_name,
+            )
+            for art in manifest.artifacts
+            if art.size > threshold
+        ]
 
     # --------------------------------------------------------- cell execution
     def _run_one_cell(

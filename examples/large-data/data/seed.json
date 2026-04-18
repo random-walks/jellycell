@@ -1,0 +1,6 @@
+{
+  "offset": 7,
+  "mean": 0.0,
+  "scale": 1.0,
+  "notes": "Tweak any value and the downstream cache invalidates. This file IS committed — the generated parquet is not."
+}
