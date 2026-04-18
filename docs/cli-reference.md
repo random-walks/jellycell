@@ -55,12 +55,17 @@ Execute a notebook end-to-end with caching.
 
 ```bash
 jellycell run notebooks/foo.py
-jellycell run notebooks/foo.py --force    # re-execute all cells
+jellycell run notebooks/foo.py --force                    # re-execute all cells
+jellycell run notebooks/foo.py -m "fixed sign error"      # journal entry message
 ```
 
 After the run, `jellycell run` warns about any artifact larger than
 `[artifacts] max_committed_size_mb` (default 50) with `.gitignore` / Git
 LFS guidance. Set the threshold to `0` in `jellycell.toml` to silence.
+
+When `[journal] enabled = true` (the default) a one-section entry is
+appended to `manuscripts/journal.md` — timestamp + cell summary +
+artifact changes + your `-m` message. Append-only; hand-edits survive.
 
 ### `jellycell render [notebook]`
 
@@ -99,6 +104,27 @@ jellycell view --host 0.0.0.0 --port 8080
   paths, JSON summaries flattened as two-column tables, and a header
   link to `reports/<stem>.html` when it exists. Safe to commit; GitHub
   renders it inline.
+
+### `jellycell checkpoint ...`
+
+Bundle reproducible project snapshots (self-contained `.tar.gz`).
+Default target on `restore` is a **new sibling directory** — the live
+project is never touched unless you explicitly pass `--into` + `--force`.
+
+```bash
+jellycell checkpoint create                       # auto-timestamped name
+jellycell checkpoint create --name v1-draft -m "submitted for review"
+jellycell checkpoint list                         # newest first
+jellycell checkpoint restore v1-draft             # → <project>-restored-v1-draft/
+jellycell checkpoint restore v1-draft --into /tmp/inspect --force
+```
+
+The archive includes `notebooks/`, `data/`, `artifacts/`, `reports/`,
+`manuscripts/`, `jellycell.toml`, and `.jellycell/cache/` — so a
+reviewer who unpacks it can re-render HTML without a re-run. Junk
+dirs (`__pycache__`, `.venv`, `.git`, etc.) are skipped. Sidecar
+`<name>.json` metadata (created_at, message, file count) sits next to
+each `.tar.gz` so `list` is fast.
 
 ### `jellycell new <name>`
 

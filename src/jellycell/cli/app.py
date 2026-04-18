@@ -77,6 +77,7 @@ def global_options(
 import contextlib as _contextlib  # noqa: E402
 
 from jellycell.cli.commands import cache as _cache  # noqa: E402, F401
+from jellycell.cli.commands import checkpoint as _checkpoint  # noqa: E402, F401
 from jellycell.cli.commands import export as _export  # noqa: E402, F401
 from jellycell.cli.commands import init as _init  # noqa: E402, F401
 from jellycell.cli.commands import lint as _lint  # noqa: E402, F401

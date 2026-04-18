@@ -92,6 +92,26 @@ The `max_committed_size_mb` threshold drives a post-run warning from
 at either `.gitignore` or Git LFS. See the [`large-data`](https://github.com/random-walks/jellycell/tree/main/examples/large-data)
 example for the "commit the story, git-ignore the bulk" workflow.
 
+### `[journal]`
+
+Append-only per-run log written to `<manuscripts>/<path>` after every
+`jellycell run`. Captures timestamp, notebook, cell summary, new
+artifacts (with their captions, when present), any large-artifact
+warnings, and the optional `-m "message"` note. Append-only from
+jellycell's side so hand-edits survive future runs.
+
+```toml
+[journal]
+enabled = true                    # default; set false to skip the trail
+path = "journal.md"               # relative to paths.manuscripts
+```
+
+The journal is intentionally committed for real projects — it's the
+analysis trajectory a reviewer (or you in six months) can scan to
+understand "why did the numbers change between runs?" Set
+`enabled = false` only when the project is truly transient.
+
+
 ### `[lint]`
 
 Rules with a policy gate. Rules without a gate (like `pep723-position`) always

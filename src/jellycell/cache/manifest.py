@@ -86,6 +86,23 @@ class ArtifactRecord(BaseModel):
     mime: str | None = None
     """MIME type, if known."""
 
+    caption: str | None = None
+    """Human-readable caption for the artifact — used as the figure / table
+    heading in tearsheets and the ``alt`` text on image embeds.
+
+    Optional, additive field (§10.1 safe). Populated when the producing
+    ``jc.*`` call passes ``caption="..."``; otherwise the tearsheet falls
+    back to the cell name."""
+
+    notes: str | None = None
+    """Longer analyst-authored notes shown under the caption in tearsheets.
+    Use for methodology, caveats, data-source reminders. Optional additive."""
+
+    tags: list[str] = Field(default_factory=list)
+    """Free-form tags (e.g. ``["regression", "diagnostic"]``) for grouping
+    and filtering. Currently surface-only metadata; future versions may use
+    tags for tearsheet section ordering. Optional additive."""
+
 
 class Manifest(BaseModel):
     """A single cell execution's manifest (spec §2.3)."""

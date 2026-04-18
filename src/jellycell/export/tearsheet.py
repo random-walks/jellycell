@@ -201,22 +201,47 @@ def _render_setup_cell(cell: Cell) -> list[str]:
 def _render_image_artifacts(
     cell: Cell, manifest: Manifest, out_dir: Path, project_root: Path
 ) -> list[str]:
+    """Inline each image artifact with optional caption/notes/tags trailers.
+
+    Layout for a figure with metadata:
+
+        **Figure caption**
+
+        ![alt](../../artifacts/plot.png)
+        *Notes paragraph here.*
+
+        _tags: regression, diagnostic_
+
+    Without a caption we fall back to the old behavior (bare image with
+    cell-name alt text).
+    """
     lines: list[str] = []
     for art in manifest.artifacts:
         ext = art.path.rsplit(".", 1)[-1].lower() if "." in art.path else ""
         if ext not in _IMAGE_EXTS:
             continue
         rel = _relative(project_root / art.path, out_dir)
-        caption = cell.spec.name or Path(art.path).stem.replace("_", " ")
-        lines.append(f"![{caption}]({rel})")
+        alt = cell.spec.name or Path(art.path).stem.replace("_", " ")
+        if art.caption:
+            lines.append(f"**{art.caption}**")
+            lines.append("")
+        lines.append(f"![{alt}]({rel})")
+        if art.notes:
+            lines.append(f"*{art.notes}*")
+        if art.tags:
+            lines.append(f"_tags: {', '.join(art.tags)}_")
         lines.append("")
     return lines
 
 
 def _render_json_artifacts(cell: Cell, manifest: Manifest, project_root: Path) -> list[str]:
-    # Using the artifact's file stem (not the cell's name) disambiguates
-    # the common case where one cell saves several JSONs — e.g. a
-    # ``summary`` cell that writes both ``summary.json`` and ``totals.json``.
+    """Flatten JSON artifacts into a two-column table.
+
+    Label precedence: explicit ``caption`` from the ``jc.save(..., caption=...)``
+    call, then the file stem (so two JSONs from the same cell stay
+    distinguishable), then a humanized fallback. Notes and tags trail the
+    table when present.
+    """
     _ = cell
     lines: list[str] = []
     for art in manifest.artifacts:
@@ -229,13 +254,19 @@ def _render_json_artifacts(cell: Cell, manifest: Manifest, project_root: Path) -
             continue
         if not isinstance(data, dict):
             continue
-        label = Path(art.path).stem
-        lines.append(f"**{_humanize(label)}**")
+        label = art.caption or _humanize(Path(art.path).stem)
+        lines.append(f"**{label}**")
         lines.append("")
         lines.append("| field | value |")
         lines.append("| --- | --- |")
         for k, v in _flatten(data).items():
             lines.append(f"| `{k}` | {_fmt_value(v)} |")
+        if art.notes:
+            lines.append("")
+            lines.append(f"*{art.notes}*")
+        if art.tags:
+            lines.append("")
+            lines.append(f"_tags: {', '.join(art.tags)}_")
         lines.append("")
     return lines
 

@@ -58,7 +58,16 @@ ax.set_title("Cumulative mortality by country")
 ax.grid(alpha=0.3, axis="y")
 ax.bar_label(bars, fmt="{:,.0f}", padding=3, fontsize=9)
 fig.tight_layout()
-jc.figure(path="artifacts/country_totals.png", fig=fig)
+jc.figure(
+    path="artifacts/country_totals.png",
+    fig=fig,
+    caption="Figure 1: cumulative mortality by country, 2020–2021",
+    notes=(
+        "Bars sum deaths across both years. US dominates at ~74% of the "
+        "four-country total; JP has the smallest absolute burden."
+    ),
+    tags=["result", "figure"],
+)
 
 # %% tags=["jc.figure", "name=yoy_chart", "deps=yoy_change"]
 order = sorted(yoy.items(), key=lambda kv: -kv[1])
@@ -72,7 +81,16 @@ ax.set_ylabel("2021 vs 2020 (%)")
 ax.set_title("Year-over-year change in mortality")
 ax.grid(alpha=0.3, axis="y")
 fig.tight_layout()
-jc.figure(path="artifacts/yoy_change.png", fig=fig)
+jc.figure(
+    path="artifacts/yoy_change.png",
+    fig=fig,
+    caption="Figure 2: year-over-year change (2021 vs 2020), percent",
+    notes=(
+        "Red bars = increase vs 2020, blue = decrease. DE stands out with "
+        "a ~59% rise; UK is nearly flat."
+    ),
+    tags=["result", "figure"],
+)
 
 # %% tags=["jc.step", "name=summary", "deps=per_country_totals", "deps=yoy_change"]
 summary = {
@@ -84,6 +102,17 @@ summary = {
     "largest_yoy_increase_country": max(yoy, key=yoy.get),
     "largest_yoy_increase_pct": round(max(yoy.values()), 4),
 }
-jc.save(summary, "artifacts/summary.json")
-jc.save(totals, "artifacts/totals.json")
+jc.save(
+    summary,
+    "artifacts/summary.json",
+    caption="Table 1: headline mortality stats",
+    notes="One-number-per-concept digest; fits in the tearsheet as a 2-col table.",
+    tags=["result", "table"],
+)
+jc.save(
+    totals,
+    "artifacts/totals.json",
+    caption="Table 2: per-country mortality totals (2020–2021)",
+    tags=["result", "table"],
+)
 print(summary)

@@ -1,18 +1,26 @@
 # Mortality trend analysis
 
-> **Tearsheet** for [`notebooks/analysis.py`](../../notebooks/analysis.py) · [HTML report](../../reports/analysis.html) · last run `2026-04-18T16:08:02+00:00`
+> **Tearsheet** for [`notebooks/analysis.py`](../../notebooks/analysis.py) · [HTML report](../../reports/analysis.html) · last run `2026-04-18T18:09:58+00:00`
 
 A paper-shaped jellycell project: compute goes here, narrative lives in
 `manuscripts/paper.md`, figures are saved under `artifacts/` and linked
 from both the paper and the auto-generated tearsheet.
 
-![country_totals](../../artifacts/country_totals.png)
+**Figure 1: cumulative mortality by country, 2020–2021**
 
+![country_totals](../../artifacts/country_totals.png)
+*Bars sum deaths across both years. US dominates at ~74% of the four-country total; JP has the smallest absolute burden.*
+_tags: result, figure_
+
+
+**Figure 2: year-over-year change (2021 vs 2020), percent**
 
 ![yoy_chart](../../artifacts/yoy_change.png)
+*Red bars = increase vs 2020, blue = decrease. DE stands out with a ~59% rise; UK is nearly flat.*
+_tags: result, figure_
 
 
-**Summary**
+**Table 1: headline mortality stats**
 
 | field | value |
 | --- | --- |
@@ -24,7 +32,11 @@ from both the paper and the auto-generated tearsheet.
 | `largest_yoy_increase_country` | DE |
 | `largest_yoy_increase_pct` | `0.5897` |
 
-**Totals**
+*One-number-per-concept digest; fits in the tearsheet as a 2-col table.*
+
+_tags: result, table_
+
+**Table 2: per-country mortality totals (2020–2021)**
 
 | field | value |
 | --- | --- |
@@ -32,6 +44,8 @@ from both the paper and the auto-generated tearsheet.
 | `UK` | `145000` |
 | `JP` | `26000` |
 | `DE` | `101000` |
+
+_tags: result, table_
 
 
 ---

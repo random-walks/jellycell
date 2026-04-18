@@ -1,6 +1,6 @@
 # Tiny training loop
 
-> **Tearsheet** for [`notebooks/train.py`](../../notebooks/train.py) · [HTML report](../../reports/train.html) · last run `2026-04-18T16:08:03+00:00`
+> **Tearsheet** for [`notebooks/train.py`](../../notebooks/train.py) · [HTML report](../../reports/train.html) · last run `2026-04-18T18:10:00+00:00`
 
 A one-parameter linear regression fit with gradient descent, plus a
 loss curve and final metrics. Every run dumps:
@@ -19,10 +19,14 @@ TRUE_W = 1.7
 NOISE = 0.25
 ```
 
+**Figure 1: training loss (MSE) per epoch**
+
 ![loss_curve](../../artifacts/loss_curve.png)
+*Monotone decrease, no oscillation, no divergence — LR and batch size are in a stable regime for this dataset. 40 epochs not quite enough for convergence (see model-card.md).*
+_tags: training, diagnostic_
 
 
-**Metrics**
+**Table 1: end-of-training metrics**
 
 | field | value |
 | --- | --- |
@@ -33,6 +37,10 @@ NOISE = 0.25
 | `final_loss` | `0.4149` |
 | `initial_loss` | `1.203` |
 | `weight_error_abs` | `0.9097` |
+
+*final_weight vs target_weight shows how far the optimizer got. weight_error_abs = |target − fitted|.*
+
+_tags: training, result_
 
 
 **Checkpoint**

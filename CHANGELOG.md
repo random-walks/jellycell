@@ -61,6 +61,35 @@ First public release.
 - Claude Code infra: CLAUDE.md, slash commands (`/spec-check`, `/phase-status`), subagents, skills (`spec-invariant`, `phase-budget`, `piggyback-first`).
 - Release pipeline on PyPI via trusted publisher (OIDC).
 
+### Features — artifact metadata + journal + checkpoint
+
+- **Artifact metadata via `jc.*` kwargs** — `jc.save`, `jc.figure`, and
+  `jc.table` accept optional `caption="..."`, `notes="..."`, `tags=[...]`.
+  Captured in the `ArtifactRecord` inside the cell manifest (additive
+  optional fields; §10.1 safe — no `schema_version` bump, no
+  `MINOR_VERSION` bump). Tearsheets render caption as the figure /
+  table heading, notes as an italic subcaption, tags as a searchable
+  line below.
+- **Analysis journal** — `manuscripts/journal.md` gets one append-only
+  section per `jellycell run`: timestamp, notebook, cell counts,
+  duration, new artifacts (with captions), large-artifact warnings,
+  any errors, and the optional `-m "..."` message. Default-on (opt-out
+  via `[journal] enabled = false`). Append-only from jellycell's side
+  so hand-edited commentary survives future runs. New `-m / --message`
+  flag on `jellycell run`.
+- **`jellycell checkpoint`** — reproducible `.tar.gz` snapshots with
+  `create`, `list`, `restore` subcommands. Archives notebooks, data,
+  artifacts, reports, manuscripts, `jellycell.toml`, and
+  `.jellycell/cache/`. Junk dirs (`__pycache__`, `.venv`, `.git`, etc.)
+  are skipped. **Restore is safe by default**: lands in a new sibling
+  directory (`<project>-restored-<name>/`) so the live project is
+  never touched. `--into PATH` lets you pick a location; `--force` is
+  required to merge into a non-empty target.
+- **Contracts doc clarification** — [reference/contracts](docs/reference/contracts.md)
+  now makes explicit that additive optional fields on manifest schemas
+  are backwards-compatible (no `MINOR_VERSION` bump) so long as
+  defaults preserve old-manifest deserialization.
+
 ### Features — artifact layout + large-file handling
 
 - **`[artifacts]` config section** in `jellycell.toml`:

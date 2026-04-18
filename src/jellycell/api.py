@@ -4,15 +4,18 @@ Every call has two modes:
 
 - **Inside a run** (``jellycell.run.context.get_context()`` returns a non-None):
   resolves paths relative to the project root, and side effects
-  (artifacts, declared deps) are picked up by the runner.
+  (artifacts, declared deps, caption/notes/tags metadata) are picked up
+  by the runner.
 - **Standalone** (no run context): falls back to a plain file op, no
   manifest side effect.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import pickle
+import uuid
 from pathlib import Path
 from typing import Any
 
@@ -20,17 +23,30 @@ from jellycell.run.context import RunContext, get_context
 
 
 # ---------------------------------------------------------------------- writes
-def save(obj: Any, path: str | Path, *, format: str | None = None) -> Path:
+def save(
+    obj: Any,
+    path: str | Path,
+    *,
+    format: str | None = None,
+    caption: str | None = None,
+    notes: str | None = None,
+    tags: list[str] | None = None,
+) -> Path:
     """Write ``obj`` to ``path``. Format inferred from suffix unless overridden.
 
     Supported formats: ``parquet``, ``csv``, ``json``, ``pkl``, ``png``.
     Duck-typed — the caller's object must support the corresponding method
     (e.g., ``to_parquet`` for pandas DataFrames).
+
+    ``caption`` / ``notes`` / ``tags`` are optional metadata — inside a run
+    they're attached to the produced artifact's :class:`ArtifactRecord` and
+    surfaced in tearsheets. Standalone: ignored (no manifest to write to).
     """
     target = _resolve_out(path)
     target.parent.mkdir(parents=True, exist_ok=True)
     fmt = format or target.suffix.lstrip(".")
     _write_by_format(obj, target, fmt)
+    _record_artifact_metadata(target, caption=caption, notes=notes, tags=tags)
     return target
 
 
@@ -38,6 +54,8 @@ def figure(
     path: str | Path | None = None,
     *,
     caption: str | None = None,
+    notes: str | None = None,
+    tags: list[str] | None = None,
     fig: Any = None,
 ) -> Path:
     """Save a matplotlib figure. If ``path`` is ``None``, a sensible default is chosen.
@@ -45,6 +63,9 @@ def figure(
     When no path is given inside a run, the default location respects the
     project's ``[artifacts] layout`` setting (``flat`` / ``by_notebook`` /
     ``by_cell``). Explicit paths are always taken verbatim.
+
+    ``caption`` / ``notes`` / ``tags`` flow into the artifact's
+    :class:`ArtifactRecord` and show up in tearsheets alongside the image.
     """
     ctx = get_context()
     if path is None:
@@ -64,6 +85,7 @@ def figure(
 
         fig = matplotlib.pyplot.gcf()
     fig.savefig(target, bbox_inches="tight")
+    _record_artifact_metadata(target, caption=caption, notes=notes, tags=tags)
     return target
 
 
@@ -71,18 +93,61 @@ def table(
     df: Any,
     *,
     caption: str | None = None,
+    notes: str | None = None,
+    tags: list[str] | None = None,
     name: str | None = None,
 ) -> Path:
     """Save a tabular (pandas DataFrame) to a parquet artifact.
 
-    Like :func:`figure`, the default path honors ``[artifacts] layout``.
+    Like :func:`figure`, the default path honors ``[artifacts] layout`` and
+    ``caption`` / ``notes`` / ``tags`` flow into the artifact's manifest record.
     """
     ctx = get_context()
     stem = name or (ctx.cell_name if ctx and ctx.cell_name else "table")
     target = _resolve_out(_layout_path(ctx, stem, "parquet"))
     target.parent.mkdir(parents=True, exist_ok=True)
     df.to_parquet(target)
+    _record_artifact_metadata(target, caption=caption, notes=notes, tags=tags)
     return target
+
+
+def _record_artifact_metadata(
+    target: Path,
+    *,
+    caption: str | None,
+    notes: str | None,
+    tags: list[str] | None,
+) -> None:
+    """Stash caption/notes/tags for the runner to pick up.
+
+    Writes a small JSON into ``<cache_dir>/pending-meta/<uuid>.json`` inside
+    a run; no-op in standalone mode. Runner scans the directory after each
+    cell execution, enriches the corresponding :class:`ArtifactRecord`, and
+    cleans up. The filename is a uuid so two cells producing artifacts at
+    the same path in the same run don't step on each other.
+    """
+    if caption is None and notes is None and not tags:
+        return
+    ctx = get_context()
+    if ctx is None:
+        return
+    try:
+        rel = str(target.resolve().relative_to(ctx.project.root.resolve()))
+    except ValueError:
+        return
+    meta_dir = ctx.project.cache_dir / "pending-meta"
+    meta_dir.mkdir(parents=True, exist_ok=True)
+    # Prefix with a short path-hash so debugging is easier but uniqueness is
+    # still guaranteed by the uuid suffix.
+    prefix = hashlib.sha256(rel.encode("utf-8")).hexdigest()[:8]
+    target_file = meta_dir / f"{prefix}-{uuid.uuid4().hex}.json"
+    payload = {
+        "path": rel,
+        "caption": caption,
+        "notes": notes,
+        "tags": list(tags) if tags else [],
+    }
+    target_file.write_text(json.dumps(payload), encoding="utf-8")
 
 
 def _layout_path(ctx: RunContext | None, stem: str, ext: str) -> str:

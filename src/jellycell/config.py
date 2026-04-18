@@ -70,6 +70,30 @@ class LintConfig(BaseModel):
 ArtifactLayout = Literal["flat", "by_notebook", "by_cell"]
 
 
+class JournalConfig(BaseModel):
+    """The ``[journal]`` table — analysis-trajectory log.
+
+    When enabled, ``jellycell run`` appends a one-section entry to
+    ``manuscripts/journal.md`` per invocation: timestamp, notebook,
+    cell-change summary, any new/invalidated artifacts, optional
+    ``--message`` commentary. Opt-out-by-default because the audit trail
+    is usually more valuable than clean.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: bool = True
+    """Write to ``<manuscripts_dir>/journal.md`` on every ``jellycell run``.
+
+    Turn off (``enabled = false``) for transient exploration projects that
+    don't want the trail, or when the journal lives outside this project."""
+
+    path: str = "journal.md"
+    """Relative path under ``manuscripts/`` to write to. Defaults to
+    ``journal.md``; override (e.g. ``"log/runs.md"``) if you prefer another
+    location."""
+
+
 class ArtifactsConfig(BaseModel):
     """The ``[artifacts]`` table — how jellycell picks default artifact paths.
 
@@ -110,6 +134,7 @@ class Config(BaseModel):
     viewer: ViewerConfig = Field(default_factory=ViewerConfig)
     lint: LintConfig = Field(default_factory=LintConfig)
     artifacts: ArtifactsConfig = Field(default_factory=ArtifactsConfig)
+    journal: JournalConfig = Field(default_factory=JournalConfig)
 
     @classmethod
     def load(cls, path: Path) -> Config:

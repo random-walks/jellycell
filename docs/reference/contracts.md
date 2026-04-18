@@ -48,6 +48,9 @@ truth. Adding `schema_version: int = 1` is required.
 | `jellycell cache prune`      | `cli.commands.cache.CachePruneReport`         |
 | `jellycell cache rebuild-index` | `cli.commands.cache.CacheRebuildReport`    |
 | `jellycell export ipynb/md/tearsheet` | `cli.commands.export.ExportReport`   |
+| `jellycell checkpoint create`| `cli.commands.checkpoint.CheckpointCreateReport` |
+| `jellycell checkpoint list`  | `cli.commands.checkpoint.CheckpointListReport`   |
+| `jellycell checkpoint restore` | `cli.commands.checkpoint.CheckpointRestoreReport` |
 | `jellycell new`              | `cli.commands.new.NewReport`                  |
 | (manifest file format)       | `cache.manifest.Manifest`                     |
 
@@ -105,7 +108,11 @@ It's a separate counter. Independent of `__version__`. Bump whenever:
 
 - `cache/hashing.py` changes behavior (normalization, what goes in,
   how it's combined).
-- Any pydantic schema baked into a manifest gains or renames a field.
+- A pydantic schema baked into a manifest has a **breaking** change —
+  a field renamed, removed, or type-changed in a non-widening way.
+  Additive optional fields with defaults are backwards-compatible
+  (old manifests parse fine; the new field defaults to ``None`` / its
+  default value) and **don't** require a bump.
 
 ### Regression
 

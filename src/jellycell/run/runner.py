@@ -18,6 +18,7 @@ from __future__ import annotations
 import base64
 import binascii
 import hashlib
+import json
 import time
 from datetime import UTC, datetime
 from pathlib import Path
@@ -254,12 +255,14 @@ class Runner:
 
         prelude = _setup_prelude(project, notebook_rel, cell_id, cell_name)
         before = _snapshot_artifacts(project.artifacts_dir)
+        _clear_pending_meta(project.cache_dir)
         t0 = time.perf_counter()
         _ = kernel.execute(prelude)
         execution = kernel.execute(cell.source, timeout=timeout_s)
         duration_ms = int((time.perf_counter() - t0) * 1000)
         after = _snapshot_artifacts(project.artifacts_dir)
         artifacts = _artifacts_diff(project.root, before, after)
+        _apply_pending_meta(project.cache_dir, artifacts)
 
         outputs = _translate_outputs(self.store, execution)
         manifest = Manifest(
@@ -363,6 +366,65 @@ def _artifacts_diff(
         rel = str(full_path.relative_to(project_root))
         records.append(ArtifactRecord(path=rel, sha256=digest, size=size, mime=None))
     return records
+
+
+def _pending_meta_dir(cache_dir: Path) -> Path:
+    return cache_dir / "pending-meta"
+
+
+def _clear_pending_meta(cache_dir: Path) -> None:
+    """Wipe the pending-meta directory before a cell runs.
+
+    Defensive: if a previous run died mid-cell and left orphan entries, they
+    must not leak into the next cell's manifest. Called at the start of each
+    ``_run_one_cell`` invocation.
+    """
+    import contextlib
+
+    d = _pending_meta_dir(cache_dir)
+    if not d.exists():
+        return
+    for f in d.iterdir():
+        if f.is_file():
+            with contextlib.suppress(OSError):
+                f.unlink()
+
+
+def _apply_pending_meta(cache_dir: Path, artifacts: list[ArtifactRecord]) -> None:
+    """Enrich ``artifacts`` with caption/notes/tags from pending-meta files.
+
+    Each pending-meta JSON carries a path + metadata written by
+    :func:`jellycell.api._record_artifact_metadata` during cell execution. We
+    match by relative path and mutate the corresponding :class:`ArtifactRecord`
+    in place. Files are deleted after processing so they don't leak between
+    cells. Unmatched metadata (artifact not produced, or diff missed it) is
+    silently discarded — the next run regenerates.
+    """
+    d = _pending_meta_dir(cache_dir)
+    if not d.exists():
+        return
+    by_path = {art.path: art for art in artifacts}
+    for f in sorted(d.iterdir()):
+        if not f.is_file() or f.suffix != ".json":
+            continue
+        try:
+            payload = json.loads(f.read_text(encoding="utf-8"))
+        except (OSError, ValueError):
+            f.unlink(missing_ok=True)
+            continue
+        path = payload.get("path")
+        target = by_path.get(path) if isinstance(path, str) else None
+        if target is not None:
+            caption = payload.get("caption")
+            notes = payload.get("notes")
+            tags = payload.get("tags") or []
+            if isinstance(caption, str):
+                target.caption = caption
+            if isinstance(notes, str):
+                target.notes = notes
+            if isinstance(tags, list):
+                target.tags = [str(t) for t in tags]
+        f.unlink(missing_ok=True)
 
 
 def _translate_outputs(store: CacheStore, execution: CellExecution) -> list[OutputRecord]:

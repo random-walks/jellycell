@@ -504,7 +504,7 @@ loss curve and final metrics. Every run dumps:</p>
 <span class="jc-cell-name">config</span>    <span class="jc-cell-kind jc-cell-kind-setup">jc.setup</span>
     <span class="jc-cell-stats">
       <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">130 ms</span>
+      <span class="jc-timing">118 ms</span>
     </span>
     <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
   </header>
@@ -526,7 +526,7 @@ loss curve and final metrics. Every run dumps:</p>
 <span class="jc-cell-name">toy_dataset</span>    <span class="jc-cell-kind jc-cell-kind-load">jc.load</span>
     <span class="jc-cell-stats">
       <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">35 ms</span>
+      <span class="jc-timing">39 ms</span>
     </span>
     <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
   </header>
@@ -592,7 +592,7 @@ final loss: 0.4149
 <code>train</code>    </span>
     <span class="jc-cell-stats">
       <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">202 ms</span>
+      <span class="jc-timing">218 ms</span>
     </span>
     <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
   </header>
@@ -609,7 +609,17 @@ final loss: 0.4149
 <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Training loss per epoch&quot;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
-<span class="n">jc</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;artifacts/loss_curve.png&quot;</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">)</span>
+<span class="n">jc</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span>
+    <span class="n">path</span><span class="o">=</span><span class="s2">&quot;artifacts/loss_curve.png&quot;</span><span class="p">,</span>
+    <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span>
+    <span class="n">caption</span><span class="o">=</span><span class="s2">&quot;Figure 1: training loss (MSE) per epoch&quot;</span><span class="p">,</span>
+    <span class="n">notes</span><span class="o">=</span><span class="p">(</span>
+        <span class="s2">&quot;Monotone decrease, no oscillation, no divergence — LR and batch &quot;</span>
+        <span class="s2">&quot;size are in a stable regime for this dataset. 40 epochs not quite &quot;</span>
+        <span class="s2">&quot;enough for convergence (see model-card.md).&quot;</span>
+    <span class="p">),</span>
+    <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;training&quot;</span><span class="p">,</span> <span class="s2">&quot;diagnostic&quot;</span><span class="p">],</span>
+<span class="p">)</span>
 </pre></div>
 
     </div>
@@ -635,7 +645,7 @@ final loss: 0.4149
 <code>train</code>    </span>
     <span class="jc-cell-stats">
       <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">5 ms</span>
+      <span class="jc-timing">6 ms</span>
     </span>
     <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
   </header>
@@ -650,7 +660,16 @@ final loss: 0.4149
     <span class="s2">&quot;initial_loss&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">loss_history</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">4</span><span class="p">),</span>
     <span class="s2">&quot;weight_error_abs&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">w</span> <span class="o">-</span> <span class="n">TRUE_W</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span>
 <span class="p">}</span>
-<span class="n">jc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">metrics</span><span class="p">,</span> <span class="s2">&quot;artifacts/metrics.json&quot;</span><span class="p">)</span>
+<span class="n">jc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+    <span class="n">metrics</span><span class="p">,</span>
+    <span class="s2">&quot;artifacts/metrics.json&quot;</span><span class="p">,</span>
+    <span class="n">caption</span><span class="o">=</span><span class="s2">&quot;Table 1: end-of-training metrics&quot;</span><span class="p">,</span>
+    <span class="n">notes</span><span class="o">=</span><span class="p">(</span>
+        <span class="s2">&quot;final_weight vs target_weight shows how far the optimizer got. &quot;</span>
+        <span class="s2">&quot;weight_error_abs = |target − fitted|.&quot;</span>
+    <span class="p">),</span>
+    <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;training&quot;</span><span class="p">,</span> <span class="s2">&quot;result&quot;</span><span class="p">],</span>
+<span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span>
 </pre></div>
 

@@ -10,6 +10,7 @@ from rich.console import Console
 from rich.table import Table
 
 from jellycell.cli.app import GlobalOptions, app
+from jellycell.cli.journal import append_entry as journal_append_entry
 from jellycell.paths import Project, ProjectNotFoundError
 from jellycell.run import Runner, RunReport
 
@@ -21,6 +22,12 @@ def run(
     ctx: typer.Context,
     notebook: Path = typer.Argument(..., help="Path to the notebook .py file."),
     force: bool = typer.Option(False, "--force", help="Bypass cache (re-execute all cells)."),
+    message: str | None = typer.Option(
+        None,
+        "--message",
+        "-m",
+        help="One-line note recorded in manuscripts/journal.md (if journal is enabled).",
+    ),
 ) -> None:
     """Execute every code cell of ``notebook``. Cache hits are restored from the store."""
     opts: GlobalOptions = ctx.obj
@@ -35,6 +42,15 @@ def run(
         report = runner.run(notebook, force=force)
     finally:
         runner.close()
+
+    # Analysis journal: opt-out via [journal] enabled = false. Append-only
+    # audit log under manuscripts/. Entry writes must not kill the run — wrap
+    # defensively so a broken journal file never strands results.
+    try:
+        journal_append_entry(project, report, message=message)
+    except Exception as exc:  # pragma: no cover — defensive
+        if not opts.json_output:
+            _console.print(f"[yellow]note:[/yellow] journal append failed: {exc}")
 
     if opts.json_output:
         typer.echo(report.model_dump_json())

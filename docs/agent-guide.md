@@ -88,11 +88,17 @@ What you import inside a notebook cell:
 ```python
 import jellycell.api as jc
 
-# writes
-jc.save(obj, "artifacts/summary.json")        # format inferred from suffix
+# writes — all take optional caption=/notes=/tags= metadata
+jc.save(obj, "artifacts/summary.json", caption="Headline stats")
 jc.save(df, "artifacts/data.parquet")
-jc.figure("artifacts/plot.png", fig=plt.gcf())
-jc.table(df, name="results")
+jc.figure(
+    "artifacts/plot.png",
+    fig=plt.gcf(),
+    caption="Figure 1: mortality by country",
+    notes="DE stands out; JP lowest.",
+    tags=["result", "figure"],
+)
+jc.table(df, name="results", caption="Table 1: per-country totals")
 
 # reads (registers a dep edge on the producing cell when inside a run)
 jc.load("artifacts/summary.json")
@@ -136,6 +142,9 @@ Supported `jc.save` formats: `.parquet`, `.csv`, `.json`, `.pkl`, `.png`.
 | `jellycell export ipynb <nb>`      | Export to `.ipynb` with cached outputs           |
 | `jellycell export md <nb>`         | Export to MyST markdown (full notebook + outputs) |
 | `jellycell export tearsheet <nb>`  | Curated markdown tearsheet → `manuscripts/tearsheets/<stem>.md` |
+| `jellycell checkpoint create`      | Reproducible `.tar.gz` snapshot of the project   |
+| `jellycell checkpoint list`        | Show existing checkpoints                        |
+| `jellycell checkpoint restore`     | Extract a checkpoint to a new sibling directory  |
 | `jellycell new <name>`             | Scaffold a new notebook                          |
 | `jellycell prompt`                 | Emit this guide to stdout                        |
 
@@ -187,6 +196,26 @@ Every command supports `--json` for machine-readable output with
   `headline.json` summary instead, git-ignore (or Git-LFS) the bytes,
   and reviewers regenerate from the seed + notebook locally. See
   `examples/large-data/` for the full pattern.
+- **Caption your artifacts.** `jc.save`, `jc.figure`, and `jc.table`
+  all accept `caption="..."`, `notes="..."`, `tags=[...]`. Captions
+  become figure/table headings in tearsheets; notes render as an
+  italic subcaption; tags are free-form labels for filtering. All
+  optional — empty by default, no nagging. See `examples/paper/` and
+  `examples/ml-experiment/` for the full metadata flow.
+- **Record the trajectory.** `jellycell run -m "fixed sign on yoy"`
+  appends a timestamped entry to `manuscripts/journal.md` with the
+  cell summary, any new artifacts, and your message. Opt-out via
+  `[journal] enabled = false`; append-only from jellycell's side so
+  hand-edited commentary survives future runs. The journal is the
+  fastest way for a reviewer (or you in six months) to answer
+  "why did the numbers change?".
+- **Snapshot a known-good state.** `jellycell checkpoint create -m
+  "submitted for review"` bundles the project into a
+  `.tar.gz` under `.jellycell/checkpoints/`. `jellycell checkpoint
+  restore <name>` extracts into a sibling directory by default — the
+  live project is never touched unless you explicitly opt in with
+  `--force`. Good for reproducibility handoffs and "safe rollback to
+  before I fixed the sign error" moves.
 
 ## Invariants (§10 contracts)
 

@@ -54,7 +54,17 @@ ax.set_ylabel("MSE loss")
 ax.set_title("Training loss per epoch")
 ax.grid(alpha=0.3)
 fig.tight_layout()
-jc.figure(path="artifacts/loss_curve.png", fig=fig)
+jc.figure(
+    path="artifacts/loss_curve.png",
+    fig=fig,
+    caption="Figure 1: training loss (MSE) per epoch",
+    notes=(
+        "Monotone decrease, no oscillation, no divergence — LR and batch "
+        "size are in a stable regime for this dataset. 40 epochs not quite "
+        "enough for convergence (see model-card.md)."
+    ),
+    tags=["training", "diagnostic"],
+)
 
 # %% tags=["jc.step", "name=metrics", "deps=train"]
 metrics = {
@@ -66,7 +76,16 @@ metrics = {
     "initial_loss": round(loss_history[0], 4),
     "weight_error_abs": round(abs(w - TRUE_W), 4),
 }
-jc.save(metrics, "artifacts/metrics.json")
+jc.save(
+    metrics,
+    "artifacts/metrics.json",
+    caption="Table 1: end-of-training metrics",
+    notes=(
+        "final_weight vs target_weight shows how far the optimizer got. "
+        "weight_error_abs = |target − fitted|."
+    ),
+    tags=["training", "result"],
+)
 print(metrics)
 
 # %% tags=["jc.step", "name=checkpoint", "deps=train"]

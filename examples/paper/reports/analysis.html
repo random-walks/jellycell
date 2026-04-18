@@ -500,7 +500,7 @@ from both the paper and the auto-generated tearsheet.</p>
 <span class="jc-cell-name">raw</span>    <span class="jc-cell-kind jc-cell-kind-load">jc.load</span>
     <span class="jc-cell-stats">
       <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">132 ms</span>
+      <span class="jc-timing">135 ms</span>
     </span>
     <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
   </header>
@@ -601,7 +601,7 @@ UK: +1.4%
 <code>per_country_totals</code>    </span>
     <span class="jc-cell-stats">
       <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">316 ms</span>
+      <span class="jc-timing">318 ms</span>
     </span>
     <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
   </header>
@@ -620,7 +620,16 @@ UK: +1.4%
 <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">bar_label</span><span class="p">(</span><span class="n">bars</span><span class="p">,</span> <span class="n">fmt</span><span class="o">=</span><span class="s2">&quot;</span><span class="si">{:,.0f}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">padding</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
-<span class="n">jc</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;artifacts/country_totals.png&quot;</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">)</span>
+<span class="n">jc</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span>
+    <span class="n">path</span><span class="o">=</span><span class="s2">&quot;artifacts/country_totals.png&quot;</span><span class="p">,</span>
+    <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span>
+    <span class="n">caption</span><span class="o">=</span><span class="s2">&quot;Figure 1: cumulative mortality by country, 2020–2021&quot;</span><span class="p">,</span>
+    <span class="n">notes</span><span class="o">=</span><span class="p">(</span>
+        <span class="s2">&quot;Bars sum deaths across both years. US dominates at ~74</span><span class="si">% o</span><span class="s2">f the &quot;</span>
+        <span class="s2">&quot;four-country total; JP has the smallest absolute burden.&quot;</span>
+    <span class="p">),</span>
+    <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;result&quot;</span><span class="p">,</span> <span class="s2">&quot;figure&quot;</span><span class="p">],</span>
+<span class="p">)</span>
 </pre></div>
 
     </div>
@@ -647,7 +656,7 @@ UK: +1.4%
 <code>yoy_change</code>    </span>
     <span class="jc-cell-stats">
       <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">51 ms</span>
+      <span class="jc-timing">56 ms</span>
     </span>
     <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
   </header>
@@ -664,7 +673,16 @@ UK: +1.4%
 <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Year-over-year change in mortality&quot;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
-<span class="n">jc</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">path</span><span class="o">=</span><span class="s2">&quot;artifacts/yoy_change.png&quot;</span><span class="p">,</span> <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">)</span>
+<span class="n">jc</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span>
+    <span class="n">path</span><span class="o">=</span><span class="s2">&quot;artifacts/yoy_change.png&quot;</span><span class="p">,</span>
+    <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span>
+    <span class="n">caption</span><span class="o">=</span><span class="s2">&quot;Figure 2: year-over-year change (2021 vs 2020), percent&quot;</span><span class="p">,</span>
+    <span class="n">notes</span><span class="o">=</span><span class="p">(</span>
+        <span class="s2">&quot;Red bars = increase vs 2020, blue = decrease. DE stands out with &quot;</span>
+        <span class="s2">&quot;a ~59</span><span class="si">% r</span><span class="s2">ise; UK is nearly flat.&quot;</span>
+    <span class="p">),</span>
+    <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;result&quot;</span><span class="p">,</span> <span class="s2">&quot;figure&quot;</span><span class="p">],</span>
+<span class="p">)</span>
 </pre></div>
 
     </div>
@@ -690,7 +708,7 @@ UK: +1.4%
 <code>per_country_totals</code> <code>yoy_change</code>    </span>
     <span class="jc-cell-stats">
       <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">5 ms</span>
+      <span class="jc-timing">7 ms</span>
     </span>
     <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
   </header>
@@ -705,8 +723,19 @@ UK: +1.4%
     <span class="s2">&quot;largest_yoy_increase_country&quot;</span><span class="p">:</span> <span class="nb">max</span><span class="p">(</span><span class="n">yoy</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">yoy</span><span class="o">.</span><span class="n">get</span><span class="p">),</span>
     <span class="s2">&quot;largest_yoy_increase_pct&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="n">yoy</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="mi">4</span><span class="p">),</span>
 <span class="p">}</span>
-<span class="n">jc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="s2">&quot;artifacts/summary.json&quot;</span><span class="p">)</span>
-<span class="n">jc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">totals</span><span class="p">,</span> <span class="s2">&quot;artifacts/totals.json&quot;</span><span class="p">)</span>
+<span class="n">jc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+    <span class="n">summary</span><span class="p">,</span>
+    <span class="s2">&quot;artifacts/summary.json&quot;</span><span class="p">,</span>
+    <span class="n">caption</span><span class="o">=</span><span class="s2">&quot;Table 1: headline mortality stats&quot;</span><span class="p">,</span>
+    <span class="n">notes</span><span class="o">=</span><span class="s2">&quot;One-number-per-concept digest; fits in the tearsheet as a 2-col table.&quot;</span><span class="p">,</span>
+    <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;result&quot;</span><span class="p">,</span> <span class="s2">&quot;table&quot;</span><span class="p">],</span>
+<span class="p">)</span>
+<span class="n">jc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
+    <span class="n">totals</span><span class="p">,</span>
+    <span class="s2">&quot;artifacts/totals.json&quot;</span><span class="p">,</span>
+    <span class="n">caption</span><span class="o">=</span><span class="s2">&quot;Table 2: per-country mortality totals (2020–2021)&quot;</span><span class="p">,</span>
+    <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;result&quot;</span><span class="p">,</span> <span class="s2">&quot;table&quot;</span><span class="p">],</span>
+<span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">summary</span><span class="p">)</span>
 </pre></div>
 
