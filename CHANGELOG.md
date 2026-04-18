@@ -8,9 +8,7 @@ Versioning policy: **patch bumps are cheap**. See [docs/development/releasing.md
 
 ## [1.0.0] — 2026-04-18
 
-Initial public release. The full v0 spec — notebook format, run + cache, render, live viewer, export, agent surface — is implemented end-to-end and covered by 271 tests across unit/integration/examples.
-
-We went straight to `1.0.0` instead of a staggered `0.0.x → 0.1.x → 0.2.x` ramp: the spec's build-phase numbering is an implementation-order artifact, not a release plan. All phases shipped together. Starting at `1.0.0` gives future agents a clean mental model — no phantom "we're at 0.2, what was 0.1" history to decode.
+First public release.
 
 ### Features — notebook format
 

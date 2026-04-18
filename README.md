@@ -1,13 +1,11 @@
 # jellycell
 
-> **A living catalogue for reproducible analyses.** Plain-text notebooks, content-addressed cell-output caching, live HTML viewer. Agent-friendly from day one.
-
 [![PyPI](https://img.shields.io/pypi/v/jellycell?color=blue)](https://pypi.org/project/jellycell/)
 [![Docs](https://img.shields.io/badge/docs-readthedocs-blue)](https://jellycell.readthedocs.io)
 [![License](https://img.shields.io/badge/license-Apache--2.0-green)](LICENSE)
 [![Python](https://img.shields.io/pypi/pyversions/jellycell)](https://pypi.org/project/jellycell/)
 
-**Status:** `v1.0.0` — initial public release. All of the v0 spec is implemented end-to-end (notebook format, run + cache, render, live viewer, export, agent surface). See [CHANGELOG.md](CHANGELOG.md).
+***A living catalogue for reproducible analyses. Plain-text notebooks, content-addressed cell-output caching, live HTML viewer. Agent-friendly from day one.***
 
 ## Why jellycell
 

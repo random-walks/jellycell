@@ -1,6 +1,6 @@
 # Contributing to jellycell
 
-Thanks for your interest. jellycell is a small, opinionated project. Read this page before opening a PR — the rules here keep the codebase coherent.
+Read this page before opening a PR.
 
 ## Before you start
 
@@ -47,7 +47,7 @@ If you touched one of these, **say so explicitly** in the PR description and des
 
 ## Phase budgets
 
-Spec §8 lists a soft file-count budget per phase (area of the codebase). Phases no longer map to releases — all six shipped as `v1.0.0` — but the budgets are retained as per-area ceilings. If a phase creeps past its ceiling while you're extending it, that's a **scope-creep signal**. Cut features. Don't raise the ceiling.
+Spec §8 lists a soft file-count budget per area of the codebase. If an area creeps past its ceiling while you're extending it, that's a **scope-creep signal**. Cut features. Don't raise the ceiling.
 
 ## Versioning
 

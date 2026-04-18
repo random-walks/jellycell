@@ -1,11 +1,9 @@
 ---
 name: phase-budget
-description: Check against spec §8 phase file-count budgets before creating new files under src/jellycell/ or tests/. Prevents scope creep by treating drift as a cut-scope signal, not a raise-ceiling signal. Phases are implementation-order artifacts from the v1.0 build; the budgets remain useful as ceilings even though phases no longer map to releases.
+description: Check against spec §8 phase file-count budgets before creating new files under src/jellycell/ or tests/. Prevents scope creep by treating drift as a cut-scope signal, not a raise-ceiling signal.
 ---
 
-Each phase in `docs/spec/v0.md` §8 has a soft file-count budget. Significant drift is a **scope-creep signal** — cut features or defer them, don't raise the ceiling.
-
-All phases shipped together as `v1.0.0`; phases are no longer a release plan. They remain a useful mental map of the codebase and a ceiling for how many src files each area should contain.
+Each phase in `docs/spec/v0.md` §8 has a soft file-count budget per area of the codebase. Significant drift is a **scope-creep signal** — cut features or defer them, don't raise the ceiling.
 
 ## How to check
 

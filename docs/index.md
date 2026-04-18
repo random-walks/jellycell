@@ -4,11 +4,7 @@ hide-toc: false
 
 # jellycell
 
-**A living catalogue for reproducible analyses.** Plain-text notebooks, content-hashed output caching, live HTML viewer. Agent-friendly from day one.
-
-:::{note}
-**Status:** `v1.0.0` — initial public release. All v0 spec phases are implemented: notebook format, run + cache, render, live viewer, export, and the agent surface. See the [changelog](https://github.com/random-walks/jellycell/blob/main/CHANGELOG.md) for the full feature list and the [v0 spec](spec/v0.md) for the frozen architecture contract.
-:::
+***A living catalogue for reproducible analyses. Plain-text notebooks, content-hashed output caching, live HTML viewer. Agent-friendly from day one.***
 
 ## What it does
 

@@ -41,5 +41,3 @@ Last tag: v1.0.0
 ```
 
 If any phase is over budget, flag it prominently and remind: **"Over budget = scope-creep signal. Cut back; do not raise the ceiling."**
-
-Note: phases no longer map to releases — all six shipped as v1.0.0. The budgets are retained as per-area ceilings, not release milestones.

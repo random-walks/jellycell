@@ -12,7 +12,7 @@ Three contracts (spec §10). Touching any of them is a deliberate ceremony.
 
 1. **`--json` output schemas.** Every command's JSON output carries `schema_version: 1`. Adding/removing/renaming a field breaks the contract → bump `schema_version` in the owning pydantic model AND call it out in the PR description.
 2. **Cache key algorithm.** Lives in `src/jellycell/cache/hashing.py`. Any change to normalization, inputs, or composition of the hash requires bumping `MINOR_VERSION` in `src/jellycell/_version.py` so every cache invalidates cleanly. Regression snapshot: `tests/unit/test_hashing.py`. Never change silently.
-3. **Agent guide content.** What `jellycell prompt` emits (Phase 6; `src/jellycell/cli/commands/prompt.py`). Stable across patch versions; changes go in minor releases with a `CHANGELOG.md` entry.
+3. **Agent guide content.** What `jellycell prompt` emits (`src/jellycell/cli/commands/prompt.py`). Typo/clarification edits are patch-safe; additive content is a minor; breaking edits to existing guidance force a major. See [docs/development/releasing.md](docs/development/releasing.md).
 
 Before editing `cache/hashing.py`, `_version.py`, `cli/commands/prompt.py`, or any pydantic model with a `schema_version` field — run `/spec-check` on your diff.
 
@@ -26,7 +26,7 @@ CLI → Server → Render → Run → API → Cache → Format → Paths+Config
 
 ## Phase budgets (spec §8)
 
-Phases are an **implementation-order artifact**, not a release plan — all six shipped together as `v1.0.0`. The per-phase src budgets are retained because they are still useful as scope-creep signals when extending one area.
+Soft src file-count ceilings per area of the codebase — **scope-creep signals**, not a release plan.
 
 | Phase | src budget | Purpose                                  |
 | ----- | ---------- | ---------------------------------------- |
@@ -62,7 +62,7 @@ make test-unit        # unit tests only (fast)
 make lint             # ruff + mypy
 make docs             # sphinx-autobuild, live at :8001
 make docs-build       # sphinx-build -W (CI mirror)
-make preview          # Phase 3+ placeholder
+make preview          # points to an example project for live viewer preview
 make release-check    # dry-run build + version print
 ```
 
