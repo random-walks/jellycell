@@ -81,7 +81,7 @@ jellycell's value is the **composition**, not the parts. We piggyback on the bes
 | **watchfiles + sse-starlette** | live reload |
 | **pydantic + typer** | CLI + config + schemas |
 
-The bits we own are the ones that tie these together: tag vocabulary, cache key derivation, manifest format, per-cell orchestration, page shell, dep graph, agent guide. The full piggyback map is in [`docs/spec/v0.md` §1](docs/spec/v0.md).
+The bits we own are the ones that tie these together: tag vocabulary, cache key derivation, manifest format, per-cell orchestration, page shell, dep graph, agent guide. The full piggyback map is in [`docs/reference/architecture.md`](docs/reference/architecture.md).
 
 ## Is this for you?
 
@@ -117,7 +117,8 @@ my-project/
 - **Project layout**: [project-layout](https://jellycell.readthedocs.io/en/stable/project-layout.html)
 - **CLI reference**: [cli-reference](https://jellycell.readthedocs.io/en/stable/cli-reference.html)
 - **Agent guide**: [agent-guide](https://jellycell.readthedocs.io/en/stable/agent-guide.html) — what `jellycell prompt` emits
-- **Spec**: [docs/spec/v0.md](docs/spec/v0.md) — frozen architecture contract
+- **Reference**: [docs/reference/](docs/reference/index.md) — living architecture + §10 contracts
+- **Historical spec**: [docs/spec/v0.md](docs/spec/v0.md) — frozen genesis / v1.0 build spec
 
 ## Contributing
 

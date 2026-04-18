@@ -504,7 +504,7 @@ parquet trips the warning at the end of <code>jellycell run</code>.</p>
 <span class="jc-cell-name">config</span>    <span class="jc-cell-kind jc-cell-kind-setup">jc.setup</span>
     <span class="jc-cell-stats">
       <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">135 ms</span>
+      <span class="jc-timing">133 ms</span>
     </span>
     <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
   </header>
@@ -530,7 +530,7 @@ parquet trips the warning at the end of <code>jellycell run</code>.</p>
 <code>config</code>    </span>
     <span class="jc-cell-stats">
       <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">513 ms</span>
+      <span class="jc-timing">353 ms</span>
     </span>
     <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
   </header>
@@ -582,7 +582,7 @@ parquet trips the warning at the end of <code>jellycell run</code>.</p>
 <code>sample</code>    </span>
     <span class="jc-cell-stats">
       <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">72 ms</span>
+      <span class="jc-timing">61 ms</span>
     </span>
     <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
   </header>
@@ -591,14 +591,21 @@ parquet trips the warning at the end of <code>jellycell run</code>.</p>
 <div class="jc-code"><pre><span></span><span class="c1"># A compact digest of the underlying data. This IS committed (few KB) and</span>
 <span class="c1"># carries enough summary stats for the tearsheet. It&#39;s a good pattern:</span>
 <span class="c1"># commit the summary, git-ignore the bulk.</span>
-<span class="n">df</span> <span class="o">=</span> <span class="n">jc</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;artifacts/large_data/sample_dataset.parquet&quot;</span><span class="p">)</span>
+<span class="c1">#</span>
+<span class="c1"># Reads both the parquet bytes and its own file size off disk so this cell</span>
+<span class="c1"># works when `sample` is cached (the in-memory `out` Path from `sample`</span>
+<span class="c1"># isn&#39;t available across cache/run boundaries).</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span> <span class="k">as</span> <span class="n">_Path</span>
+
+<span class="n">parquet</span> <span class="o">=</span> <span class="n">_Path</span><span class="p">(</span><span class="s2">&quot;artifacts/large_data/sample_dataset.parquet&quot;</span><span class="p">)</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">jc</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">parquet</span><span class="p">))</span>
 <span class="n">headline</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;rows&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)),</span>
-    <span class="s2">&quot;features&quot;</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">),</span>
+    <span class="s2">&quot;rows&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">),</span>
+    <span class="s2">&quot;features&quot;</span><span class="p">:</span> <span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
     <span class="s2">&quot;positive_rate&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()),</span> <span class="mi">4</span><span class="p">),</span>
     <span class="s2">&quot;feature_mean&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">mean</span><span class="p">()),</span> <span class="mi">4</span><span class="p">),</span>
     <span class="s2">&quot;feature_std&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">std</span><span class="p">()),</span> <span class="mi">4</span><span class="p">),</span>
-    <span class="s2">&quot;size_mb&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_size</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">),</span> <span class="mi">2</span><span class="p">),</span>
+    <span class="s2">&quot;size_mb&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">parquet</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_size</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">),</span> <span class="mi">2</span><span class="p">),</span>
 <span class="p">}</span>
 <span class="n">jc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">headline</span><span class="p">,</span> <span class="s2">&quot;artifacts/large_data/headline.json&quot;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">headline</span><span class="p">)</span>
@@ -627,7 +634,7 @@ parquet trips the warning at the end of <code>jellycell run</code>.</p>
 <code>headline</code>    </span>
     <span class="jc-cell-stats">
       <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">226 ms</span>
+      <span class="jc-timing">234 ms</span>
     </span>
     <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
   </header>

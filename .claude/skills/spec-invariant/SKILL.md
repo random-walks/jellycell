@@ -53,5 +53,6 @@ Run `/spec-check` on the resulting diff to confirm the ceremony was complete. Th
 ## Reference
 
 - `CLAUDE.md` — one-paragraph summary of each invariant.
-- `docs/spec/v0.md` §10 — authoritative contract text.
+- `docs/reference/contracts.md` — living authoritative contract text + ceremonies.
+- `docs/spec/v0.md` §10 — frozen genesis statement (historical).
 - `docs/development/releasing.md` — versioning policy + release workflow.

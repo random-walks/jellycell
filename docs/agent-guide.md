@@ -188,15 +188,17 @@ Every command supports `--json` for machine-readable output with
   and reviewers regenerate from the seed + notebook locally. See
   `examples/large-data/` for the full pattern.
 
-## Invariants (spec §10 contracts)
+## Invariants (§10 contracts)
 
-Three contracts are stable across patch releases:
+Three contracts, stable across patch releases. Living statement +
+ceremony in [reference/contracts](reference/contracts.md):
 
-1. `--json` schemas carry `schema_version: 1`. Breaking changes bump the
-   schema version and are shipped in a major release.
-2. Cache key algorithm (`jellycell.cache.hashing`) is frozen unless
-   `MINOR_VERSION` in `_version.py` is bumped (which forces every cache to
-   invalidate cleanly).
-3. This guide's content (what `jellycell prompt` emits) is stable across
-   patch versions; changes go in a minor or major release with a
-   changelog note.
+1. **§10.1 `--json` schemas** carry `schema_version: 1`. Additive
+   fields (optional + default) are patch- or minor-safe; renames,
+   removals, and type changes force a major bump.
+2. **§10.2 Cache key algorithm** (`jellycell.cache.hashing`) is frozen
+   unless `MINOR_VERSION` in `_version.py` is bumped — which forces
+   every cache to invalidate cleanly and rides a major release.
+3. **§10.3 Agent guide content** (what `jellycell prompt` emits).
+   Typo / clarification edits ride a patch; additive sections ride a
+   minor; rewrites that change existing guidance force a major.

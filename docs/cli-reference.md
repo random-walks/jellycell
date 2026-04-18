@@ -1,7 +1,7 @@
 # CLI reference
 
 Every command supports `--json` for machine-readable output with
-`schema_version: 1` (spec §10.1 contract).
+`schema_version: 1` ([§10.1 contract](reference/contracts.md#10-1-json-schemas)).
 
 ## Global flags
 

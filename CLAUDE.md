@@ -1,14 +1,16 @@
 # CLAUDE.md — jellycell
 
-One-screen brief for agents working in this repo. Full context: [`docs/spec/v0.md`](docs/spec/v0.md).
+One-screen brief for agents working in this repo. Full context:
+[`docs/reference/`](docs/reference/index.md) is the living source of
+truth; [`docs/spec/v0.md`](docs/spec/v0.md) is the frozen genesis.
 
 ## What this is
 
-`jellycell` is a reproducible-analysis notebook tool: plain-text `.py` notebooks (jupytext percent format), content-addressed cell output cache, live HTML viewer. The **point of the project is composition** — we piggyback on jupytext, nbformat, jupyter-client, diskcache, nbconvert, starlette. Spec §1 has the full piggyback map; **read it before writing parsing / caching / rendering / file-watching code**.
+`jellycell` is a reproducible-analysis notebook tool: plain-text `.py` notebooks (jupytext percent format), content-addressed cell output cache, live HTML viewer. The **point of the project is composition** — we piggyback on jupytext, nbformat, jupyter-client, diskcache, nbconvert, starlette. Full piggyback map + 8-layer architecture in [`docs/reference/architecture.md`](docs/reference/architecture.md); **read it before writing parsing / caching / rendering / file-watching code**.
 
 ## Invariants — DO NOT CHANGE SILENTLY
 
-Three contracts (spec §10). Touching any of them is a deliberate ceremony.
+Three contracts (§10). Full statement + ceremony in [`docs/reference/contracts.md`](docs/reference/contracts.md). Touching any is a deliberate ceremony.
 
 1. **`--json` output schemas.** Every command's JSON output carries `schema_version: 1`. Adding/removing/renaming a field breaks the contract → bump `schema_version` in the owning pydantic model AND call it out in the PR description.
 2. **Cache key algorithm.** Lives in `src/jellycell/cache/hashing.py`. Any change to normalization, inputs, or composition of the hash requires bumping `MINOR_VERSION` in `src/jellycell/_version.py` so every cache invalidates cleanly. Regression snapshot: `tests/unit/test_hashing.py`. Never change silently.
@@ -16,7 +18,7 @@ Three contracts (spec §10). Touching any of them is a deliberate ceremony.
 
 Before editing `cache/hashing.py`, `_version.py`, `cli/commands/prompt.py`, or any pydantic model with a `schema_version` field — run `/spec-check` on your diff.
 
-## 8-layer dependency order (spec §2)
+## 8-layer dependency order (reference/architecture)
 
 Upper depends only on lower. `cache/` must never import from `run/`, `render/`, `server/`. Break this and the refactor radius explodes.
 
@@ -24,7 +26,7 @@ Upper depends only on lower. `cache/` must never import from `run/`, `render/`, 
 CLI → Server → Render → Run → API → Cache → Format → Paths+Config
 ```
 
-## Phase budgets (spec §8)
+## Phase budgets (v0 spec §8 — historical)
 
 Soft src file-count ceilings per area of the codebase — **scope-creep signals**, not a release plan.
 
@@ -40,7 +42,7 @@ Soft src file-count ceilings per area of the codebase — **scope-creep signals*
 
 **If a phase's src count creeps past its budget while you're extending it, cut back — do not raise the ceiling.** Drift is a scope-creep signal. Run `/phase-status` to check.
 
-## Piggyback reminders (spec §1)
+## Piggyback reminders (reference/architecture)
 
 Before writing new code, ask: is this already done by one of these?
 
@@ -68,7 +70,7 @@ make release-check    # dry-run build + version print
 
 ## Agent surface
 
-`jellycell prompt` emits the canonical agent guide — a single markdown doc covering layout, format, tags, API, and CLI reference. Content is **spec §10.3 stability contract**. Start by calling this in any new jellycell project.
+`jellycell prompt` emits the canonical agent guide — a single markdown doc covering layout, format, tags, API, and CLI reference. Content is the **§10.3 stability contract** (see [`docs/reference/contracts.md`](docs/reference/contracts.md)). Start by calling this in any new jellycell project.
 
 ## Versioning
 

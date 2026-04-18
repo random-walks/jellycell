@@ -4,12 +4,12 @@ Read this page before opening a PR.
 
 ## Before you start
 
-1. **Read [`docs/spec/v0.md`](docs/spec/v0.md)**, especially:
-   - §1 — the piggyback map (libraries we depend on and what they do for us).
-   - §8 — phase file-count budgets.
-   - §10 — the three cross-cutting contracts.
-2. **Read [`CLAUDE.md`](CLAUDE.md)** for the tl;dr of architecture rules.
-3. Open an issue for anything non-trivial before writing code. A short discussion up front saves a long re-review later.
+1. **Read [`docs/reference/`](docs/reference/index.md)** — the living authoritative reference:
+   - [architecture](docs/reference/architecture.md) — piggyback map (libraries we depend on and what they do for us) + 8-layer dependency order.
+   - [contracts](docs/reference/contracts.md) — the three §10 cross-cutting contracts with their ceremonies.
+2. Phase file-count budgets live in [`docs/spec/v0.md`](docs/spec/v0.md) §8 as a historical snapshot — still used as scope-creep ceilings today.
+3. **Read [`CLAUDE.md`](CLAUDE.md)** for the tl;dr of architecture rules.
+4. Open an issue for anything non-trivial before writing code. A short discussion up front saves a long re-review later.
 
 ## Local setup
 
@@ -35,7 +35,7 @@ make docs-build       # sphinx-build -W (CI-mirror)
 
 ## Invariants (DO NOT CHANGE SILENTLY)
 
-Three contracts from spec §10. Touching any of them is a deliberate ceremony:
+Three contracts — living statement in [`docs/reference/contracts.md`](docs/reference/contracts.md), historical record in [v0 spec §10](docs/spec/v0.md#10-cross-cutting-contracts-lock-these-early). Touching any of them is a deliberate ceremony:
 
 1. **`--json` output schemas.** Every command's JSON output carries `schema_version: 1`. Adding/removing/renaming a field bumps the schema version.
 
@@ -47,7 +47,7 @@ If you touched one of these, **say so explicitly** in the PR description and des
 
 ## Phase budgets
 
-Spec §8 lists a soft file-count budget per area of the codebase. If an area creeps past its ceiling while you're extending it, that's a **scope-creep signal**. Cut features. Don't raise the ceiling.
+[v0 spec §8](docs/spec/v0.md#8-build-phases-sized-in-files) lists a soft file-count budget per area of the codebase. If an area creeps past its ceiling while you're extending it, that's a **scope-creep signal**. Cut features. Don't raise the ceiling.
 
 ## Versioning
 

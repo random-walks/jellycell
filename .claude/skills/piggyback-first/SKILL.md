@@ -1,11 +1,11 @@
 ---
 name: piggyback-first
-description: Check the spec §1 piggyback map before writing parsing, caching, rendering, file-watching, templating, or HTML-conversion code for jellycell. Also use when adding a new dependency to pyproject.toml. Prevents reimplementing what well-maintained libraries already do.
+description: Check the piggyback map in docs/reference/architecture.md before writing parsing, caching, rendering, file-watching, templating, or HTML-conversion code for jellycell. Also use when adding a new dependency to pyproject.toml. Prevents reimplementing what well-maintained libraries already do.
 ---
 
 The entire point of jellycell is the **composition** of mature libraries, not reinventing them. Before writing code, ask: **is this job already done by one of our dependencies?**
 
-## The piggyback map (spec §1)
+## The piggyback map (reference/architecture)
 
 | Task                              | We use                                                 | What we own                                        |
 | --------------------------------- | ------------------------------------------------------ | -------------------------------------------------- |
@@ -42,9 +42,10 @@ Before running `uv add foo`:
 
 1. Read pyproject.toml — is something similar already in our dep tree?
 2. Check the piggyback map — are we supposed to use an existing dep for this?
-3. If truly new: add with a version floor (`foo>=N.M`), add a comment explaining why, and update the piggyback map in `docs/spec/v0.md` §1 if it's a load-bearing dep.
+3. If truly new: add with a version floor (`foo>=N.M`), add a comment explaining why, and update the piggyback map in `docs/reference/architecture.md` if it's a load-bearing dep.
 
 ## Reference
 
-- `docs/spec/v0.md` §1 — authoritative piggyback map.
+- `docs/reference/architecture.md` — living authoritative piggyback map + 8-layer dependency order.
 - `CLAUDE.md` — the "Piggyback reminders" section for quick lookup.
+- `docs/spec/v0.md` §1 — frozen genesis map (historical).

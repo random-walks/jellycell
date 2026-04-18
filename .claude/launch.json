@@ -12,6 +12,24 @@
       "runtimeExecutable": "uv",
       "runtimeArgs": ["run", "jellycell", "view", "examples/timeseries", "--port", "5183"],
       "port": 5183
+    },
+    {
+      "name": "docs-preview",
+      "runtimeExecutable": "uv",
+      "runtimeArgs": [
+        "run",
+        "sphinx-autobuild",
+        "-a",
+        "--watch",
+        "src",
+        "docs",
+        "docs/_build/html",
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "5190"
+      ],
+      "port": 5190
     }
   ]
 }

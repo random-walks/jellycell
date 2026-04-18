@@ -28,12 +28,12 @@ See CONTRIBUTING.md for the full PR checklist.
 
 ## Area / budget
 
-<!-- Which spec §8 area does this touch? Does the phase's src file budget still hold? -->
+<!-- Which v0 spec §8 area does this touch? Does the phase's src file budget still hold? -->
 
 - Area (phase): <!-- 0 / 1 / 2 / ... -->
 - File count after this PR: `src/jellycell/<subdir>/` has N files (budget M).
 
-## Invariant check (spec §10)
+## Invariant check (§10 — see docs/reference/contracts.md)
 
 Does this PR touch any of the three cross-cutting contracts?
 

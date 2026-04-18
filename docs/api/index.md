@@ -8,4 +8,4 @@ Auto-generated from docstrings via [sphinx-autodoc2](https://sphinx-autodoc2.rea
 /apidocs/jellycell/jellycell
 ```
 
-See the [v0 spec §2](../spec/v0.md) for component architecture.
+See [reference/architecture](../reference/architecture.md) for the component architecture (8-layer dependency order + subpackage responsibilities).

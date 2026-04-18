@@ -45,6 +45,6 @@ Do not interpret "the budget was close to exceeded so I expanded it" as a reason
 
 ## Reference
 
-- `docs/spec/v0.md` §8 — authoritative phase descriptions and file lists.
-- `docs/spec/v0.md` §9 — "Total scope at v1.0" principle.
+- `docs/spec/v0.md` §8 — the original phase descriptions + file-count budgets (frozen historical snapshot; numbers still used as scope-creep ceilings today).
+- `docs/spec/v0.md` §9 — "Total scope" principle.
 - `/phase-status` — live count command (always preferred over this table).

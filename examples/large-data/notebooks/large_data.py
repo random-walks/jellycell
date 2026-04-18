@@ -57,14 +57,21 @@ print(f"{len(df):,} rows × {df.shape[1]} cols → {out}")
 # A compact digest of the underlying data. This IS committed (few KB) and
 # carries enough summary stats for the tearsheet. It's a good pattern:
 # commit the summary, git-ignore the bulk.
-df = jc.load("artifacts/large_data/sample_dataset.parquet")
+#
+# Reads both the parquet bytes and its own file size off disk so this cell
+# works when `sample` is cached (the in-memory `out` Path from `sample`
+# isn't available across cache/run boundaries).
+from pathlib import Path as _Path
+
+parquet = _Path("artifacts/large_data/sample_dataset.parquet")
+df = jc.load(str(parquet))
 headline = {
-    "rows": int(len(df)),
-    "features": int(df.shape[1] - 1),
+    "rows": len(df),
+    "features": df.shape[1] - 1,
     "positive_rate": round(float(df["label"].mean()), 4),
     "feature_mean": round(float(df.drop(columns=["label"]).values.mean()), 4),
     "feature_std": round(float(df.drop(columns=["label"]).values.std()), 4),
-    "size_mb": round(out.stat().st_size / (1024 * 1024), 2),
+    "size_mb": round(parquet.stat().st_size / (1024 * 1024), 2),
 }
 jc.save(headline, "artifacts/large_data/headline.json")
 print(headline)
