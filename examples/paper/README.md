@@ -18,14 +18,14 @@ The paper + tearsheet split is the core pattern:
 # uv (preferred)
 uv sync                                              # all-extras for matplotlib
 cd examples/paper
-uv run jellycell run notebooks/analysis.py
+uv run jellycell run notebooks/analysis.py -m "first pass"
 uv run jellycell export tearsheet notebooks/analysis.py
 uv run jellycell render                              # HTML catalogue
 uv run jellycell view                                # needs [server]
 
 # pip
 pip install 'jellycell[server,examples]'             # matplotlib via [examples]
-jellycell run notebooks/analysis.py
+jellycell run notebooks/analysis.py -m "first pass"
 jellycell export tearsheet notebooks/analysis.py
 jellycell render
 jellycell view
@@ -64,3 +64,7 @@ paper/
   (background, methods, results, reproducibility).
 - [`manuscripts/tearsheets/analysis.md`](manuscripts/tearsheets/analysis.md)
   — the auto-generated one-pager of the same run.
+- [`manuscripts/journal.md`](manuscripts/journal.md) — a committed
+  three-entry audit trail demonstrating the trajectory-log pattern
+  (unique to this example; other examples git-ignore their journals to
+  avoid CI churn).

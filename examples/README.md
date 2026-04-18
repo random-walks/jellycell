@@ -20,17 +20,22 @@ tearsheets). Click through to any:
 # uv — recommended; single `sync` pulls all extras
 uv sync
 cd examples/<name>
-uv run jellycell run notebooks/<script>.py
+uv run jellycell run notebooks/<script>.py -m "first pass"
 uv run jellycell export tearsheet notebooks/<script>.py
 uv run jellycell view                                 # needs [server]
 
 # pip — pick the extras you want
 pip install 'jellycell[server,examples]'              # matplotlib + pandas + pyarrow
 cd examples/<name>
-jellycell run notebooks/<script>.py
+jellycell run notebooks/<script>.py -m "first pass"
 jellycell export tearsheet notebooks/<script>.py
 jellycell view
 ```
+
+The `-m "..."` flag drops a one-line note into `manuscripts/journal.md` so
+the audit trail captures your intent alongside the numbers. Journal is
+enabled by default; turn off with `[journal] enabled = false` in
+`jellycell.toml` if you don't want it.
 
 Per-example READMEs spell out the exact commands for each project.
 
@@ -53,6 +58,8 @@ Browse a few:
   research writeup.
 - [`paper/manuscripts/tearsheets/analysis.md`](paper/manuscripts/tearsheets/analysis.md)
   — same run, auto-generated dashboard.
+- [`paper/manuscripts/journal.md`](paper/manuscripts/journal.md)
+  — committed three-entry run log showing the trajectory.
 - [`timeseries/manuscripts/findings.md`](timeseries/manuscripts/findings.md)
   — analyst interpretation.
 - [`timeseries/manuscripts/tearsheets/03-forecast.md`](timeseries/manuscripts/tearsheets/03-forecast.md)

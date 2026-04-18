@@ -31,6 +31,7 @@ from jellycell.cache.store import CacheStore
 from jellycell.format import parse as format_parse
 from jellycell.format.cells import Cell
 from jellycell.paths import Project
+from jellycell.render.manuscript import ManuscriptLink, discover_manuscripts
 from jellycell.render.markdown import render_markdown
 from jellycell.render.outputs import render_output
 
@@ -117,6 +118,13 @@ class Renderer:
         siblings = self._collect_siblings(notebook_path)
         prev_nb, next_nb = _prev_next(siblings)
 
+        # Tearsheet cross-link: if manuscripts/tearsheets/<stem>.md exists,
+        # the notebook page grows a "Tearsheet →" pointer — agents doing
+        # dashboard review and humans flipping between source + summary
+        # stay one click apart. Only wired when the file is actually on
+        # disk; absent → no link rendered.
+        tearsheet_link = self._tearsheet_link_for(stem)
+
         page = self.env.get_template("page.html.j2").render(
             title=stem,
             notebook=notebook_rel,
@@ -128,6 +136,7 @@ class Renderer:
             siblings=siblings,
             prev_nb=prev_nb,
             next_nb=next_nb,
+            tearsheet_link=tearsheet_link,
         )
         output_path.write_text(page, encoding="utf-8")
         return RenderedNotebook(
@@ -165,11 +174,16 @@ class Renderer:
                     "href": f"{Path(nb_path).stem}.html",
                 }
             )
+        # Manuscripts + tearsheets + journal land in a dedicated section on
+        # the index. Server mode shows them live-reloading; static mode emits
+        # plain-text links that work on GitHub as-is (no render).
+        catalog = discover_manuscripts(self.project)
         page = self.env.get_template("index.html.j2").render(
             project_name=self.project.config.project.name,
             notebooks=notebooks,
             recent_runs=recent,
             pygments_css=self._pygments_css,
+            catalog=catalog,
         )
         output = self.project.reports_dir / "index.html"
         output.write_text(page, encoding="utf-8")
@@ -184,6 +198,18 @@ class Renderer:
         return results
 
     # ------------------------------------------------------------ internals
+    def _tearsheet_link_for(self, stem: str) -> ManuscriptLink | None:
+        """Return the tearsheet link matching ``stem`` if one exists on disk."""
+        candidate = self.project.manuscripts_dir / "tearsheets" / f"{stem}.md"
+        if not candidate.is_file():
+            return None
+        return ManuscriptLink(
+            rel=f"tearsheets/{stem}.md",
+            href=f"/manuscripts/tearsheets/{stem}.md",
+            title=stem.replace("_", " ").replace("-", " ").title(),
+            kind="tearsheet",
+        )
+
     def _collect_siblings(self, current: Path) -> list[SiblingNotebook]:
         siblings: list[SiblingNotebook] = []
         for path in sorted(self.project.notebooks_dir.rglob("*.py")):

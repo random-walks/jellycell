@@ -61,6 +61,35 @@ First public release.
 - Claude Code infra: CLAUDE.md, slash commands (`/spec-check`, `/phase-status`), subagents, skills (`spec-invariant`, `phase-budget`, `piggyback-first`).
 - Release pipeline on PyPI via trusted publisher (OIDC).
 
+### Features — live viewer lifts (manuscripts + journal + tearsheet nav)
+
+- **Manuscript previewer**: new `/manuscripts/` landing page + dynamic
+  `/manuscripts/<path>.md` route serves any markdown under
+  `manuscripts/` through the project's template stack. Authored
+  writeups, auto-generated tearsheets, and the journal all render
+  in-browser with the same chrome as notebook pages.
+- **Journal viewer**: `/journal` is a first-class route aliasing the
+  configured journal file. Live-reloads on every `jellycell run`
+  through the existing watchfiles → SSE pipeline so the trajectory
+  appears in-browser as it's written.
+- **Tearsheet ↔ notebook cross-links**: each notebook HTML page now
+  shows a `Tearsheet →` button when `manuscripts/tearsheets/<stem>.md`
+  exists; tearsheet pages show a matching `Notebook →` link when the
+  source notebook is present. One click to flip between source and
+  curated summary.
+- **Per-tearsheet prev/next navigation**: when browsing a tearsheet,
+  the header carries `← previous / next →` links to the adjacent
+  tearsheets in alphabetical order. Authored writeups don't get the
+  prev/next pair since they're standalone documents.
+- **Sidebar reorganization on manuscript pages**: three groups
+  (Authored / Tearsheets / Log) with the active page highlighted.
+- **Targeted SSE reloads**: `manuscripts/**/*.md` edits now publish a
+  `ReloadEvent` for the specific page (`/manuscripts/<path>` or
+  `/journal`) instead of broadly reloading the index.
+- **`/api/state.json`** gains a `manuscripts` payload
+  (authored + tearsheets + journal catalog). Additive — no
+  `schema_version` bump.
+
 ### Features — artifact metadata + journal + checkpoint
 
 - **Artifact metadata via `jc.*` kwargs** — `jc.save`, `jc.figure`, and

@@ -20,13 +20,13 @@ with the warning threshold.
 # uv (preferred — installs numpy/pandas/pyarrow/matplotlib via [examples])
 uv sync
 cd examples/large-data
-uv run jellycell run notebooks/large_data.py
+uv run jellycell run notebooks/large_data.py -m "first pass"
 uv run jellycell export tearsheet notebooks/large_data.py
 uv run jellycell view                                # needs [server]
 
 # pip
 pip install 'jellycell[server,examples]'
-jellycell run notebooks/large_data.py
+jellycell run notebooks/large_data.py -m "first pass"
 jellycell export tearsheet notebooks/large_data.py
 jellycell view
 ```

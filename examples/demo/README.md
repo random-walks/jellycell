@@ -11,15 +11,24 @@ flow into the tearsheet.
 # uv (preferred)
 uv sync                                   # from repo root — no extras needed
 cd examples/demo
-uv run jellycell run notebooks/tour.py
+uv run jellycell run notebooks/tour.py -m "first pass"
 uv run jellycell export tearsheet notebooks/tour.py
 uv run jellycell view                     # needs [server] extra
 
 # pip
 pip install 'jellycell[server]'
-jellycell run notebooks/tour.py
+jellycell run notebooks/tour.py -m "first pass"
 jellycell export tearsheet notebooks/tour.py
 jellycell view
+```
+
+The `-m "..."` flag appends the message to `manuscripts/journal.md`
+alongside cell counts + artifact changes — quick audit trail for "what
+did I do?" a week from now.
+
+```bash
+# You can skip the message; default-on journal still records the run:
+uv run jellycell run notebooks/tour.py
 ```
 
 ## Layout

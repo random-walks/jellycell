@@ -21,6 +21,11 @@
     <span>{{ notebook }}</span>
   </nav>
   <nav class="jc-prevnext">
+    {% if tearsheet_link %}
+    <a class="jc-tearsheet-link" href="{{ tearsheet_link.href }}" title="Curated tearsheet for this notebook">
+      Tearsheet →
+    </a>
+    {% endif %}
     {% if prev_nb %}
     <a class="jc-prev" href="{{ prev_nb.href }}" title="Previous notebook">← {{ prev_nb.title }}</a>
     {% endif %}

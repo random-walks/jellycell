@@ -14,13 +14,13 @@ and numbers.
 # uv (preferred — installs numpy/matplotlib via [examples])
 uv sync
 cd examples/ml-experiment
-uv run jellycell run notebooks/train.py
+uv run jellycell run notebooks/train.py -m "baseline, LR=0.02 EPOCHS=40"
 uv run jellycell export tearsheet notebooks/train.py
 uv run jellycell view                                # needs [server]
 
 # pip
 pip install 'jellycell[server,examples]'
-jellycell run notebooks/train.py
+jellycell run notebooks/train.py -m "baseline, LR=0.02 EPOCHS=40"
 jellycell export tearsheet notebooks/train.py
 jellycell view
 ```

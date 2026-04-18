@@ -15,15 +15,15 @@ auto-generated tearsheet per notebook.
 # uv (preferred — installs numpy/pandas/matplotlib/pyarrow via [examples])
 uv sync
 cd examples/timeseries
-uv run jellycell run notebooks/01-explore.py
-uv run jellycell run notebooks/02-decompose.py
-uv run jellycell run notebooks/03-forecast.py
+uv run jellycell run notebooks/01-explore.py -m "first pass: synthetic daily series"
+uv run jellycell run notebooks/02-decompose.py -m "additive decomposition"
+uv run jellycell run notebooks/03-forecast.py -m "SES forecast + diagnostics"
 uv run jellycell render
 uv run jellycell view                                # needs [server]
 
 # pip
 pip install 'jellycell[server,examples]'
-for nb in notebooks/*.py; do jellycell run "$nb"; done
+for nb in notebooks/*.py; do jellycell run "$nb" -m "first pass"; done
 jellycell render
 jellycell view
 ```

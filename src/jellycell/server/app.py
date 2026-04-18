@@ -1,9 +1,12 @@
-"""Starlette ASGI app for ``jellycell view`` (spec §2.7).
+"""Starlette ASGI app for ``jellycell view``.
 
 Routes (all read-only):
 
-- ``GET /`` → rendered project index.
+- ``GET /`` → rendered project index (notebooks + manuscripts listing).
 - ``GET /nb/<stem>`` → rendered notebook page.
+- ``GET /manuscripts/`` → manuscripts index (authored + tearsheets + journal).
+- ``GET /manuscripts/{path:path}`` → rendered markdown under ``manuscripts/``.
+- ``GET /journal`` → alias for the configured journal file.
 - ``GET /artifacts/<...>`` → static artifact serving.
 - ``GET /api/state.json`` → catalogue state for agents.
 - ``GET /events`` → SSE reload stream.
@@ -14,6 +17,7 @@ from __future__ import annotations
 import asyncio
 import contextlib
 from contextlib import asynccontextmanager
+from dataclasses import asdict
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -27,6 +31,11 @@ from starlette.staticfiles import StaticFiles
 from jellycell.cache.index import CacheIndex
 from jellycell.paths import Project
 from jellycell.render import Renderer
+from jellycell.render.manuscript import (
+    discover_manuscripts,
+    render_manuscript_page,
+    render_manuscripts_index,
+)
 from jellycell.server.sse import ReloadBroker, event_to_sse
 from jellycell.server.watch import watch_project
 
@@ -54,6 +63,9 @@ def build_app(project: Project, *, broker: ReloadBroker | None = None) -> Starle
         # The rendered notebook breadcrumb links to `index.html`; serve the same content.
         Route("/index.html", endpoint=_index(state)),
         Route("/nb/{stem}", endpoint=_notebook(state)),
+        Route("/manuscripts/", endpoint=_manuscripts_index(state)),
+        Route("/manuscripts/{path:path}", endpoint=_manuscript_page(state)),
+        Route("/journal", endpoint=_journal(state)),
         # Links in the rendered index use relative `<stem>.html` hrefs so
         # the same HTML works as static files. Serve the same content here.
         Route("/{stem}.html", endpoint=_notebook(state)),
@@ -115,15 +127,84 @@ def _notebook(state: _ServerState):  # type: ignore[no-untyped-def]
     return handler
 
 
+def _manuscripts_index(state: _ServerState):  # type: ignore[no-untyped-def]
+    """``/manuscripts/`` landing page — authored + tearsheets + journal listing."""
+
+    async def handler(_request: Request) -> HTMLResponse:
+        with Renderer(state.project, standalone=False) as r:
+            html = render_manuscripts_index(
+                state.project, env=r.env, pygments_css=r._pygments_css
+            )
+        return HTMLResponse(html)
+
+    return handler
+
+
+def _manuscript_page(state: _ServerState):  # type: ignore[no-untyped-def]
+    """Render any ``manuscripts/<path>.md`` into an HTML page with the project shell."""
+
+    async def handler(request: Request) -> HTMLResponse:
+        rel = request.path_params["path"]
+        # Security: forbid path escape out of manuscripts/. Catch both absolute
+        # paths and ``..``-based traversal before touching the filesystem.
+        if ".." in Path(rel).parts or Path(rel).is_absolute():
+            raise HTTPException(status_code=404, detail=rel)
+        with Renderer(state.project, standalone=False) as r:
+            try:
+                html = render_manuscript_page(
+                    state.project,
+                    rel,
+                    env=r.env,
+                    pygments_css=r._pygments_css,
+                )
+            except FileNotFoundError as exc:
+                raise HTTPException(status_code=404, detail=str(exc)) from exc
+        return HTMLResponse(html)
+
+    return handler
+
+
+def _journal(state: _ServerState):  # type: ignore[no-untyped-def]
+    """Alias for the configured journal file — 404s cleanly when it doesn't exist yet."""
+
+    async def handler(_request: Request) -> HTMLResponse:
+        journal_rel = state.project.config.journal.path
+        path = state.project.manuscripts_dir / journal_rel
+        if not path.is_file():
+            raise HTTPException(
+                status_code=404,
+                detail=(
+                    f"no journal at manuscripts/{journal_rel} yet — "
+                    "run `jellycell run <notebook>` once to create it."
+                ),
+            )
+        with Renderer(state.project, standalone=False) as r:
+            html = render_manuscript_page(
+                state.project,
+                journal_rel,
+                env=r.env,
+                pygments_css=r._pygments_css,
+            )
+        return HTMLResponse(html)
+
+    return handler
+
+
 def _state_json(state: _ServerState):  # type: ignore[no-untyped-def]
     async def handler(_request: Request) -> JSONResponse:
         index = CacheIndex(state.project.cache_dir / "state.db")
         try:
+            catalog = discover_manuscripts(state.project)
             payload = {
                 "schema_version": 1,
                 "project": state.project.config.project.name,
                 "root": str(state.project.root),
                 "recent_runs": index.list_all()[:50],
+                "manuscripts": {
+                    "authored": [asdict(link) for link in catalog.authored],
+                    "tearsheets": [asdict(link) for link in catalog.tearsheets],
+                    "journal": asdict(catalog.journal) if catalog.journal else None,
+                },
             }
         finally:
             index.close()
