@@ -1,8 +1,6 @@
 {
-  "raw": {
-    "a": 1,
-    "b": 2,
-    "c": 3
-  },
-  "totals": 6
+  "total_users": 120,
+  "total_sessions": 450,
+  "conversion_rate": 0.0844,
+  "conversions": 38
 }

@@ -29,8 +29,6 @@ make docs            # sphinx-autobuild at http://127.0.0.1:8001
 
 ## Running the CLI during dev
 
-Once Phase 1 lands:
-
 ```bash
 uv run jellycell --help
 uv run python -m jellycell --version

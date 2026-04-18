@@ -20,7 +20,7 @@ pytestmark = pytest.mark.integration
 def _project(tmp_path: Path) -> Project:
     cfg = default_config("ipynb-test")
     cfg.dump(tmp_path / "jellycell.toml")
-    for d in ("notebooks", "data", "artifacts", "reports", "manuscripts"):
+    for d in ("notebooks", "data", "artifacts", "site", "manuscripts"):
         (tmp_path / d).mkdir(exist_ok=True)
     return Project(root=tmp_path.resolve(), config=cfg)
 
@@ -63,7 +63,7 @@ def _run_and_gather(tmp_path: Path) -> tuple[Project, Path, dict, CacheStore]:
 def test_export_produces_ipynb(tmp_path: Path) -> None:
     project, nb_path, manifests, store = _run_and_gather(tmp_path)
     try:
-        out = export_ipynb(nb_path, manifests, store, project.reports_dir / "n.ipynb")
+        out = export_ipynb(nb_path, manifests, store, project.site_dir / "n.ipynb")
     finally:
         store.close()
 
@@ -77,7 +77,7 @@ def test_export_produces_ipynb(tmp_path: Path) -> None:
 def test_ipynb_reattaches_stdout_outputs(tmp_path: Path) -> None:
     project, nb_path, manifests, store = _run_and_gather(tmp_path)
     try:
-        out = export_ipynb(nb_path, manifests, store, project.reports_dir / "n.ipynb")
+        out = export_ipynb(nb_path, manifests, store, project.site_dir / "n.ipynb")
     finally:
         store.close()
     nb = nbformat.read(out, as_version=4)
@@ -90,7 +90,7 @@ def test_ipynb_reattaches_stdout_outputs(tmp_path: Path) -> None:
 def test_ipynb_is_readable_by_nbformat(tmp_path: Path) -> None:
     project, nb_path, manifests, store = _run_and_gather(tmp_path)
     try:
-        out = export_ipynb(nb_path, manifests, store, project.reports_dir / "n.ipynb")
+        out = export_ipynb(nb_path, manifests, store, project.site_dir / "n.ipynb")
     finally:
         store.close()
     with out.open() as f:

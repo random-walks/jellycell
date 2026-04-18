@@ -27,7 +27,7 @@ my-project/
 ├── notebooks/           # .py source notebooks (jupytext percent format)
 ├── data/                # input data, read by jc.load
 ├── artifacts/           # writable output files (images, parquet, json, ...)
-├── reports/             # rendered HTML output
+├── site/             # rendered HTML output
 ├── manuscripts/         # narrative docs (optional)
 └── .jellycell/
     └── cache/           # content-addressed cache (git-ignored)
@@ -88,11 +88,17 @@ What you import inside a notebook cell:
 ```python
 import jellycell.api as jc
 
-# writes
-jc.save(obj, "artifacts/summary.json")        # format inferred from suffix
+# writes — all take optional caption=/notes=/tags= metadata
+jc.save(obj, "artifacts/summary.json", caption="Headline stats")
 jc.save(df, "artifacts/data.parquet")
-jc.figure("artifacts/plot.png", fig=plt.gcf())
-jc.table(df, name="results")
+jc.figure(
+    "artifacts/plot.png",
+    fig=plt.gcf(),
+    caption="Figure 1: mortality by country",
+    notes="DE stands out; JP lowest.",
+    tags=["result", "figure"],
+)
+jc.table(df, name="results", caption="Table 1: per-country totals")
 
 # reads (registers a dep edge on the producing cell when inside a run)
 jc.load("artifacts/summary.json")
@@ -127,14 +133,18 @@ Supported `jc.save` formats: `.parquet`, `.csv`, `.json`, `.pkl`, `.png`.
 | `jellycell init <path>`            | Scaffold a new project                           |
 | `jellycell lint [path] [--fix]`    | Run lint rules; auto-fix where possible          |
 | `jellycell run <notebook>`         | Execute a notebook (cached cells skipped)        |
-| `jellycell render [notebook]`      | Render HTML to `reports/`                        |
+| `jellycell render [notebook]`      | Render HTML to `site/`                        |
 | `jellycell view`                   | Serve live catalogue (requires `[server]` extra) |
 | `jellycell cache list`             | List cached cell executions                      |
 | `jellycell cache prune`            | Remove old entries (`--older-than`, `--keep-last`) |
 | `jellycell cache clear`            | Wipe the cache                                   |
 | `jellycell cache rebuild-index`    | Rebuild SQLite index from manifests              |
 | `jellycell export ipynb <nb>`      | Export to `.ipynb` with cached outputs           |
-| `jellycell export md <nb>`         | Export to MyST markdown                          |
+| `jellycell export md <nb>`         | Export to MyST markdown (full notebook + outputs) |
+| `jellycell export tearsheet <nb>`  | Curated markdown tearsheet → `manuscripts/tearsheets/<stem>.md` |
+| `jellycell checkpoint create`      | Reproducible `.tar.gz` snapshot of the project   |
+| `jellycell checkpoint list`        | Show existing checkpoints                        |
+| `jellycell checkpoint restore`     | Extract a checkpoint to a new sibling directory  |
 | `jellycell new <name>`             | Scaffold a new notebook                          |
 | `jellycell prompt`                 | Emit this guide to stdout                        |
 
@@ -164,13 +174,60 @@ Every command supports `--json` for machine-readable output with
   raise a lint error (no silent typos).
 - **Don't mock the cache**. If tests need the cache, use a real
   `CacheStore` against `tmp_path`.
+- **Share results via tearsheets.** `jellycell export tearsheet <nb>`
+  writes a curated markdown file to `manuscripts/tearsheets/<stem>.md`:
+  prose from markdown cells, inlined figures via relative paths, JSON
+  summaries flattened to two-column tables. The `tearsheets/` subfolder
+  convention keeps auto-generated files separate from hand-authored
+  writeups (paper drafts, memos, thesis chapters) that live at the root
+  of `manuscripts/`. GitHub renders the result inline — no HTML preview
+  service needed; commit it alongside the notebook so reviewers see the
+  latest run without cloning.
+- **Pick an artifact layout that matches the project.** `[artifacts]
+  layout` in `jellycell.toml` controls where path-less `jc.figure()` /
+  `jc.table()` writes: `"flat"` (default), `"by_notebook"` →
+  `artifacts/<notebook>/<name>.<ext>`, or `"by_cell"` →
+  `artifacts/<notebook>/<cell>/<name>.<ext>`. `"by_cell"` makes every
+  artifact self-identifying — handy for agents that need to trace
+  "which cell produced this file?" without opening manifests.
+- **Commit the story, git-ignore the bulk.** For datasets too big to
+  commit, set `[artifacts] max_committed_size_mb` and let `jellycell
+  run` warn you when an artifact crosses the line. Commit a tiny
+  `headline.json` summary instead, git-ignore (or Git-LFS) the bytes,
+  and reviewers regenerate from the seed + notebook locally. See
+  `examples/large-data/` for the full pattern.
+- **Caption your artifacts.** `jc.save`, `jc.figure`, and `jc.table`
+  all accept `caption="..."`, `notes="..."`, `tags=[...]`. Captions
+  become figure/table headings in tearsheets; notes render as an
+  italic subcaption; tags are free-form labels for filtering. All
+  optional — empty by default, no nagging. See `examples/paper/` and
+  `examples/ml-experiment/` for the full metadata flow.
+- **Record the trajectory.** `jellycell run -m "fixed sign on yoy"`
+  appends a timestamped entry to `manuscripts/journal.md` with the
+  cell summary, any new artifacts, and your message. Opt-out via
+  `[journal] enabled = false`; append-only from jellycell's side so
+  hand-edited commentary survives future runs. The journal is the
+  fastest way for a reviewer (or you in six months) to answer
+  "why did the numbers change?".
+- **Snapshot a known-good state.** `jellycell checkpoint create -m
+  "submitted for review"` bundles the project into a
+  `.tar.gz` under `.jellycell/checkpoints/`. `jellycell checkpoint
+  restore <name>` extracts into a sibling directory by default — the
+  live project is never touched unless you explicitly opt in with
+  `--force`. Good for reproducibility handoffs and "safe rollback to
+  before I fixed the sign error" moves.
 
-## Invariants (spec §10 contracts)
+## Invariants (§10 contracts)
 
-As of v0.1.0:
+Three contracts, stable across patch releases. Living statement +
+ceremony in [reference/contracts](reference/contracts.md):
 
-1. `--json` schemas carry `schema_version: 1`. Breaking changes bump the
-   schema version and the jellycell minor version.
-2. Cache key algorithm (`jellycell.cache.hashing`) is frozen per minor
-   version. Changes bump `MINOR_VERSION` in `_version.py`.
-3. This guide's content is stable across patch versions.
+1. **§10.1 `--json` schemas** carry `schema_version: 1`. Additive
+   fields (optional + default) are patch- or minor-safe; renames,
+   removals, and type changes force a major bump.
+2. **§10.2 Cache key algorithm** (`jellycell.cache.hashing`) is frozen
+   unless `MINOR_VERSION` in `_version.py` is bumped — which forces
+   every cache to invalidate cleanly and rides a major release.
+3. **§10.3 Agent guide content** (what `jellycell prompt` emits).
+   Typo / clarification edits ride a patch; additive sections ride a
+   minor; rewrites that change existing guidance force a major.

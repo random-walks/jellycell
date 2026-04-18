@@ -5,6 +5,8 @@ cell_results:
   duration_ms: int
   error: NoneType
   status: str
+large_artifacts:
+- <empty>
 notebook: str
 schema_version: int
 status: str

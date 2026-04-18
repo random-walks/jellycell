@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="generator" content="jellycell">
-<title>demo — jellycell catalogue</title>
+<title>ml-experiment — jellycell catalogue</title>
 <style>
 :root {
   --bg: #fefefe;
@@ -122,6 +122,62 @@ a:hover { text-decoration: underline; }
 .jc-title h1 { margin: 0 0 4px; font-size: 28px; }
 .jc-path { color: var(--muted); font-family: var(--mono); font-size: 13px; margin: 0; }
 .jc-subtitle { color: var(--muted); margin: 0; }
+
+/* -------------------------------------------------------------- Manuscript body */
+
+.jc-md-body { margin-top: 24px; max-width: 780px; }
+.jc-md-body h1,
+.jc-md-body h2,
+.jc-md-body h3 { margin-top: 32px; margin-bottom: 10px; line-height: 1.25; }
+.jc-md-body h1 { font-size: 24px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+.jc-md-body h2 { font-size: 20px; }
+.jc-md-body h3 { font-size: 17px; color: #111; }
+.jc-md-body p { margin: 12px 0; }
+.jc-md-body blockquote {
+  border-left: 3px solid var(--accent);
+  background: var(--accent-weak);
+  padding: 10px 14px;
+  margin: 16px 0;
+  color: #333;
+}
+.jc-md-body code {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: var(--mono);
+  font-size: 13.5px;
+}
+.jc-md-body pre {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  overflow-x: auto;
+}
+.jc-md-body pre code { background: none; border: none; padding: 0; }
+.jc-md-body table {
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 14px;
+}
+.jc-md-body th,
+.jc-md-body td {
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  text-align: left;
+}
+.jc-md-body th { background: #fafbfc; }
+.jc-md-body img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin: 8px 0;
+}
+.jc-md-body em { color: #444; }
+.jc-md-body hr { border: 0; border-top: 1px solid var(--border); margin: 24px 0; }
 
 /* -------------------------------------------------------------- Cells */
 
@@ -434,14 +490,14 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <body class="jc-layout">
 <header class="jc-header">
   <nav class="jc-breadcrumb">
-    <span>demo</span>
+    <span>ml-experiment</span>
   </nav>
 </header>
 <div class="jc-shell jc-shell-index">
   <main class="jc-main">
     <article class="jc-index">
       <header class="jc-title">
-        <h1>demo</h1>
+        <h1>ml-experiment</h1>
         <p class="jc-subtitle">Notebook catalogue</p>
       </header>
 
@@ -449,12 +505,50 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
       <h2>Notebooks</h2>
       <ul class="jc-list">
         <li>
-          <a class="jc-list-item" href="tour.html">
-            <span class="jc-list-title">tour</span>
+          <a class="jc-list-item" href="train.html">
+            <span class="jc-list-title">train</span>
             <span class="jc-list-meta">
-              4 cached cells
-· last run 2026-04-18T05:10:19.754229+00:00            </span>
-            <span class="jc-list-path">notebooks/tour.py</span>
+              6 cached cells
+· last run 2026-04-18T19:02:18.496064+00:00            </span>
+            <span class="jc-list-path">notebooks/train.py</span>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <section class="jc-notebooks">
+      <h2>Manuscripts</h2>
+      <p class="jc-subtitle">
+        Authored writeups + auto-generated tearsheets.
+        <a href="/manuscripts/">browse all →</a>
+      </p>
+      <ul class="jc-list">
+        <li>
+          <a class="jc-list-item" href="/manuscripts/README.md">
+            <span class="jc-list-title">Readme</span>
+            <span class="jc-list-meta">authored</span>
+            <span class="jc-list-path">manuscripts/README.md</span>
+          </a>
+        </li>
+        <li>
+          <a class="jc-list-item" href="/manuscripts/model-card.md">
+            <span class="jc-list-title">Model Card</span>
+            <span class="jc-list-meta">authored</span>
+            <span class="jc-list-path">manuscripts/model-card.md</span>
+          </a>
+        </li>
+        <li>
+          <a class="jc-list-item" href="/manuscripts/tearsheets/train.md">
+            <span class="jc-list-title">Train</span>
+            <span class="jc-list-meta">tearsheet</span>
+            <span class="jc-list-path">manuscripts/tearsheets/train.md</span>
+          </a>
+        </li>
+        <li>
+          <a class="jc-list-item" href="/journal">
+            <span class="jc-list-title">Journal</span>
+            <span class="jc-list-meta">run log (append-only)</span>
+            <span class="jc-list-path">manuscripts/journal.md</span>
           </a>
         </li>
       </ul>
@@ -474,40 +568,58 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
         </thead>
         <tbody>
           <tr>
-            <td><a href="tour.html">notebooks/tour.py</a></td>
-            <td>tour:8 (derived)</td>
+            <td><a href="train.html">notebooks/train.py</a></td>
+            <td>train:6 (checkpoint)</td>
             <td>
               <span class="jc-status jc-status-ok">ok</span>
             </td>
-            <td>2026-04-18T05:10:19.754229+00:00</td>
-            <td class="jc-num">4</td>
-          </tr>
-          <tr>
-            <td><a href="tour.html">notebooks/tour.py</a></td>
-            <td>tour:6 (persist)</td>
-            <td>
-              <span class="jc-status jc-status-ok">ok</span>
-            </td>
-            <td>2026-04-18T05:10:19.748748+00:00</td>
+            <td>2026-04-18T19:02:18.496064+00:00</td>
             <td class="jc-num">5</td>
           </tr>
           <tr>
-            <td><a href="tour.html">notebooks/tour.py</a></td>
-            <td>tour:4 (totals)</td>
+            <td><a href="train.html">notebooks/train.py</a></td>
+            <td>train:5 (metrics)</td>
             <td>
               <span class="jc-status jc-status-ok">ok</span>
             </td>
-            <td>2026-04-18T05:10:19.742168+00:00</td>
+            <td>2026-04-18T19:02:18.490006+00:00</td>
             <td class="jc-num">5</td>
           </tr>
           <tr>
-            <td><a href="tour.html">notebooks/tour.py</a></td>
-            <td>tour:2 (raw)</td>
+            <td><a href="train.html">notebooks/train.py</a></td>
+            <td>train:4 (loss_curve)</td>
             <td>
               <span class="jc-status jc-status-ok">ok</span>
             </td>
-            <td>2026-04-18T05:10:19.735975+00:00</td>
-            <td class="jc-num">139</td>
+            <td>2026-04-18T19:02:18.482626+00:00</td>
+            <td class="jc-num">263</td>
+          </tr>
+          <tr>
+            <td><a href="train.html">notebooks/train.py</a></td>
+            <td>train:3 (train)</td>
+            <td>
+              <span class="jc-status jc-status-ok">ok</span>
+            </td>
+            <td>2026-04-18T19:02:18.217657+00:00</td>
+            <td class="jc-num">6</td>
+          </tr>
+          <tr>
+            <td><a href="train.html">notebooks/train.py</a></td>
+            <td>train:2 (toy_dataset)</td>
+            <td>
+              <span class="jc-status jc-status-ok">ok</span>
+            </td>
+            <td>2026-04-18T19:02:18.210261+00:00</td>
+            <td class="jc-num">56</td>
+          </tr>
+          <tr>
+            <td><a href="train.html">notebooks/train.py</a></td>
+            <td>train:1 (config)</td>
+            <td>
+              <span class="jc-status jc-status-ok">ok</span>
+            </td>
+            <td>2026-04-18T19:02:18.152081+00:00</td>
+            <td class="jc-num">131</td>
           </tr>
         </tbody>
       </table>
@@ -519,7 +631,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
   <span>Generated by <a href="https://jellycell.readthedocs.io">jellycell</a></span>
 </footer>
 <script>
-// jellycell: collapsible cells + SSE live-reload (Phase 4 wires up the SSE side).
+// jellycell: collapsible cells + SSE live-reload.
 
 (function () {
   // Collapsible cells
@@ -533,9 +645,9 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
     });
   });
 
-  // SSE live-reload. Only activates when served from the jellycell server
-  // (Phase 4+). When viewing static reports/ files, window.location.protocol
-  // is file: or the EventSource connect fails silently — either way, no-op.
+  // SSE live-reload. Only activates when served from the jellycell server.
+  // When viewing static reports/ files, window.location.protocol is file: or
+  // the EventSource connect fails silently — either way, no-op.
   if (typeof EventSource === "undefined") return;
   if (window.location.protocol.indexOf("http") !== 0) return;
 

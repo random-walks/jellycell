@@ -4,7 +4,7 @@ Full contribution guide lives at [CONTRIBUTING.md](https://github.com/random-wal
 
 ## The three invariants
 
-These are locked in [spec §10](../spec/v0.md) and in [CLAUDE.md](https://github.com/random-walks/jellycell/blob/main/CLAUDE.md). Touching any of them requires explicit ceremony:
+These are locked in [reference/contracts](../reference/contracts.md) (living) and [CLAUDE.md](https://github.com/random-walks/jellycell/blob/main/CLAUDE.md). Touching any of them requires explicit ceremony:
 
 1. **`--json` output schemas** — every command's JSON output has `schema_version: 1`. Adding/removing/renaming a field is a breaking change. Schemas are pydantic models in the command's subpackage.
 
@@ -14,11 +14,11 @@ These are locked in [spec §10](../spec/v0.md) and in [CLAUDE.md](https://github
 
 ## Phase budgets
 
-[Spec §8](../spec/v0.md) defines a file count per phase. If a phase's `src/jellycell/<phase>/` creeps past its budget, that's a **scope-creep signal** — cut back. Don't raise the ceiling.
+[v0 spec §8](../spec/v0.md#8-build-phases-sized-in-files) defines a file count per phase (historical snapshot, still used as scope-creep ceilings). If a phase's `src/jellycell/<phase>/` creeps past its budget, that's a **scope-creep signal** — cut back. Don't raise the ceiling.
 
 ## Piggyback first
 
-Before writing new code for parsing, caching, file-watching, templating, or HTML output, check the [piggyback map in spec §1](../spec/v0.md). If a well-maintained lib already does it, use it.
+Before writing new code for parsing, caching, file-watching, templating, or HTML output, check the [piggyback map in reference/architecture](../reference/architecture.md#piggyback-map). If a well-maintained lib already does it, use it.
 
 ## PR checklist
 
@@ -31,8 +31,8 @@ Before writing new code for parsing, caching, file-watching, templating, or HTML
 
 ## Claude Code skills
 
-Three project-level skills live under `.claude/skills/` and encode spec §10
-guardrails. Claude Code auto-discovers them from this path when the CLI
+Three project-level skills live under `.claude/skills/` and encode §10
+guardrails (see [reference/contracts](../reference/contracts.md)). Claude Code auto-discovers them from this path when the CLI
 starts, but a running session does **not** pick up new or edited skills until
 you restart it (`/exit` → `claude` again).
 

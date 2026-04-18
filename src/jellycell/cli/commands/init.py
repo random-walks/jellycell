@@ -46,7 +46,7 @@ def init(
     cfg = default_config(project_name)
     cfg.dump(config_path)
     created = ["jellycell.toml"]
-    for d in ["notebooks", "data", "artifacts", "reports", "manuscripts"]:
+    for d in ["notebooks", "data", "artifacts", "site", "manuscripts"]:
         (target / d).mkdir(exist_ok=True)
         keep = target / d / ".gitkeep"
         if not keep.exists():

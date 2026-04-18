@@ -1,0 +1,8 @@
+{
+  "rows": 500000,
+  "features": 12,
+  "positive_rate": 0.5009,
+  "feature_mean": 0.0003,
+  "feature_std": 1.0003,
+  "size_mb": 48.97
+}

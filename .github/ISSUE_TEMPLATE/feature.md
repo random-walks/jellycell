@@ -28,14 +28,14 @@ jellycell <new-command> --flag value
 ## Spec impact
 
 <!--
-Does this interact with any spec §10 invariant?
+Does this interact with any §10 invariant? (see docs/reference/contracts.md)
 - [ ] Changes --json schemas of existing commands
 - [ ] Changes cache key algorithm or inputs
 - [ ] Changes agent guide content
 
-If any are checked, this is likely a minor-version release, not a patch.
+If any are checked, expect at least a minor bump — or a major for breaking changes to the existing shape.
 -->
 
 ## Phase placement
 
-<!-- Which phase in spec §8 would this land in? Does it fit the phase's file budget? -->
+<!-- Which phase in v0 spec §8 would this land in? Does it fit the phase's file budget? -->

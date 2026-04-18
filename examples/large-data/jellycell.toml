@@ -1,0 +1,17 @@
+[project]
+name = "large-data"
+
+[artifacts]
+# Stored outputs get bucketed per-notebook so agents can see at a glance
+# which notebook produced which file — useful when the tree is big.
+layout = "by_notebook"
+
+# Warn when any one artifact is bigger than 10 MB. Below that we just
+# commit it; above that, reviewers get a reminder to git-ignore or LFS.
+# Tuned low here so the example's 12-MB dump actually trips the warning.
+max_committed_size_mb = 10
+
+[lint]
+# The downstream pipeline is implicit via jc.load on the generated parquet,
+# so flip on the stricter dep check for demo purposes.
+enforce_declared_deps = true

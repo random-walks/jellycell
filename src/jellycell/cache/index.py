@@ -7,6 +7,7 @@ re-scans all manifests to repair corruption.
 
 from __future__ import annotations
 
+import hashlib
 import sqlite3
 from pathlib import Path
 from types import TracebackType
@@ -91,6 +92,28 @@ class CacheIndex:
         )
         cols = ("cache_key", "cell_id", "cell_name", "executed_at", "duration_ms", "status")
         return [dict(zip(cols, row, strict=True)) for row in cur.fetchall()]
+
+    def notebook_view_key(self, project_root: Path, notebook_rel: str) -> str | None:
+        """Hash of everything that affects the rendered view of a notebook.
+
+        The live viewer uses this as its response-cache key. Captures both
+        **source edits** (the notebook file's bytes) and **manifest changes**
+        (the ordered set of cell cache keys), so either kind of change
+        invalidates the cached HTML cleanly.
+
+        Returns a hex sha256 string, or ``None`` when the notebook file is
+        missing — the caller should skip caching in that case and let the
+        404 path render naturally.
+        """
+        nb_path = project_root / notebook_rel
+        try:
+            nb_bytes = nb_path.read_bytes()
+        except (OSError, FileNotFoundError):
+            return None
+        source_hash = hashlib.sha256(nb_bytes).hexdigest()
+        cell_keys = [str(row["cache_key"]) for row in self.list_by_notebook(notebook_rel)]
+        combined = source_hash + "|" + ",".join(sorted(cell_keys))
+        return hashlib.sha256(combined.encode("utf-8")).hexdigest()
 
     def find_producer(self, artifact_path: str) -> dict[str, Any] | None:
         """Look up which cell produced an artifact at ``artifact_path``.

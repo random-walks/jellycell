@@ -98,5 +98,12 @@ dmypy.json
 # jellycell project cache (for dogfooded notebooks in examples/)
 .jellycell/
 
+# Auto-generated per-run journals inside examples/. Running the examples on
+# every CI job (or locally) would otherwise churn these files; real projects
+# should commit their own manuscripts/journal.md. The paper example keeps a
+# short committed narrative to demonstrate the trajectory-log pattern.
+examples/*/manuscripts/journal.md
+!examples/paper/manuscripts/journal.md
+
 # Coverage
 coverage.json

@@ -22,7 +22,7 @@ name = "full"
 notebooks = "notebooks"
 data = "data"
 artifacts = "artifacts"
-reports = "reports"
+site = "site"
 manuscripts = "manuscripts"
 cache = ".jellycell/cache"
 
@@ -50,6 +50,27 @@ def test_minimal_config_applies_defaults() -> None:
     assert cfg.run.timeout_seconds == 600
     assert cfg.viewer.port == 5179
     assert cfg.lint.enforce_artifact_paths is True
+    # [artifacts] defaults — flat layout, non-zero warning threshold
+    assert cfg.artifacts.layout == "flat"
+    assert cfg.artifacts.max_committed_size_mb == 50
+
+
+def test_artifacts_layout_parses_all_values() -> None:
+    for layout in ("flat", "by_notebook", "by_cell"):
+        text = MINIMAL_TOML + f"\n[artifacts]\nlayout = {layout!r}\n"
+        assert Config.loads(text).artifacts.layout == layout
+
+
+def test_artifacts_layout_rejects_unknown_value() -> None:
+    text = MINIMAL_TOML + "\n[artifacts]\nlayout = 'pyramid'\n"
+    with pytest.raises(ValidationError):
+        Config.loads(text)
+
+
+def test_artifacts_extra_field_rejected() -> None:
+    text = MINIMAL_TOML + "\n[artifacts]\nunknown = 1\n"
+    with pytest.raises(ValidationError):
+        Config.loads(text)
 
 
 def test_full_config_parses() -> None:

@@ -12,7 +12,7 @@ license = "Apache-2.0"
 authors = [{ name = "Blaise", email = "blaise@ubik.studio" }]
 keywords = ["notebook", "jupyter", "reproducibility", "data-science", "agents"]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3.11",
@@ -112,8 +112,8 @@ convention = "google"
 # typer's idiomatic pattern is `x: T = typer.Option(...)` — B008 is a false positive here.
 "src/jellycell/cli/**/*.py" = ["B008"]
 # Notebooks in examples/ are jupytext percent-format files — D100 and E402 don't apply.
-# Greek letters in matplotlib labels (α, σ, ρ, μ) are intentional.
-"examples/**/*.py" = ["D", "E402", "RUF001"]
+# Greek letters in labels (α, σ, ρ, μ) and math symbols in comments (×, ≈) are intentional.
+"examples/**/*.py" = ["D", "E402", "RUF001", "RUF003"]
 
 [tool.mypy]
 python_version = "3.11"

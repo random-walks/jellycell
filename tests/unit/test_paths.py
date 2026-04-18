@@ -72,7 +72,7 @@ def test_declared_roots_contains_all_roots(tmp_path: Path) -> None:
         project.notebooks_dir,
         project.data_dir,
         project.artifacts_dir,
-        project.reports_dir,
+        project.site_dir,
         project.manuscripts_dir,
         project.cache_dir,
     }

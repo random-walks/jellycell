@@ -39,7 +39,7 @@ NOTEBOOK = (
 def test_exported_ipynb_validates(tmp_path: Path) -> None:
     cfg = default_config("roundtrip")
     cfg.dump(tmp_path / "jellycell.toml")
-    for d in ("notebooks", "data", "artifacts", "reports", "manuscripts"):
+    for d in ("notebooks", "data", "artifacts", "site", "manuscripts"):
         (tmp_path / d).mkdir(exist_ok=True)
     project = Project(root=tmp_path.resolve(), config=cfg)
     nb_path = project.notebooks_dir / "n.py"
@@ -58,7 +58,7 @@ def test_exported_ipynb_validates(tmp_path: Path) -> None:
         for row in idx.list_by_notebook("notebooks/n.py"):
             m = store.get_manifest(row["cache_key"])
             manifests[m.cell_id] = m
-        out = export_ipynb(nb_path, manifests, store, project.reports_dir / "n.ipynb")
+        out = export_ipynb(nb_path, manifests, store, project.site_dir / "n.ipynb")
     finally:
         idx.close()
         store.close()

@@ -33,7 +33,7 @@ NOTEBOOK = (
 def _project_with_run(tmp_path: Path) -> tuple[Project, Path, dict, CacheStore]:
     cfg = default_config("md-test")
     cfg.dump(tmp_path / "jellycell.toml")
-    for d in ("notebooks", "data", "artifacts", "reports", "manuscripts"):
+    for d in ("notebooks", "data", "artifacts", "site", "manuscripts"):
         (tmp_path / d).mkdir(exist_ok=True)
     project = Project(root=tmp_path.resolve(), config=cfg)
     nb_path = project.notebooks_dir / "n.py"
@@ -58,7 +58,7 @@ def _project_with_run(tmp_path: Path) -> tuple[Project, Path, dict, CacheStore]:
 def test_export_produces_myst_markdown(tmp_path: Path) -> None:
     project, nb_path, manifests, store = _project_with_run(tmp_path)
     try:
-        out = export_md(nb_path, manifests, store, project.reports_dir / "n.md")
+        out = export_md(nb_path, manifests, store, project.site_dir / "n.md")
     finally:
         store.close()
     text = out.read_text(encoding="utf-8")
@@ -70,7 +70,7 @@ def test_export_produces_myst_markdown(tmp_path: Path) -> None:
 def test_md_includes_cell_name_when_tagged(tmp_path: Path) -> None:
     project, nb_path, manifests, store = _project_with_run(tmp_path)
     try:
-        out = export_md(nb_path, manifests, store, project.reports_dir / "n.md")
+        out = export_md(nb_path, manifests, store, project.site_dir / "n.md")
     finally:
         store.close()
     text = out.read_text(encoding="utf-8")
@@ -80,7 +80,7 @@ def test_md_includes_cell_name_when_tagged(tmp_path: Path) -> None:
 def test_md_includes_stdout_block(tmp_path: Path) -> None:
     project, nb_path, manifests, store = _project_with_run(tmp_path)
     try:
-        out = export_md(nb_path, manifests, store, project.reports_dir / "n.md")
+        out = export_md(nb_path, manifests, store, project.site_dir / "n.md")
     finally:
         store.close()
     text = out.read_text(encoding="utf-8")

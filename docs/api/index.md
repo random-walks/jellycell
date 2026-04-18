@@ -1,6 +1,6 @@
 # API reference
 
-Auto-generated from docstrings via [sphinx-autodoc2](https://sphinx-autodoc2.readthedocs.io/). The API surface is thin in Phase 0 — meaningful modules land in Phases 1 and 2.
+Auto-generated from docstrings via [sphinx-autodoc2](https://sphinx-autodoc2.readthedocs.io/).
 
 ```{toctree}
 :maxdepth: 1
@@ -8,4 +8,4 @@ Auto-generated from docstrings via [sphinx-autodoc2](https://sphinx-autodoc2.rea
 /apidocs/jellycell/jellycell
 ```
 
-See the [v0 spec §2](../spec/v0.md) for component architecture.
+See [reference/architecture](../reference/architecture.md) for the component architecture (8-layer dependency order + subpackage responsibilities).

@@ -10,8 +10,8 @@ my-project/
 ├── notebooks/           # .py source notebooks
 ├── data/                # input data read by jc.load
 ├── artifacts/           # outputs written by jc.save / jc.figure / jc.table
-├── reports/             # rendered HTML output
-├── manuscripts/         # narrative docs (optional)
+├── site/             # rendered HTML output
+├── manuscripts/         # narrative docs + tearsheets (markdown, committed)
 └── .jellycell/
     └── cache/           # content-addressed cache (gitignored)
 ```
@@ -39,7 +39,7 @@ escapes a declared root (write-guard in `jellycell.paths.Project.resolve`).
 notebooks = "notebooks"           # source .py files
 data = "data"                     # input data
 artifacts = "artifacts"           # output files
-reports = "reports"               # rendered HTML
+site = "site"                     # rendered HTML catalogue
 manuscripts = "manuscripts"       # optional prose companions
 cache = ".jellycell/cache"        # content-addressed cache
 ```
@@ -63,6 +63,54 @@ host = "127.0.0.1"
 port = 5179
 watch = ["notebooks", "manuscripts", "artifacts"]     # paths triggering reloads
 ```
+
+### `[artifacts]`
+
+Controls where path-less `jc.figure()` / `jc.table()` calls save, and
+when jellycell warns about outsized outputs. Explicit paths in
+`jc.save(x, "artifacts/foo.json")` always win — the layout setting is
+only consulted when jellycell picks the location.
+
+```toml
+[artifacts]
+layout = "flat"                   # "flat" | "by_notebook" | "by_cell"
+max_committed_size_mb = 50        # post-run warning threshold; 0 to disable
+```
+
+- **`layout = "flat"`** (default) — every artifact lands under
+  `artifacts/<name>.<ext>`. Non-breaking with any existing notebook.
+- **`layout = "by_notebook"`** — path-less figures and tables land under
+  `artifacts/<notebook-stem>/<name>.<ext>`. Good when one project has
+  many notebooks producing similarly-named outputs.
+- **`layout = "by_cell"`** —
+  `artifacts/<notebook-stem>/<cell-name>/<name>.<ext>`. Every artifact's
+  path names its producer, which agents and human reviewers can read
+  at a glance without opening the manifest.
+
+The `max_committed_size_mb` threshold drives a post-run warning from
+`jellycell run` when any single artifact exceeds the limit — pointing
+at either `.gitignore` or Git LFS. See the [`large-data`](https://github.com/random-walks/jellycell/tree/main/examples/large-data)
+example for the "commit the story, git-ignore the bulk" workflow.
+
+### `[journal]`
+
+Append-only per-run log written to `<manuscripts>/<path>` after every
+`jellycell run`. Captures timestamp, notebook, cell summary, new
+artifacts (with their captions, when present), any large-artifact
+warnings, and the optional `-m "message"` note. Append-only from
+jellycell's side so hand-edits survive future runs.
+
+```toml
+[journal]
+enabled = true                    # default; set false to skip the trail
+path = "journal.md"               # relative to paths.manuscripts
+```
+
+The journal is intentionally committed for real projects — it's the
+analysis trajectory a reviewer (or you in six months) can scan to
+understand "why did the numbers change between runs?" Set
+`enabled = false` only when the project is truly transient.
+
 
 ### `[lint]`
 
@@ -94,6 +142,38 @@ A notebook's PEP-723 block can override any field at file scope via a
 The block-scoped value wins for that file. Other `[tool.*]` tables are
 preserved unchanged.
 
+## `manuscripts/` — hand-authored writeups + tearsheets
+
+The `manuscripts/` directory holds markdown files that live alongside
+notebooks. By convention it has a clean two-way split:
+
+```
+manuscripts/
+├── README.md              # explains the layout (optional but helpful)
+├── paper.md               # hand-authored; you own this
+├── reviewer-memo.md       # hand-authored; you own this
+└── tearsheets/            # auto-generated; regenerate overwrites
+    ├── analysis.md        # = notebooks/analysis.py
+    └── exploration.md     # = notebooks/exploration.py
+```
+
+- **Root `manuscripts/*.md`** — hand-authored writeups: paper drafts,
+  thesis chapters, decision memos, reviewer notes. Stable across any
+  tearsheet regeneration. You edit freely; nothing overwrites your work.
+- **`manuscripts/tearsheets/*.md`** — produced by
+  `jellycell export tearsheet <nb>`, which writes
+  `manuscripts/tearsheets/<stem>.md` by default. Markdown narration +
+  inlined figures (via `../../artifacts/foo.png` relative paths) + JSON
+  summaries as two-column tables. Header links back to the source
+  notebook and the rendered HTML report when it exists. Regenerating
+  overwrites the file, so never hand-edit; use the `-o PATH` override
+  to target somewhere else if you need custom layouts.
+
+Both reference the same `artifacts/` tree, so figures in the hand-authored
+paper and the tearsheet dashboard are always byte-identical to the latest
+run. Commit `manuscripts/` so reviewers and agents see the latest
+tearsheets + writeups without re-running anything.
+
 ## The `.jellycell/` directory
 
 Auto-created on first run. Usually git-ignored (jellycell's own `.gitignore`
@@ -120,6 +200,6 @@ Override with `--project /path/to/root`.
 
 - **Git**: commit `notebooks/`, `data/` (small files; use LFS or external
   storage for large), `artifacts/` if they're outputs worth reviewing,
-  `jellycell.toml`. Git-ignore `.jellycell/` and `reports/`.
+  `jellycell.toml`. Git-ignore `.jellycell/` and `site/`.
 - **pre-commit**: `jellycell lint` fits cleanly as a pre-commit hook.
-- **CI**: run `jellycell run notebooks/*.py` to recompute reports on PR.
+- **CI**: run `jellycell run notebooks/*.py` to refresh the cache on PR.

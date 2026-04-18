@@ -10,6 +10,7 @@ from rich.console import Console
 from rich.table import Table
 
 from jellycell.cli.app import GlobalOptions, app
+from jellycell.cli.journal import append_entry as journal_append_entry
 from jellycell.paths import Project, ProjectNotFoundError
 from jellycell.run import Runner, RunReport
 
@@ -21,6 +22,12 @@ def run(
     ctx: typer.Context,
     notebook: Path = typer.Argument(..., help="Path to the notebook .py file."),
     force: bool = typer.Option(False, "--force", help="Bypass cache (re-execute all cells)."),
+    message: str | None = typer.Option(
+        None,
+        "--message",
+        "-m",
+        help="One-line note recorded in manuscripts/journal.md (if journal is enabled).",
+    ),
 ) -> None:
     """Execute every code cell of ``notebook``. Cache hits are restored from the store."""
     opts: GlobalOptions = ctx.obj
@@ -35,6 +42,15 @@ def run(
         report = runner.run(notebook, force=force)
     finally:
         runner.close()
+
+    # Analysis journal: opt-out via [journal] enabled = false. Append-only
+    # audit log under manuscripts/. Entry writes must not kill the run — wrap
+    # defensively so a broken journal file never strands results.
+    try:
+        journal_append_entry(project, report, message=message)
+    except Exception as exc:  # pragma: no cover — defensive
+        if not opts.json_output:
+            _console.print(f"[yellow]note:[/yellow] journal append failed: {exc}")
 
     if opts.json_output:
         typer.echo(report.model_dump_json())
@@ -92,6 +108,21 @@ def _print_rich(report: RunReport) -> None:
             )
             if cell.error.traceback:
                 _console.print("[dim]" + "\n".join(cell.error.traceback) + "[/dim]")
+
+    # Large-artifact warnings — gitignore or LFS guidance for files likely too
+    # big to commit. Threshold is [artifacts] max_committed_size_mb (default 50).
+    if report.large_artifacts:
+        _console.print()
+        limit = report.large_artifacts[0].limit_mb
+        _console.print(
+            f"[yellow]note:[/yellow] {len(report.large_artifacts)} artifact(s) "
+            f"exceed [bold]{limit} MB[/bold] — consider `.gitignore` or Git LFS:"
+        )
+        for w in report.large_artifacts:
+            label = f" ({w.cell_name})" if w.cell_name else ""
+            _console.print(
+                f"  [dim]{w.cell_id}{label}[/dim] {w.path} [bold]{w.size_mb:.2f} MB[/bold]"
+            )
 
 
 def _fail(opts: GlobalOptions, msg: str) -> None:

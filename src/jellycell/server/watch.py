@@ -31,8 +31,15 @@ def map_change(project: Project, path: Path) -> ReloadEvent | ArtifactEvent | No
     if _is_within(abs_path, artifacts):
         rel = abs_path.relative_to(project.root)
         return ArtifactEvent(path=f"/{rel}")
-    if _is_within(abs_path, manuscripts):
-        return ReloadEvent(path="/")
+    if _is_within(abs_path, manuscripts) and abs_path.suffix == ".md":
+        # Target the specific manuscript page so only its viewers reload —
+        # less flicker than the broad "refresh root" signal the original
+        # watcher sent for any manuscripts/ change.
+        md_rel = abs_path.relative_to(manuscripts).as_posix()
+        journal_rel = project.config.journal.path
+        if md_rel == journal_rel:
+            return ReloadEvent(path="/journal")
+        return ReloadEvent(path=f"/manuscripts/{md_rel}")
     if abs_path.name == "jellycell.toml" and abs_path.parent == project.root.resolve():
         return ReloadEvent(path="/")
     return None

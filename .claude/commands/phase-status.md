@@ -31,13 +31,13 @@ PHASE STATUS (against docs/spec/v0.md §8)
 Phase | src present | budget | status
 ------|-------------|--------|-------
 0     |      3      |   3    |   ✅
-1     |      0      |  13    |   ✅ (not started)
-2     |      0      |  13    |   ✅ (not started)
+1     |     14      |  13    |   ⚠️  (+1)
+2     |     16      |  13    |   ❌ (+3)
 ...
 
-Unreleased commits since v0.0.1: N
+Unreleased commits since v1.0.0: N
 Current branch: main
-Last tag: v0.0.1
+Last tag: v1.0.0
 ```
 
 If any phase is over budget, flag it prominently and remind: **"Over budget = scope-creep signal. Cut back; do not raise the ceiling."**

@@ -103,9 +103,16 @@ class Project:
         return self.root / self.config.paths.artifacts
 
     @property
-    def reports_dir(self) -> Path:
-        """Absolute path to the reports root."""
-        return self.root / self.config.paths.reports
+    def site_dir(self) -> Path:
+        """Absolute path to the static-site root.
+
+        Where ``jellycell render`` writes HTML + ``_assets/``, and where
+        ``jellycell export ipynb/md`` drop their derived files. The live
+        viewer reads this directory (and shares the same ``_assets/`` mount
+        with the static render so relative image hrefs resolve cleanly in
+        both modes).
+        """
+        return self.root / self.config.paths.site
 
     @property
     def manuscripts_dir(self) -> Path:
@@ -155,7 +162,7 @@ class Project:
             self.notebooks_dir,
             self.data_dir,
             self.artifacts_dir,
-            self.reports_dir,
+            self.site_dir,
             self.manuscripts_dir,
             self.cache_dir,
         ]

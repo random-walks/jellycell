@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import tomllib
 from pathlib import Path
-from typing import Any
+from typing import Any, Literal
 
 import tomli_w
 from pydantic import BaseModel, ConfigDict, Field
@@ -31,7 +31,12 @@ class PathsConfig(BaseModel):
     notebooks: str = "notebooks"
     data: str = "data"
     artifacts: str = "artifacts"
-    reports: str = "reports"
+    site: str = "site"
+    """Static HTML catalogue — where ``jellycell render`` + ``jellycell
+    export`` publish their outputs. Distinct from ``manuscripts/`` (prose
+    + tearsheets, markdown, GitHub-native). The live viewer reads and
+    serves from here; projects may git-ignore it if they don't need a
+    checked-in static site."""
     manuscripts: str = "manuscripts"
     cache: str = ".jellycell/cache"
 
@@ -66,6 +71,64 @@ class LintConfig(BaseModel):
     warn_on_large_cell_output: str = "10MB"
 
 
+#: Allowed layouts for the ``[artifacts] layout`` setting.
+ArtifactLayout = Literal["flat", "by_notebook", "by_cell"]
+
+
+class JournalConfig(BaseModel):
+    """The ``[journal]`` table — analysis-trajectory log.
+
+    When enabled, ``jellycell run`` appends a one-section entry to
+    ``manuscripts/journal.md`` per invocation: timestamp, notebook,
+    cell-change summary, any new/invalidated artifacts, optional
+    ``--message`` commentary. Opt-out-by-default because the audit trail
+    is usually more valuable than clean.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: bool = True
+    """Write to ``<manuscripts_dir>/journal.md`` on every ``jellycell run``.
+
+    Turn off (``enabled = false``) for transient exploration projects that
+    don't want the trail, or when the journal lives outside this project."""
+
+    path: str = "journal.md"
+    """Relative path under ``manuscripts/`` to write to. Defaults to
+    ``journal.md``; override (e.g. ``"log/runs.md"``) if you prefer another
+    location."""
+
+
+class ArtifactsConfig(BaseModel):
+    """The ``[artifacts]`` table — how jellycell picks default artifact paths.
+
+    Only affects **path-less** ``jc.figure()`` / ``jc.table()`` calls where
+    jellycell chooses the location. Explicit paths (``jc.save(x, "artifacts/foo.json")``)
+    always win unchanged.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    layout: ArtifactLayout = "flat"
+    """Default artifact layout:
+
+    - ``flat`` (default): ``artifacts/<name>.<ext>``. Simplest; fine for
+      single-notebook projects.
+    - ``by_notebook``: ``artifacts/<notebook-stem>/<name>.<ext>``. Good when
+      one project has many notebooks producing similarly-named artifacts.
+    - ``by_cell``: ``artifacts/<notebook-stem>/<cell-name>/<name>.<ext>``.
+      Every artifact's path makes its producer obvious to agents and humans
+      without opening the manifest.
+    """
+
+    max_committed_size_mb: int = 50
+    """Soft warning threshold (MB) for individual artifacts.
+
+    ``jellycell run`` flags any artifact exceeding this with a reminder to
+    either git-ignore the file or move it to LFS. Set to 0 to disable.
+    """
+
+
 class Config(BaseModel):
     """Full jellycell.toml schema."""
 
@@ -76,6 +139,8 @@ class Config(BaseModel):
     run: RunConfig = Field(default_factory=RunConfig)
     viewer: ViewerConfig = Field(default_factory=ViewerConfig)
     lint: LintConfig = Field(default_factory=LintConfig)
+    artifacts: ArtifactsConfig = Field(default_factory=ArtifactsConfig)
+    journal: JournalConfig = Field(default_factory=JournalConfig)
 
     @classmethod
     def load(cls, path: Path) -> Config:

@@ -1,31 +1,54 @@
 # Mortality trends (paper draft)
 
-A minimal manuscript that cites figures and tables produced by
-`notebooks/analysis.py`. In a jellycell project, manuscripts sit
-alongside notebooks and can reference rendered artifacts directly.
+A minimal manuscript showing how a jellycell project layers a hand-authored
+writeup (this file, at the root of `manuscripts/`) on top of an auto-generated
+[tearsheet](tearsheets/analysis.md) (under `manuscripts/tearsheets/`). Both
+reference the same `artifacts/` tree — edits to the notebook flow through
+to the tearsheet automatically while this narrative stays under the
+author's control.
 
 ## Background
 
-One-paragraph background.
+Synthetic two-year mortality counts for four countries — just enough data
+to exercise aggregations, year-over-year comparisons, and a couple of
+figures inside a jellycell dep graph.
 
 ## Methods
 
-See [`notebooks/analysis.py`](../notebooks/analysis.py). The `jc.load`
-cell reads `data/sample.csv`; the dep-graph ensures every downstream
-cell invalidates when the input changes.
+Compute lives in [`notebooks/analysis.py`](../notebooks/analysis.py):
 
-## Results
+- The `raw` cell reads [`data/sample.csv`](../data/sample.csv).
+- `per_country_totals` aggregates deaths per country.
+- `yoy_change` computes 2020→2021 percent change where both years are present.
+- `country_totals` and `yoy_chart` render the two figures below.
+- `summary` persists a compact JSON digest to [`artifacts/summary.json`](../artifacts/summary.json).
 
-Per-country mortality totals are persisted to
-[`artifacts/totals.json`](../artifacts/totals.json) by the notebook.
+Jellycell's dep graph keeps the figures fresh: changing a single row in
+`data/sample.csv` invalidates only the subgraph that depends on it.
+
+## Results — totals
+
+![Cumulative mortality by country](../artifacts/country_totals.png)
+
+US accounts for ~74% of the combined total across the sample. The full
+country → total table lives in [`artifacts/totals.json`](../artifacts/totals.json).
+
+## Results — year-over-year
+
+![2021 vs 2020 percent change](../artifacts/yoy_change.png)
+
+Germany shows the largest 2021-over-2020 increase at roughly +59%. UK is
+nearly flat; JP and US both rise moderately.
 
 ## Reproducibility
 
 ```bash
 cd examples/paper
 jellycell run notebooks/analysis.py
-jellycell render
+jellycell export tearsheet notebooks/analysis.py    # → manuscripts/tearsheets/analysis.md
+jellycell render                                    # HTML catalogue
 ```
 
-All cells are cached on the second run; change an input row and only
-the affected subgraph re-executes.
+Every cell is content-addressed — the second `run` is all cache hits.
+Swap `data/sample.csv` for a real dataset and only the affected subgraph
+re-executes.

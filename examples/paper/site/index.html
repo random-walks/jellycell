@@ -1,11 +1,10 @@
 <!DOCTYPE html>
-<html lang="en" data-jc-page="notebook">
+<html lang="en" data-jc-page="index">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="generator" content="jellycell">
-<meta name="jellycell:notebook" content="notebooks/tour.py">
-<title>tour — demo</title>
+<title>paper-2026 — jellycell catalogue</title>
 <style>
 :root {
   --bg: #fefefe;
@@ -123,6 +122,62 @@ a:hover { text-decoration: underline; }
 .jc-title h1 { margin: 0 0 4px; font-size: 28px; }
 .jc-path { color: var(--muted); font-family: var(--mono); font-size: 13px; margin: 0; }
 .jc-subtitle { color: var(--muted); margin: 0; }
+
+/* -------------------------------------------------------------- Manuscript body */
+
+.jc-md-body { margin-top: 24px; max-width: 780px; }
+.jc-md-body h1,
+.jc-md-body h2,
+.jc-md-body h3 { margin-top: 32px; margin-bottom: 10px; line-height: 1.25; }
+.jc-md-body h1 { font-size: 24px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+.jc-md-body h2 { font-size: 20px; }
+.jc-md-body h3 { font-size: 17px; color: #111; }
+.jc-md-body p { margin: 12px 0; }
+.jc-md-body blockquote {
+  border-left: 3px solid var(--accent);
+  background: var(--accent-weak);
+  padding: 10px 14px;
+  margin: 16px 0;
+  color: #333;
+}
+.jc-md-body code {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: var(--mono);
+  font-size: 13.5px;
+}
+.jc-md-body pre {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  overflow-x: auto;
+}
+.jc-md-body pre code { background: none; border: none; padding: 0; }
+.jc-md-body table {
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 14px;
+}
+.jc-md-body th,
+.jc-md-body td {
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  text-align: left;
+}
+.jc-md-body th { background: #fafbfc; }
+.jc-md-body img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin: 8px 0;
+}
+.jc-md-body em { color: #444; }
+.jc-md-body hr { border: 0; border-top: 1px solid var(--border); margin: 24px 0; }
 
 /* -------------------------------------------------------------- Cells */
 
@@ -435,235 +490,140 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <body class="jc-layout">
 <header class="jc-header">
   <nav class="jc-breadcrumb">
-    <a href="index.html">demo</a>
-    <span class="sep">/</span>
-    <span>notebooks/tour.py</span>
-  </nav>
-  <nav class="jc-prevnext">
+    <span>paper-2026</span>
   </nav>
 </header>
-<div class="jc-shell">
-  <aside class="jc-sidebar" aria-label="Notebook navigation">
-    <section>
-      <h3>Contents</h3>
-      <ul class="jc-toc">
-        <li class="jc-toc-lvl-1 jc-toc-heading">
-          <a href="#cell-0">jellycell tour</a>
-        </li>
-        <li class="jc-toc-lvl-2 jc-toc-heading">
-          <a href="#cell-1">1. A `jc.load` cell</a>
-        </li>
-        <li class="jc-toc-lvl-3 jc-toc-code">
-          <a href="#cell-2">raw</a>
-        </li>
-        <li class="jc-toc-lvl-2 jc-toc-heading">
-          <a href="#cell-3">2. A transform step with explicit dep</a>
-        </li>
-        <li class="jc-toc-lvl-3 jc-toc-code">
-          <a href="#cell-4">totals</a>
-        </li>
-        <li class="jc-toc-lvl-2 jc-toc-heading">
-          <a href="#cell-5">3. Saving an artifact via `jc.save`</a>
-        </li>
-        <li class="jc-toc-lvl-3 jc-toc-code">
-          <a href="#cell-6">persist</a>
-        </li>
-        <li class="jc-toc-lvl-2 jc-toc-heading">
-          <a href="#cell-7">4. An `jc.note` markdown cell (rendered, not executable)</a>
-        </li>
-        <li class="jc-toc-lvl-3 jc-toc-code">
-          <a href="#cell-8">derived</a>
+<div class="jc-shell jc-shell-index">
+  <main class="jc-main">
+    <article class="jc-index">
+      <header class="jc-title">
+        <h1>paper-2026</h1>
+        <p class="jc-subtitle">Notebook catalogue</p>
+      </header>
+
+    <section class="jc-notebooks">
+      <h2>Notebooks</h2>
+      <ul class="jc-list">
+        <li>
+          <a class="jc-list-item" href="analysis.html">
+            <span class="jc-list-title">analysis</span>
+            <span class="jc-list-meta">
+              6 cached cells
+· last run 2026-04-18T19:01:27.418411+00:00            </span>
+            <span class="jc-list-path">notebooks/analysis.py</span>
+          </a>
         </li>
       </ul>
     </section>
-  </aside>
-  <main class="jc-main">
-    <article class="jc-notebook">
-      <header class="jc-title">
-        <h1>tour</h1>
-        <p class="jc-path">notebooks/tour.py</p>
-      </header>
-      <section class="jc-cells">
-<section class="jc-cell jc-cell-markdown" id="cell-0" data-cell-id="0">
-  <header class="jc-cell-head">
-    <a class="jc-cell-ordinal" href="#cell-0" title="Link to this cell">#0</a>
-    <span class="jc-cell-kind jc-cell-kind-step">jc.step</span>
-    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
-  </header>
-  <div class="jc-cell-body">
-    <div class="jc-cell-source">
-<h1>jellycell tour</h1>
-<p>A minimal demonstration of the cell types, tags, and the <code>jc.*</code> API.
-Use <code>jellycell run</code> to execute, then <code>jellycell view</code> to browse.</p>
 
-    </div>
-  </div>
-</section>
-<section class="jc-cell jc-cell-markdown" id="cell-1" data-cell-id="1">
-  <header class="jc-cell-head">
-    <a class="jc-cell-ordinal" href="#cell-1" title="Link to this cell">#1</a>
-    <span class="jc-cell-kind jc-cell-kind-step">jc.step</span>
-    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
-  </header>
-  <div class="jc-cell-body">
-    <div class="jc-cell-source">
-<h2>1. A <code>jc.load</code> cell</h2>
-<p>Conventionally, <code>jc.load</code> cells read from <code>data/</code>. Here we fake it by
-constructing a literal so the demo stays dependency-free.</p>
+    <section class="jc-notebooks">
+      <h2>Manuscripts</h2>
+      <p class="jc-subtitle">
+        Authored writeups + auto-generated tearsheets.
+        <a href="/manuscripts/">browse all →</a>
+      </p>
+      <ul class="jc-list">
+        <li>
+          <a class="jc-list-item" href="/manuscripts/README.md">
+            <span class="jc-list-title">Readme</span>
+            <span class="jc-list-meta">authored</span>
+            <span class="jc-list-path">manuscripts/README.md</span>
+          </a>
+        </li>
+        <li>
+          <a class="jc-list-item" href="/manuscripts/paper.md">
+            <span class="jc-list-title">Paper</span>
+            <span class="jc-list-meta">authored</span>
+            <span class="jc-list-path">manuscripts/paper.md</span>
+          </a>
+        </li>
+        <li>
+          <a class="jc-list-item" href="/manuscripts/tearsheets/analysis.md">
+            <span class="jc-list-title">Analysis</span>
+            <span class="jc-list-meta">tearsheet</span>
+            <span class="jc-list-path">manuscripts/tearsheets/analysis.md</span>
+          </a>
+        </li>
+        <li>
+          <a class="jc-list-item" href="/journal">
+            <span class="jc-list-title">Journal</span>
+            <span class="jc-list-meta">run log (append-only)</span>
+            <span class="jc-list-path">manuscripts/journal.md</span>
+          </a>
+        </li>
+      </ul>
+    </section>
 
-    </div>
-  </div>
-</section>
-<section class="jc-cell jc-cell-code" id="cell-2" data-cell-id="2">
-  <header class="jc-cell-head">
-    <a class="jc-cell-ordinal" href="#cell-2" title="Link to this cell">#2</a>
-<span class="jc-cell-name">raw</span>    <span class="jc-cell-kind jc-cell-kind-load">jc.load</span>
-    <span class="jc-cell-stats">
-      <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">139 ms</span>
-    </span>
-    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
-  </header>
-  <div class="jc-cell-body">
-    <div class="jc-cell-source">
-<div class="jc-code"><pre><span></span><span class="n">raw</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="s2">&quot;c&quot;</span><span class="p">:</span> <span class="mi">3</span><span class="p">}</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;loaded </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">raw</span><span class="p">)</span><span class="si">}</span><span class="s2"> entries&quot;</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-    <div class="jc-cell-outputs">
-<pre class="jc-stream jc-stdout">loaded 3 entries
-</pre>
-    </div>
-  </div>
-</section>
-<section class="jc-cell jc-cell-markdown" id="cell-3" data-cell-id="3">
-  <header class="jc-cell-head">
-    <a class="jc-cell-ordinal" href="#cell-3" title="Link to this cell">#3</a>
-    <span class="jc-cell-kind jc-cell-kind-step">jc.step</span>
-    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
-  </header>
-  <div class="jc-cell-body">
-    <div class="jc-cell-source">
-<h2>2. A transform step with explicit dep</h2>
-
-    </div>
-  </div>
-</section>
-<section class="jc-cell jc-cell-code" id="cell-4" data-cell-id="4">
-  <header class="jc-cell-head">
-    <a class="jc-cell-ordinal" href="#cell-4" title="Link to this cell">#4</a>
-<span class="jc-cell-name">totals</span>    <span class="jc-cell-deps">
-      deps:
-<code>raw</code>    </span>
-    <span class="jc-cell-stats">
-      <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">5 ms</span>
-    </span>
-    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
-  </header>
-  <div class="jc-cell-body">
-    <div class="jc-cell-source">
-<div class="jc-code"><pre><span></span><span class="n">totals</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">raw</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;totals = </span><span class="si">{</span><span class="n">totals</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-    <div class="jc-cell-outputs">
-<pre class="jc-stream jc-stdout">totals = 6
-</pre>
-    </div>
-  </div>
-</section>
-<section class="jc-cell jc-cell-markdown" id="cell-5" data-cell-id="5">
-  <header class="jc-cell-head">
-    <a class="jc-cell-ordinal" href="#cell-5" title="Link to this cell">#5</a>
-    <span class="jc-cell-kind jc-cell-kind-step">jc.step</span>
-    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
-  </header>
-  <div class="jc-cell-body">
-    <div class="jc-cell-source">
-<h2>3. Saving an artifact via <code>jc.save</code></h2>
-
-    </div>
-  </div>
-</section>
-<section class="jc-cell jc-cell-code" id="cell-6" data-cell-id="6">
-  <header class="jc-cell-head">
-    <a class="jc-cell-ordinal" href="#cell-6" title="Link to this cell">#6</a>
-<span class="jc-cell-name">persist</span>    <span class="jc-cell-deps">
-      deps:
-<code>totals</code>    </span>
-    <span class="jc-cell-stats">
-      <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">5 ms</span>
-    </span>
-    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
-  </header>
-  <div class="jc-cell-body">
-    <div class="jc-cell-source">
-<div class="jc-code"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">jellycell.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jc</span>
-
-<span class="n">summary</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;raw&quot;</span><span class="p">:</span> <span class="n">raw</span><span class="p">,</span> <span class="s2">&quot;totals&quot;</span><span class="p">:</span> <span class="n">totals</span><span class="p">}</span>
-<span class="n">path</span> <span class="o">=</span> <span class="n">jc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">summary</span><span class="p">,</span> <span class="s2">&quot;artifacts/summary.json&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;wrote </span><span class="si">{</span><span class="n">path</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-    <div class="jc-cell-outputs">
-<pre class="jc-stream jc-stdout">wrote /Users/blaise/Desktop/blaise-oss/jellycell/examples/demo/artifacts/summary.json
-</pre>
-    </div>
-    <div class="jc-cell-artifacts">
-      <span class="jc-label">artifacts</span>
-      <a class="jc-artifact-chip" href="/artifacts/summary.json" download="summary.json" title="artifacts/summary.json">
-        <span class="jc-chip-name">summary.json</span>
-        <span class="jc-chip-size">68 B</span>
-      </a>
-    </div>
-  </div>
-</section>
-<section class="jc-cell jc-cell-markdown" id="cell-7" data-cell-id="7">
-  <header class="jc-cell-head">
-    <a class="jc-cell-ordinal" href="#cell-7" title="Link to this cell">#7</a>
-    <span class="jc-cell-kind jc-cell-kind-step">jc.step</span>
-    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
-  </header>
-  <div class="jc-cell-body">
-    <div class="jc-cell-source">
-<h2>4. An <code>jc.note</code> markdown cell (rendered, not executable)</h2>
-<p>This style of cell is useful for narrative-only commentary between
-computations.</p>
-
-    </div>
-  </div>
-</section>
-<section class="jc-cell jc-cell-code" id="cell-8" data-cell-id="8">
-  <header class="jc-cell-head">
-    <a class="jc-cell-ordinal" href="#cell-8" title="Link to this cell">#8</a>
-<span class="jc-cell-name">derived</span>    <span class="jc-cell-deps">
-      deps:
-<code>totals</code>    </span>
-    <span class="jc-cell-stats">
-      <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">4 ms</span>
-    </span>
-    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
-  </header>
-  <div class="jc-cell-body">
-    <div class="jc-cell-source">
-<div class="jc-code"><pre><span></span><span class="n">squared</span> <span class="o">=</span> <span class="n">totals</span><span class="o">**</span><span class="mi">2</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;squared = </span><span class="si">{</span><span class="n">squared</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-    <div class="jc-cell-outputs">
-<pre class="jc-stream jc-stdout">squared = 36
-</pre>
-    </div>
-  </div>
-</section>
-      </section>
+    <section class="jc-recent">
+      <h2>Recent runs</h2>
+      <table class="jc-recent-table">
+        <thead>
+          <tr>
+            <th>Notebook</th>
+            <th>Cell</th>
+            <th>Status</th>
+            <th>When</th>
+            <th>ms</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="analysis.html">notebooks/analysis.py</a></td>
+            <td>analysis:6 (summary)</td>
+            <td>
+              <span class="jc-status jc-status-ok">ok</span>
+            </td>
+            <td>2026-04-18T19:01:27.418411+00:00</td>
+            <td class="jc-num">7</td>
+          </tr>
+          <tr>
+            <td><a href="analysis.html">notebooks/analysis.py</a></td>
+            <td>analysis:5 (yoy_chart)</td>
+            <td>
+              <span class="jc-status jc-status-ok">ok</span>
+            </td>
+            <td>2026-04-18T19:01:27.409946+00:00</td>
+            <td class="jc-num">55</td>
+          </tr>
+          <tr>
+            <td><a href="analysis.html">notebooks/analysis.py</a></td>
+            <td>analysis:4 (country_totals)</td>
+            <td>
+              <span class="jc-status jc-status-ok">ok</span>
+            </td>
+            <td>2026-04-18T19:01:27.352607+00:00</td>
+            <td class="jc-num">300</td>
+          </tr>
+          <tr>
+            <td><a href="analysis.html">notebooks/analysis.py</a></td>
+            <td>analysis:3 (yoy_change)</td>
+            <td>
+              <span class="jc-status jc-status-ok">ok</span>
+            </td>
+            <td>2026-04-18T19:01:27.050277+00:00</td>
+            <td class="jc-num">5</td>
+          </tr>
+          <tr>
+            <td><a href="analysis.html">notebooks/analysis.py</a></td>
+            <td>analysis:2 (per_country_totals)</td>
+            <td>
+              <span class="jc-status jc-status-ok">ok</span>
+            </td>
+            <td>2026-04-18T19:01:27.043626+00:00</td>
+            <td class="jc-num">4</td>
+          </tr>
+          <tr>
+            <td><a href="analysis.html">notebooks/analysis.py</a></td>
+            <td>analysis:1 (raw)</td>
+            <td>
+              <span class="jc-status jc-status-ok">ok</span>
+            </td>
+            <td>2026-04-18T19:01:27.037291+00:00</td>
+            <td class="jc-num">134</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
     </article>
   </main>
 </div>
@@ -671,7 +631,7 @@ computations.</p>
   <span>Generated by <a href="https://jellycell.readthedocs.io">jellycell</a></span>
 </footer>
 <script>
-// jellycell: collapsible cells + SSE live-reload (Phase 4 wires up the SSE side).
+// jellycell: collapsible cells + SSE live-reload.
 
 (function () {
   // Collapsible cells
@@ -685,9 +645,9 @@ computations.</p>
     });
   });
 
-  // SSE live-reload. Only activates when served from the jellycell server
-  // (Phase 4+). When viewing static reports/ files, window.location.protocol
-  // is file: or the EventSource connect fails silently — either way, no-op.
+  // SSE live-reload. Only activates when served from the jellycell server.
+  // When viewing static site/ files, window.location.protocol is file: or
+  // the EventSource connect fails silently — either way, no-op.
   if (typeof EventSource === "undefined") return;
   if (window.location.protocol.indexOf("http") !== 0) return;
 

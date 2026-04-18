@@ -19,7 +19,7 @@ class TestInit:
         result = runner.invoke(app, ["init", str(target)])
         assert result.exit_code == 0, result.stdout + result.stderr
         assert (target / "jellycell.toml").exists()
-        for sub in ["notebooks", "data", "artifacts", "reports", "manuscripts"]:
+        for sub in ["notebooks", "data", "artifacts", "site", "manuscripts"]:
             assert (target / sub).is_dir()
 
     def test_default_name_is_dir(self, tmp_path: Path) -> None:

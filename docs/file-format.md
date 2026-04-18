@@ -104,8 +104,9 @@ A cell's cache key is `sha256(source, sorted_dep_keys, env_hash, minor_version)`
   matter; content does.
 - **`env_hash`** — sha256 of the PEP-723 `dependencies` list (or the project's
   lockfile hash when that's wired up).
-- **`minor_version`** — jellycell's `MINOR_VERSION`. Bumps on algorithm
-  changes (spec §10.2 contract).
+- **`MINOR_VERSION`** — jellycell's cache-key version counter. Bumps on
+  cache/hashing algorithm changes ([§10.2 contract](reference/contracts.md)).
+  Independent of the package semver.
 
 Change any of these → cache miss → re-execute.
 

@@ -17,7 +17,7 @@ pytestmark = pytest.mark.integration
 def _bootstrap_project(tmp_path: Path) -> Project:
     cfg = default_config("runtest")
     cfg.dump(tmp_path / "jellycell.toml")
-    for d in ("notebooks", "data", "artifacts", "reports", "manuscripts"):
+    for d in ("notebooks", "data", "artifacts", "site", "manuscripts"):
         (tmp_path / d).mkdir(exist_ok=True)
     return Project(root=tmp_path.resolve(), config=cfg)
 

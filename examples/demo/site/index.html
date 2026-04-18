@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="generator" content="jellycell">
-<title>timeseries — jellycell catalogue</title>
+<title>demo — jellycell catalogue</title>
 <style>
 :root {
   --bg: #fefefe;
@@ -122,6 +122,62 @@ a:hover { text-decoration: underline; }
 .jc-title h1 { margin: 0 0 4px; font-size: 28px; }
 .jc-path { color: var(--muted); font-family: var(--mono); font-size: 13px; margin: 0; }
 .jc-subtitle { color: var(--muted); margin: 0; }
+
+/* -------------------------------------------------------------- Manuscript body */
+
+.jc-md-body { margin-top: 24px; max-width: 780px; }
+.jc-md-body h1,
+.jc-md-body h2,
+.jc-md-body h3 { margin-top: 32px; margin-bottom: 10px; line-height: 1.25; }
+.jc-md-body h1 { font-size: 24px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+.jc-md-body h2 { font-size: 20px; }
+.jc-md-body h3 { font-size: 17px; color: #111; }
+.jc-md-body p { margin: 12px 0; }
+.jc-md-body blockquote {
+  border-left: 3px solid var(--accent);
+  background: var(--accent-weak);
+  padding: 10px 14px;
+  margin: 16px 0;
+  color: #333;
+}
+.jc-md-body code {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: var(--mono);
+  font-size: 13.5px;
+}
+.jc-md-body pre {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  overflow-x: auto;
+}
+.jc-md-body pre code { background: none; border: none; padding: 0; }
+.jc-md-body table {
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 14px;
+}
+.jc-md-body th,
+.jc-md-body td {
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  text-align: left;
+}
+.jc-md-body th { background: #fafbfc; }
+.jc-md-body img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin: 8px 0;
+}
+.jc-md-body em { color: #444; }
+.jc-md-body hr { border: 0; border-top: 1px solid var(--border); margin: 24px 0; }
 
 /* -------------------------------------------------------------- Cells */
 
@@ -434,14 +490,14 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <body class="jc-layout">
 <header class="jc-header">
   <nav class="jc-breadcrumb">
-    <span>timeseries</span>
+    <span>demo</span>
   </nav>
 </header>
 <div class="jc-shell jc-shell-index">
   <main class="jc-main">
     <article class="jc-index">
       <header class="jc-title">
-        <h1>timeseries</h1>
+        <h1>demo</h1>
         <p class="jc-subtitle">Notebook catalogue</p>
       </header>
 
@@ -449,30 +505,50 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
       <h2>Notebooks</h2>
       <ul class="jc-list">
         <li>
-          <a class="jc-list-item" href="01-explore.html">
-            <span class="jc-list-title">01-explore</span>
+          <a class="jc-list-item" href="tour.html">
+            <span class="jc-list-title">tour</span>
             <span class="jc-list-meta">
-              4 cached cells
-· last run 2026-04-18T05:16:37.445579+00:00            </span>
-            <span class="jc-list-path">notebooks/01-explore.py</span>
+              6 cached cells
+· last run 2026-04-18T19:02:16.341016+00:00            </span>
+            <span class="jc-list-path">notebooks/tour.py</span>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <section class="jc-notebooks">
+      <h2>Manuscripts</h2>
+      <p class="jc-subtitle">
+        Authored writeups + auto-generated tearsheets.
+        <a href="/manuscripts/">browse all →</a>
+      </p>
+      <ul class="jc-list">
+        <li>
+          <a class="jc-list-item" href="/manuscripts/README.md">
+            <span class="jc-list-title">Readme</span>
+            <span class="jc-list-meta">authored</span>
+            <span class="jc-list-path">manuscripts/README.md</span>
           </a>
         </li>
         <li>
-          <a class="jc-list-item" href="02-decompose.html">
-            <span class="jc-list-title">02-decompose</span>
-            <span class="jc-list-meta">
-              6 cached cells
-· last run 2026-04-18T05:16:39.270938+00:00            </span>
-            <span class="jc-list-path">notebooks/02-decompose.py</span>
+          <a class="jc-list-item" href="/manuscripts/analysis.md">
+            <span class="jc-list-title">Analysis</span>
+            <span class="jc-list-meta">authored</span>
+            <span class="jc-list-path">manuscripts/analysis.md</span>
           </a>
         </li>
         <li>
-          <a class="jc-list-item" href="03-forecast.html">
-            <span class="jc-list-title">03-forecast</span>
-            <span class="jc-list-meta">
-              6 cached cells
-· last run 2026-04-18T05:16:41.140953+00:00            </span>
-            <span class="jc-list-path">notebooks/03-forecast.py</span>
+          <a class="jc-list-item" href="/manuscripts/tearsheets/tour.md">
+            <span class="jc-list-title">Tour</span>
+            <span class="jc-list-meta">tearsheet</span>
+            <span class="jc-list-path">manuscripts/tearsheets/tour.md</span>
+          </a>
+        </li>
+        <li>
+          <a class="jc-list-item" href="/journal">
+            <span class="jc-list-title">Journal</span>
+            <span class="jc-list-meta">run log (append-only)</span>
+            <span class="jc-list-path">manuscripts/journal.md</span>
           </a>
         </li>
       </ul>
@@ -492,148 +568,58 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
         </thead>
         <tbody>
           <tr>
-            <td><a href="03-forecast.html">notebooks/03-forecast.py</a></td>
-            <td>03-forecast:6 (report)</td>
+            <td><a href="tour.html">notebooks/tour.py</a></td>
+            <td>tour:12 (derived)</td>
             <td>
               <span class="jc-status jc-status-ok">ok</span>
             </td>
-            <td>2026-04-18T05:16:41.140953+00:00</td>
-            <td class="jc-num">6</td>
-          </tr>
-          <tr>
-            <td><a href="03-forecast.html">notebooks/03-forecast.py</a></td>
-            <td>03-forecast:5 (residual_diag)</td>
-            <td>
-              <span class="jc-status jc-status-ok">ok</span>
-            </td>
-            <td>2026-04-18T05:16:41.130446+00:00</td>
-            <td class="jc-num">151</td>
-          </tr>
-          <tr>
-            <td><a href="03-forecast.html">notebooks/03-forecast.py</a></td>
-            <td>03-forecast:4 (forecast_plot)</td>
-            <td>
-              <span class="jc-status jc-status-ok">ok</span>
-            </td>
-            <td>2026-04-18T05:16:40.969305+00:00</td>
-            <td class="jc-num">233</td>
-          </tr>
-          <tr>
-            <td><a href="03-forecast.html">notebooks/03-forecast.py</a></td>
-            <td>03-forecast:3 (forecast)</td>
-            <td>
-              <span class="jc-status jc-status-ok">ok</span>
-            </td>
-            <td>2026-04-18T05:16:40.733701+00:00</td>
-            <td class="jc-num">10</td>
-          </tr>
-          <tr>
-            <td><a href="03-forecast.html">notebooks/03-forecast.py</a></td>
-            <td>03-forecast:2 (ses_fit)</td>
-            <td>
-              <span class="jc-status jc-status-ok">ok</span>
-            </td>
-            <td>2026-04-18T05:16:40.722396+00:00</td>
-            <td class="jc-num">6</td>
-          </tr>
-          <tr>
-            <td><a href="03-forecast.html">notebooks/03-forecast.py</a></td>
-            <td>03-forecast:1 (loaded)</td>
-            <td>
-              <span class="jc-status jc-status-ok">ok</span>
-            </td>
-            <td>2026-04-18T05:16:40.714812+00:00</td>
-            <td class="jc-num">331</td>
-          </tr>
-          <tr>
-            <td><a href="02-decompose.html">notebooks/02-decompose.py</a></td>
-            <td>02-decompose:6 (decomp_plot)</td>
-            <td>
-              <span class="jc-status jc-status-ok">ok</span>
-            </td>
-            <td>2026-04-18T05:16:39.270938+00:00</td>
-            <td class="jc-num">369</td>
-          </tr>
-          <tr>
-            <td><a href="02-decompose.html">notebooks/02-decompose.py</a></td>
-            <td>02-decompose:5 (persist)</td>
-            <td>
-              <span class="jc-status jc-status-ok">ok</span>
-            </td>
-            <td>2026-04-18T05:16:38.899159+00:00</td>
-            <td class="jc-num">8</td>
-          </tr>
-          <tr>
-            <td><a href="02-decompose.html">notebooks/02-decompose.py</a></td>
-            <td>02-decompose:4 (residuals)</td>
-            <td>
-              <span class="jc-status jc-status-ok">ok</span>
-            </td>
-            <td>2026-04-18T05:16:38.889986+00:00</td>
+            <td>2026-04-18T19:02:16.341016+00:00</td>
             <td class="jc-num">5</td>
           </tr>
           <tr>
-            <td><a href="02-decompose.html">notebooks/02-decompose.py</a></td>
-            <td>02-decompose:3 (seasonality)</td>
+            <td><a href="tour.html">notebooks/tour.py</a></td>
+            <td>tour:10 (roundtrip)</td>
             <td>
               <span class="jc-status jc-status-ok">ok</span>
             </td>
-            <td>2026-04-18T05:16:38.883758+00:00</td>
-            <td class="jc-num">8</td>
+            <td>2026-04-18T19:02:16.334783+00:00</td>
+            <td class="jc-num">5</td>
           </tr>
           <tr>
-            <td><a href="02-decompose.html">notebooks/02-decompose.py</a></td>
-            <td>02-decompose:2 (trend)</td>
+            <td><a href="tour.html">notebooks/tour.py</a></td>
+            <td>tour:8 (summary)</td>
             <td>
               <span class="jc-status jc-status-ok">ok</span>
             </td>
-            <td>2026-04-18T05:16:38.874221+00:00</td>
+            <td>2026-04-18T19:02:16.327666+00:00</td>
             <td class="jc-num">6</td>
           </tr>
           <tr>
-            <td><a href="02-decompose.html">notebooks/02-decompose.py</a></td>
-            <td>02-decompose:1 (loaded)</td>
+            <td><a href="tour.html">notebooks/tour.py</a></td>
+            <td>tour:6 (rate)</td>
             <td>
               <span class="jc-status jc-status-ok">ok</span>
             </td>
-            <td>2026-04-18T05:16:38.867029+00:00</td>
-            <td class="jc-num">333</td>
+            <td>2026-04-18T19:02:16.320223+00:00</td>
+            <td class="jc-num">5</td>
           </tr>
           <tr>
-            <td><a href="01-explore.html">notebooks/01-explore.py</a></td>
-            <td>01-explore:4 (weekday_profile)</td>
+            <td><a href="tour.html">notebooks/tour.py</a></td>
+            <td>tour:4 (raw)</td>
             <td>
               <span class="jc-status jc-status-ok">ok</span>
             </td>
-            <td>2026-04-18T05:16:37.445579+00:00</td>
-            <td class="jc-num">64</td>
+            <td>2026-04-18T19:02:16.313857+00:00</td>
+            <td class="jc-num">4</td>
           </tr>
           <tr>
-            <td><a href="01-explore.html">notebooks/01-explore.py</a></td>
-            <td>01-explore:3 (raw_plot)</td>
+            <td><a href="tour.html">notebooks/tour.py</a></td>
+            <td>tour:2 (config)</td>
             <td>
               <span class="jc-status jc-status-ok">ok</span>
             </td>
-            <td>2026-04-18T05:16:37.379867+00:00</td>
-            <td class="jc-num">251</td>
-          </tr>
-          <tr>
-            <td><a href="01-explore.html">notebooks/01-explore.py</a></td>
-            <td>01-explore:2 (summary)</td>
-            <td>
-              <span class="jc-status jc-status-ok">ok</span>
-            </td>
-            <td>2026-04-18T05:16:37.126500+00:00</td>
-            <td class="jc-num">23</td>
-          </tr>
-          <tr>
-            <td><a href="01-explore.html">notebooks/01-explore.py</a></td>
-            <td>01-explore:1 (raw)</td>
-            <td>
-              <span class="jc-status jc-status-ok">ok</span>
-            </td>
-            <td>2026-04-18T05:16:37.101932+00:00</td>
-            <td class="jc-num">442</td>
+            <td>2026-04-18T19:02:16.307593+00:00</td>
+            <td class="jc-num">144</td>
           </tr>
         </tbody>
       </table>
@@ -645,7 +631,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
   <span>Generated by <a href="https://jellycell.readthedocs.io">jellycell</a></span>
 </footer>
 <script>
-// jellycell: collapsible cells + SSE live-reload (Phase 4 wires up the SSE side).
+// jellycell: collapsible cells + SSE live-reload.
 
 (function () {
   // Collapsible cells
@@ -659,9 +645,9 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
     });
   });
 
-  // SSE live-reload. Only activates when served from the jellycell server
-  // (Phase 4+). When viewing static reports/ files, window.location.protocol
-  // is file: or the EventSource connect fails silently — either way, no-op.
+  // SSE live-reload. Only activates when served from the jellycell server.
+  // When viewing static reports/ files, window.location.protocol is file: or
+  // the EventSource connect fails silently — either way, no-op.
   if (typeof EventSource === "undefined") return;
   if (window.location.protocol.indexOf("http") !== 0) return;
 

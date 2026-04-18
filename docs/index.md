@@ -4,13 +4,9 @@ hide-toc: false
 
 # jellycell
 
-**A living catalogue for reproducible analyses.** Plain-text notebooks, content-hashed output caching, live HTML viewer. Agent-friendly from day one.
+***A living catalogue for reproducible analyses. Plain-text notebooks, content-hashed output caching, live HTML viewer. Agent-friendly from day one.***
 
-:::{note}
-**Status: pre-alpha.** The scaffolding is here; features land in phases. The [v0 spec](spec/v0.md) documents the full target architecture. Current release: `v0.0.1` (skeleton).
-:::
-
-## What it does (when finished)
+## What it does
 
 ::::{grid} 1 2 2 2
 :gutter: 2
@@ -29,6 +25,57 @@ Every cell's output is keyed on `(source, deps, env)`. Re-run is a cache hit; ch
 
 :::{grid-item-card} Agent-friendly
 Every command supports `--json`; `jellycell prompt` emits a canonical guide so Claude Code / OpenAI agents drop in without onboarding.
+:::
+::::
+
+## Start here
+
+::::{grid} 1 2 2 2
+:gutter: 3
+:margin: 4 4 0 0
+
+:::{grid-item-card} {octicon}`rocket;1.5em` &nbsp; Getting started
+:link: getting-started
+:link-type: doc
+
+Install, scaffold a project, run your first notebook end-to-end in
+under five minutes.
+
++++
+**Start the walkthrough »**
+:::
+
+:::{grid-item-card} {octicon}`book;1.5em` &nbsp; User guide
+:link: project-layout
+:link-type: doc
+
+Project layout, notebook file format, `jc.*` API, tearsheets,
+artifacts, the CLI — everything you touch day-to-day.
+
++++
+**Open the guide »**
+:::
+
+:::{grid-item-card} {octicon}`code-square;1.5em` &nbsp; Reference
+:link: reference/index
+:link-type: doc
+
+The living architecture + §10 contracts + internals. Authoritative
+source for how jellycell is built and what it promises.
+
++++
+**Read the reference »**
+:::
+
+:::{grid-item-card} {octicon}`tools;1.5em` &nbsp; Contributing
+:link: development/contributing
+:link-type: doc
+
+Dev setup, versioning policy, how to add commands + lint rules, how
+releases are cut. Read before opening a PR.
+
++++
+**Open the dev guide »**
 :::
 ::::
 
@@ -55,9 +102,10 @@ agent-guide
 ```
 
 ```{toctree}
-:maxdepth: 1
-:caption: API
+:maxdepth: 2
+:caption: Reference
 
+reference/index
 api/index
 ```
 
@@ -75,7 +123,7 @@ development/releasing
 
 ```{toctree}
 :maxdepth: 1
-:caption: Reference
+:caption: History
 
 spec/v0
 ```

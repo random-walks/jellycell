@@ -1,12 +1,12 @@
 ---
-description: Review current diff against jellycell spec §10 invariants.
+description: Review current diff against jellycell §10 invariants.
 ---
 
-Run a focused review of the current working-tree diff against the three cross-cutting contracts in `docs/spec/v0.md` §10.
+Run a focused review of the current working-tree diff against the three cross-cutting contracts in `docs/reference/contracts.md`.
 
 ## Steps
 
-1. Read `docs/spec/v0.md` §10 for the authoritative contract definitions.
+1. Read `docs/reference/contracts.md` for the authoritative contract definitions + the ceremony each change requires.
 2. Run `git diff` and `git diff --staged` to see what changed.
 3. For each of the three invariants, check whether the diff touches it:
 
@@ -52,6 +52,6 @@ Invariant 3 (agent guide):     [clean | VIOLATED: <details>]
 Recommendation: [merge safe | needs ceremony first]
 ```
 
-If any invariant is touched without the required ceremony, list the specific ceremony missing with file:line pointers. Reference `CLAUDE.md` and `docs/spec/v0.md` §10 in the explanation.
+If any invariant is touched without the required ceremony, list the specific ceremony missing with file:line pointers. Reference `docs/reference/contracts.md` in the explanation.
 
 If nothing in the diff touches any invariant, say so plainly in one line.

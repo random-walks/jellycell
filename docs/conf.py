@@ -14,7 +14,7 @@ copyright = "2026, Blaise and jellycell contributors"
 try:
     release = _dist_version("jellycell")
 except PackageNotFoundError:
-    release = "0.0.1"
+    release = "1.0.0"
 version = ".".join(release.split(".")[:2])
 
 # -- General configuration ---------------------------------------------------
@@ -95,4 +95,4 @@ copybutton_prompt_is_regexp = True
 
 # -- Nitpicky ----------------------------------------------------------------
 
-nitpicky = False  # flip to True once API is stable (Phase 6)
+nitpicky = False  # flip to True when the API is fully documented end-to-end.

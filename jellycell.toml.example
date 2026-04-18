@@ -22,11 +22,15 @@ data = "data"
 # Where `jc.save`, `jc.figure`, `jc.table` write. Mirrored to <notebook>/ subdirs.
 artifacts = "artifacts"
 
-# Rendered HTML output lives here when you run `jellycell render`.
-reports = "reports"
+# Static HTML catalogue — where `jellycell render` writes one .html per
+# notebook + an index.html + _assets/. Distinct from `manuscripts/` below
+# (prose + tearsheets, markdown, GitHub-native). The live viewer reads and
+# serves from here. Git-ignore if you don't want a checked-in static site.
+site = "site"
 
-# Prose companion docs (manuscripts, blog posts, narrative). Rendered in the
-# catalogue alongside notebooks. Optional — set to an empty string to disable.
+# Prose for humans and GitHub — hand-authored writeups at the root,
+# auto-generated tearsheets under `tearsheets/`, optional append-only
+# `journal.md`. Rendered markdown; committed by default.
 manuscripts = "manuscripts"
 
 # Content-addressed cache + SQLite index + manifests. Normally git-ignored.
@@ -67,3 +71,34 @@ enforce_declared_deps = false
 # Warn when a cached cell's total output exceeds this size.
 # Accepts "N", "NKB", "NMB", "NGB".
 warn_on_large_cell_output = "10MB"
+
+
+[journal]
+# Append-only per-run log written to `manuscripts/journal.md` after every
+# `jellycell run`. Captures timestamp, notebook, cell summary, new
+# artifacts + their captions, optional `-m "message"` note. Append-only
+# from jellycell's side so hand-edits survive future runs.
+#
+# Enabled by default because the audit trail is usually more useful than
+# clean; turn off for transient exploration projects.
+enabled = true
+
+# Path relative to `paths.manuscripts`. Use e.g. "audit/runs.md" if you'd
+# rather group the trail under a subfolder.
+path = "journal.md"
+
+
+[artifacts]
+# How jellycell picks a default path for *path-less* jc.figure() / jc.table()
+# calls — explicit jc.save(x, "artifacts/foo.json") always wins unchanged.
+#
+# - "flat"         — artifacts/<name>.<ext>                (default, simplest)
+# - "by_notebook"  — artifacts/<notebook-stem>/<name>.<ext>  (scales with # of notebooks)
+# - "by_cell"      — artifacts/<notebook-stem>/<cell-name>/<name>.<ext>
+#                    (every file's path names its producer — agent-friendly)
+layout = "flat"
+
+# Post-run soft warning for individual artifacts. `jellycell run` flags any
+# single file above this many megabytes with a reminder to either git-ignore
+# it or move it to Git LFS. Set to 0 to disable.
+max_committed_size_mb = 50

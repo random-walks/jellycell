@@ -48,6 +48,45 @@
       {% endif %}
     </section>
 
+    {% if catalog and catalog.has_any %}
+    <section class="jc-notebooks">
+      <h2>Manuscripts</h2>
+      <p class="jc-subtitle">
+        Authored writeups + auto-generated tearsheets.
+        <a href="/manuscripts/">browse all →</a>
+      </p>
+      <ul class="jc-list">
+        {% for link in catalog.authored %}
+        <li>
+          <a class="jc-list-item" href="{{ link.href }}">
+            <span class="jc-list-title">{{ link.title }}</span>
+            <span class="jc-list-meta">authored</span>
+            <span class="jc-list-path">manuscripts/{{ link.rel }}</span>
+          </a>
+        </li>
+        {% endfor %}
+        {% for link in catalog.tearsheets %}
+        <li>
+          <a class="jc-list-item" href="{{ link.href }}">
+            <span class="jc-list-title">{{ link.title }}</span>
+            <span class="jc-list-meta">tearsheet</span>
+            <span class="jc-list-path">manuscripts/{{ link.rel }}</span>
+          </a>
+        </li>
+        {% endfor %}
+        {% if catalog.journal %}
+        <li>
+          <a class="jc-list-item" href="{{ catalog.journal.href }}">
+            <span class="jc-list-title">{{ catalog.journal.title }}</span>
+            <span class="jc-list-meta">run log (append-only)</span>
+            <span class="jc-list-path">manuscripts/{{ catalog.journal.rel }}</span>
+          </a>
+        </li>
+        {% endif %}
+      </ul>
+    </section>
+    {% endif %}
+
     {% if recent_runs %}
     <section class="jc-recent">
       <h2>Recent runs</h2>

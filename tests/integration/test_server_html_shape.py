@@ -38,7 +38,7 @@ SAMPLE_NOTEBOOK = (
 def _bootstrapped_project(tmp_path: Path) -> Project:
     cfg = default_config("smoke")
     cfg.dump(tmp_path / "jellycell.toml")
-    for d in ("notebooks", "data", "artifacts", "reports", "manuscripts"):
+    for d in ("notebooks", "data", "artifacts", "site", "manuscripts"):
         (tmp_path / d).mkdir(exist_ok=True)
     project = Project(root=tmp_path.resolve(), config=cfg)
     nb = project.notebooks_dir / "sample.py"
@@ -170,7 +170,7 @@ class TestArtifactsInNotebook:
     def _project_with_artifact(self, tmp_path: Path) -> Project:
         cfg = default_config("smoke")
         cfg.dump(tmp_path / "jellycell.toml")
-        for d in ("notebooks", "data", "artifacts", "reports", "manuscripts"):
+        for d in ("notebooks", "data", "artifacts", "site", "manuscripts"):
             (tmp_path / d).mkdir(exist_ok=True)
         project = Project(root=tmp_path.resolve(), config=cfg)
         nb = project.notebooks_dir / "hasart.py"
@@ -203,7 +203,7 @@ class TestPrevNextNav:
     def _project_with_many(self, tmp_path: Path, names: list[str]) -> Project:
         cfg = default_config("multi")
         cfg.dump(tmp_path / "jellycell.toml")
-        for d in ("notebooks", "data", "artifacts", "reports", "manuscripts"):
+        for d in ("notebooks", "data", "artifacts", "site", "manuscripts"):
             (tmp_path / d).mkdir(exist_ok=True)
         project = Project(root=tmp_path.resolve(), config=cfg)
         body = '# /// script\n# dependencies = []\n# ///\n\n# %%\nprint("hi")\n'

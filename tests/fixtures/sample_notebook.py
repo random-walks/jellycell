@@ -17,5 +17,4 @@ raw = pd.DataFrame({"country": ["A", "B"], "deaths": [10, 20]})
 summary = raw.groupby("country")["deaths"].sum()
 
 # %% tags=["jc.figure", "deps=summary"]
-# Phase 3 renders this. Phase 2 just executes.
 print(summary)
