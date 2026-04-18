@@ -43,7 +43,7 @@ NOTEBOOK = (
 def _bootstrap(tmp_path: Path) -> tuple[Project, Path]:
     cfg = default_config("tearsheet-it")
     cfg.dump(tmp_path / "jellycell.toml")
-    for d in ("notebooks", "data", "artifacts", "reports", "manuscripts"):
+    for d in ("notebooks", "data", "artifacts", "site", "manuscripts"):
         (tmp_path / d).mkdir(exist_ok=True)
     project = Project(root=tmp_path.resolve(), config=cfg)
     nb_path = project.notebooks_dir / "report.py"

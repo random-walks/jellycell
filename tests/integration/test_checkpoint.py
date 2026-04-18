@@ -26,7 +26,7 @@ def _bootstrap(tmp_path: Path) -> Project:
     """Create a realistic project with a little bit of content in each declared root."""
     cfg = default_config("checkpoint-test")
     cfg.dump(tmp_path / "jellycell.toml")
-    for d in ("notebooks", "data", "artifacts", "reports", "manuscripts"):
+    for d in ("notebooks", "data", "artifacts", "site", "manuscripts"):
         (tmp_path / d).mkdir(exist_ok=True)
     (tmp_path / "notebooks" / "n.py").write_text(
         "# /// script\n# dependencies = []\n# ///\n\nprint('hi')\n", encoding="utf-8"

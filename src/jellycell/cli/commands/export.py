@@ -63,7 +63,7 @@ def _prepare(
     notebook_rel = str(source.relative_to(project.root))
     store = CacheStore(project.cache_dir)
     manifests = _load_manifests(project, notebook_rel, store)
-    output = project.reports_dir / f"{source.stem}{suffix}"
+    output = project.site_dir / f"{source.stem}{suffix}"
     output.parent.mkdir(parents=True, exist_ok=True)
     return project, source, manifests, store, output
 
@@ -73,7 +73,7 @@ def export_ipynb_cmd(
     ctx: typer.Context,
     notebook: Path = typer.Argument(..., help="Source notebook (.py)."),
 ) -> None:
-    """Write a ``.ipynb`` with cached outputs reattached to ``reports/<stem>.ipynb``."""
+    """Write a ``.ipynb`` with cached outputs reattached to ``site/<stem>.ipynb``."""
     opts: GlobalOptions = ctx.obj
     project, source, manifests, store, output = _prepare(ctx, notebook, ".ipynb")
     try:
@@ -93,7 +93,7 @@ def export_md_cmd(
     ctx: typer.Context,
     notebook: Path = typer.Argument(..., help="Source notebook (.py)."),
 ) -> None:
-    """Write a MyST markdown file with cached outputs to ``reports/<stem>.md``."""
+    """Write a MyST markdown file with cached outputs to ``site/<stem>.md``."""
     opts: GlobalOptions = ctx.obj
     project, source, manifests, store, output = _prepare(ctx, notebook, ".md")
     try:

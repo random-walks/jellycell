@@ -10,7 +10,7 @@ my-project/
 ├── notebooks/           # .py source notebooks
 ├── data/                # input data read by jc.load
 ├── artifacts/           # outputs written by jc.save / jc.figure / jc.table
-├── reports/             # rendered HTML output
+├── site/             # rendered HTML output
 ├── manuscripts/         # narrative docs + tearsheets (markdown, committed)
 └── .jellycell/
     └── cache/           # content-addressed cache (gitignored)
@@ -39,7 +39,7 @@ escapes a declared root (write-guard in `jellycell.paths.Project.resolve`).
 notebooks = "notebooks"           # source .py files
 data = "data"                     # input data
 artifacts = "artifacts"           # output files
-reports = "reports"               # rendered HTML
+site = "site"                     # rendered HTML catalogue
 manuscripts = "manuscripts"       # optional prose companions
 cache = ".jellycell/cache"        # content-addressed cache
 ```
@@ -200,6 +200,6 @@ Override with `--project /path/to/root`.
 
 - **Git**: commit `notebooks/`, `data/` (small files; use LFS or external
   storage for large), `artifacts/` if they're outputs worth reviewing,
-  `jellycell.toml`. Git-ignore `.jellycell/` and `reports/`.
+  `jellycell.toml`. Git-ignore `.jellycell/` and `site/`.
 - **pre-commit**: `jellycell lint` fits cleanly as a pre-commit hook.
 - **CI**: run `jellycell run notebooks/*.py` to recompute reports on PR.

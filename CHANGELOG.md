@@ -61,6 +61,24 @@ First public release.
 - Claude Code infra: CLAUDE.md, slash commands (`/spec-check`, `/phase-status`), subagents, skills (`spec-invariant`, `phase-budget`, `piggyback-first`).
 - Release pipeline on PyPI via trusted publisher (OIDC).
 
+### Renamed — `reports/` → `site/`
+
+Clearer separation from `manuscripts/`. The old name conflated HTML
+output with "the report I'm writing" (which lives in `manuscripts/`
+now). **The new mental model**:
+
+- `manuscripts/` — prose for humans + GitHub (markdown, committed).
+- `site/` — rendered HTML catalogue for browsers (`.html`, `_assets/`,
+  optional to commit).
+- Both are outputs; neither is source. Edit `notebooks/`, regenerate.
+
+Concretely: `PathsConfig.reports → site`, `Project.reports_dir →
+site_dir`. The `jellycell export tearsheet` HTML-report link checks
+``site/<stem>.html`` first, falls back to the legacy ``reports/<stem>.html``
+so pre-rename projects still get the cross-link. `jellycell.toml`
+field renamed — existing configs need `reports = …` swapped to
+`site = …` (pydantic rejects the old field name; clean break).
+
 ### Features — live viewer lifts (manuscripts + journal + tearsheet nav)
 
 - **Manuscript previewer**: new `/manuscripts/` landing page + dynamic

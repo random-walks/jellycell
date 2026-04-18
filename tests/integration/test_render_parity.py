@@ -37,7 +37,7 @@ SAMPLE = (
 def _project(tmp_path: Path) -> Project:
     cfg = default_config("parity")
     cfg.dump(tmp_path / "jellycell.toml")
-    for d in ("notebooks", "data", "artifacts", "reports", "manuscripts"):
+    for d in ("notebooks", "data", "artifacts", "site", "manuscripts"):
         (tmp_path / d).mkdir(exist_ok=True)
     project = Project(root=tmp_path.resolve(), config=cfg)
     nb = project.notebooks_dir / "p.py"
@@ -53,12 +53,12 @@ def _project(tmp_path: Path) -> Project:
 def test_static_and_server_html_are_identical(tmp_path: Path) -> None:
     """Post-unified-assets, static + server render should produce byte-equal HTML.
 
-    Both use ``standalone=False`` and the shared ``reports/_assets/`` mount, so
+    Both use ``standalone=False`` and the shared ``site/_assets/`` mount, so
     `_assets/…` hrefs resolve in both modes without any server-side trickery.
     """
     project = _project(tmp_path)
 
-    # Static: write reports/p.html via Renderer directly.
+    # Static: write site/p.html via Renderer directly.
     with Renderer(project, standalone=False) as r:
         static_path = r.render_notebook(project.notebooks_dir / "p.py")
     static_html = static_path.output_path.read_text(encoding="utf-8")

@@ -1,6 +1,6 @@
 # jellycell tour
 
-> **Tearsheet** for [`notebooks/tour.py`](../../notebooks/tour.py) · [HTML report](../../reports/tour.html) · last run `2026-04-18T16:07:53+00:00`
+> **Tearsheet** for [`notebooks/tour.py`](../../notebooks/tour.py) · [HTML report](../../site/tour.html) · last run `2026-04-18T19:02:16+00:00`
 
 Exercises the core `jc.*` API without external deps. Run with
 `jellycell run notebooks/tour.py`, then `jellycell export tearsheet

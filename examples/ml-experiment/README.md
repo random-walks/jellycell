@@ -49,7 +49,7 @@ ml-experiment/
 │   ├── checkpoint.json                     # full loss history + weight
 │   ├── metrics.json                        # end-of-run digest
 │   └── loss_curve.png                      # training curve
-├── reports/train.html                      # HTML report
+├── site/train.html                      # HTML report
 └── manuscripts/
     ├── README.md
     ├── model-card.md                       # hand-authored experiment log

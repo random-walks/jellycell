@@ -17,7 +17,7 @@ pytestmark = pytest.mark.integration
 def _project(tmp_path: Path) -> Project:
     cfg = default_config("index-test")
     cfg.dump(tmp_path / "jellycell.toml")
-    for d in ("notebooks", "data", "artifacts", "reports", "manuscripts"):
+    for d in ("notebooks", "data", "artifacts", "site", "manuscripts"):
         (tmp_path / d).mkdir(exist_ok=True)
     return Project(root=tmp_path.resolve(), config=cfg)
 
@@ -45,7 +45,7 @@ def test_render_all_produces_index(tmp_path: Path) -> None:
         renderer.close()
 
     assert len(results) == 2
-    index = project.reports_dir / "index.html"
+    index = project.site_dir / "index.html"
     assert index.exists()
     text = index.read_text(encoding="utf-8")
     assert "a.html" in text
@@ -68,6 +68,6 @@ def test_index_shows_recent_runs(tmp_path: Path) -> None:
     finally:
         renderer.close()
 
-    text = (project.reports_dir / "index.html").read_text(encoding="utf-8")
+    text = (project.site_dir / "index.html").read_text(encoding="utf-8")
     assert "Recent runs" in text
     assert "x:0" in text or "a" in text

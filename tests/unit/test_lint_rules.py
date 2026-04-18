@@ -14,7 +14,7 @@ from jellycell.paths import Project
 def _project_at(tmp_path: Path, notebooks: dict[str, str] | None = None) -> Project:
     cfg = default_config("lint-test")
     cfg.dump(tmp_path / "jellycell.toml")
-    for d in ["notebooks", "data", "artifacts", "reports", "manuscripts"]:
+    for d in ["notebooks", "data", "artifacts", "site", "manuscripts"]:
         (tmp_path / d).mkdir(exist_ok=True)
     if notebooks:
         for name, content in notebooks.items():

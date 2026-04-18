@@ -54,7 +54,7 @@ _INCLUDED_TOP_LEVEL = (
     "notebooks",
     "data",
     "artifacts",
-    "reports",
+    "site",
     "manuscripts",
     ".jellycell",
 )

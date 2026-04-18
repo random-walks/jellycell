@@ -27,7 +27,7 @@ my-project/
 ├── notebooks/           # .py source notebooks (jupytext percent format)
 ├── data/                # input data, read by jc.load
 ├── artifacts/           # writable output files (images, parquet, json, ...)
-├── reports/             # rendered HTML output
+├── site/             # rendered HTML output
 ├── manuscripts/         # narrative docs (optional)
 └── .jellycell/
     └── cache/           # content-addressed cache (git-ignored)
@@ -133,7 +133,7 @@ Supported `jc.save` formats: `.parquet`, `.csv`, `.json`, `.pkl`, `.png`.
 | `jellycell init <path>`            | Scaffold a new project                           |
 | `jellycell lint [path] [--fix]`    | Run lint rules; auto-fix where possible          |
 | `jellycell run <notebook>`         | Execute a notebook (cached cells skipped)        |
-| `jellycell render [notebook]`      | Render HTML to `reports/`                        |
+| `jellycell render [notebook]`      | Render HTML to `site/`                        |
 | `jellycell view`                   | Serve live catalogue (requires `[server]` extra) |
 | `jellycell cache list`             | List cached cell executions                      |
 | `jellycell cache prune`            | Remove old entries (`--older-than`, `--keep-last`) |

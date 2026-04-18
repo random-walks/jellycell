@@ -17,7 +17,7 @@ pytestmark = pytest.mark.integration
 def _project(tmp_path: Path) -> Project:
     cfg = default_config("standalone-test")
     cfg.dump(tmp_path / "jellycell.toml")
-    for d in ("notebooks", "data", "artifacts", "reports", "manuscripts"):
+    for d in ("notebooks", "data", "artifacts", "site", "manuscripts"):
         (tmp_path / d).mkdir(exist_ok=True)
     return Project(root=tmp_path.resolve(), config=cfg)
 
@@ -96,7 +96,7 @@ def test_non_standalone_writes_assets_and_references(tmp_path: Path) -> None:
 
     text = result.output_path.read_text(encoding="utf-8")
     assert 'src="_assets/' in text
-    # Shared layout: reports/_assets/ dedupes across notebooks.
+    # Shared layout: site/_assets/ dedupes across notebooks.
     assets = result.output_path.parent / "_assets"
     assert assets.exists()
     assert any(p.suffix == ".png" for p in assets.iterdir())

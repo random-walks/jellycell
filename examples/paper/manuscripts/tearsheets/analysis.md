@@ -1,6 +1,6 @@
 # Mortality trend analysis
 
-> **Tearsheet** for [`notebooks/analysis.py`](../../notebooks/analysis.py) · [HTML report](../../reports/analysis.html) · last run `2026-04-18T18:09:58+00:00`
+> **Tearsheet** for [`notebooks/analysis.py`](../../notebooks/analysis.py) · [HTML report](../../site/analysis.html) · last run `2026-04-18T19:01:27+00:00`
 
 A paper-shaped jellycell project: compute goes here, narrative lives in
 `manuscripts/paper.md`, figures are saved under `artifacts/` and linked

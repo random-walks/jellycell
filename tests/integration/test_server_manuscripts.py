@@ -29,7 +29,7 @@ pytestmark = pytest.mark.integration
 def _bootstrap(tmp_path: Path) -> Project:
     cfg = default_config("srv-ms")
     cfg.dump(tmp_path / "jellycell.toml")
-    for d in ("notebooks", "data", "artifacts", "reports", "manuscripts"):
+    for d in ("notebooks", "data", "artifacts", "site", "manuscripts"):
         (tmp_path / d).mkdir(exist_ok=True)
     return Project(root=tmp_path.resolve(), config=cfg)
 

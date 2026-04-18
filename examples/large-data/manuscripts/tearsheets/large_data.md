@@ -1,6 +1,6 @@
 # Large-data workflow
 
-> **Tearsheet** for [`notebooks/large_data.py`](../../notebooks/large_data.py) · [HTML report](../../reports/large_data.html) · last run `2026-04-18T17:39:56+00:00`
+> **Tearsheet** for [`notebooks/large_data.py`](../../notebooks/large_data.py) · [HTML report](../../site/large_data.html) · last run `2026-04-18T19:02:27+00:00`
 
 Demonstrates the **git-ignore the bulky bits, commit the story** pattern:
 

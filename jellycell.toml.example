@@ -22,11 +22,15 @@ data = "data"
 # Where `jc.save`, `jc.figure`, `jc.table` write. Mirrored to <notebook>/ subdirs.
 artifacts = "artifacts"
 
-# Rendered HTML output lives here when you run `jellycell render`.
-reports = "reports"
+# Static HTML catalogue — where `jellycell render` writes one .html per
+# notebook + an index.html + _assets/. Distinct from `manuscripts/` below
+# (prose + tearsheets, markdown, GitHub-native). The live viewer reads and
+# serves from here. Git-ignore if you don't want a checked-in static site.
+site = "site"
 
-# Prose companion docs (manuscripts, blog posts, narrative). Rendered in the
-# catalogue alongside notebooks. Optional — set to an empty string to disable.
+# Prose for humans and GitHub — hand-authored writeups at the root,
+# auto-generated tearsheets under `tearsheets/`, optional append-only
+# `journal.md`. Rendered markdown; committed by default.
 manuscripts = "manuscripts"
 
 # Content-addressed cache + SQLite index + manifests. Normally git-ignored.

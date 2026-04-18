@@ -1,7 +1,7 @@
 # CLI reference
 
 Every command supports `--json` for machine-readable output with
-`schema_version: 1` ([§10.1 contract](reference/contracts.md#10-1-json-schemas)).
+`schema_version: 1` ([§10.1 contract](reference/contracts.md)).
 
 ## Global flags
 
@@ -102,7 +102,7 @@ jellycell view --host 0.0.0.0 --port 8080
   separate from hand-authored writeups at the root of `manuscripts/`.
   Includes markdown narration, inlined image artifacts via relative
   paths, JSON summaries flattened as two-column tables, and a header
-  link to `reports/<stem>.html` when it exists. Safe to commit; GitHub
+  link to `site/<stem>.html` when it exists. Safe to commit; GitHub
   renders it inline.
 
 ### `jellycell checkpoint ...`
@@ -119,7 +119,7 @@ jellycell checkpoint restore v1-draft             # → <project>-restored-v1-dr
 jellycell checkpoint restore v1-draft --into /tmp/inspect --force
 ```
 
-The archive includes `notebooks/`, `data/`, `artifacts/`, `reports/`,
+The archive includes `notebooks/`, `data/`, `artifacts/`, `site/`,
 `manuscripts/`, `jellycell.toml`, and `.jellycell/cache/` — so a
 reviewer who unpacks it can re-render HTML without a re-run. Junk
 dirs (`__pycache__`, `.venv`, `.git`, etc.) are skipped. Sidecar

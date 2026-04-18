@@ -38,7 +38,7 @@ demo/
 ├── jellycell.toml                         # flat artifact layout (default)
 ├── notebooks/tour.py                      # setup + load + step + save + load round-trip
 ├── artifacts/                             # small JSONs, committed
-├── reports/                               # jellycell render output
+├── site/                               # jellycell render output
 └── manuscripts/
     ├── README.md
     ├── analysis.md                        # hand-authored interpretation of the run

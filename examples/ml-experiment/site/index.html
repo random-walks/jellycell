@@ -123,6 +123,62 @@ a:hover { text-decoration: underline; }
 .jc-path { color: var(--muted); font-family: var(--mono); font-size: 13px; margin: 0; }
 .jc-subtitle { color: var(--muted); margin: 0; }
 
+/* -------------------------------------------------------------- Manuscript body */
+
+.jc-md-body { margin-top: 24px; max-width: 780px; }
+.jc-md-body h1,
+.jc-md-body h2,
+.jc-md-body h3 { margin-top: 32px; margin-bottom: 10px; line-height: 1.25; }
+.jc-md-body h1 { font-size: 24px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+.jc-md-body h2 { font-size: 20px; }
+.jc-md-body h3 { font-size: 17px; color: #111; }
+.jc-md-body p { margin: 12px 0; }
+.jc-md-body blockquote {
+  border-left: 3px solid var(--accent);
+  background: var(--accent-weak);
+  padding: 10px 14px;
+  margin: 16px 0;
+  color: #333;
+}
+.jc-md-body code {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: var(--mono);
+  font-size: 13.5px;
+}
+.jc-md-body pre {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  overflow-x: auto;
+}
+.jc-md-body pre code { background: none; border: none; padding: 0; }
+.jc-md-body table {
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 14px;
+}
+.jc-md-body th,
+.jc-md-body td {
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  text-align: left;
+}
+.jc-md-body th { background: #fafbfc; }
+.jc-md-body img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin: 8px 0;
+}
+.jc-md-body em { color: #444; }
+.jc-md-body hr { border: 0; border-top: 1px solid var(--border); margin: 24px 0; }
+
 /* -------------------------------------------------------------- Cells */
 
 .jc-cells { margin-top: 32px; display: flex; flex-direction: column; gap: 16px; }
@@ -453,8 +509,46 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
             <span class="jc-list-title">train</span>
             <span class="jc-list-meta">
               6 cached cells
-· last run 2026-04-18T18:10:00.835325+00:00            </span>
+· last run 2026-04-18T19:02:18.496064+00:00            </span>
             <span class="jc-list-path">notebooks/train.py</span>
+          </a>
+        </li>
+      </ul>
+    </section>
+
+    <section class="jc-notebooks">
+      <h2>Manuscripts</h2>
+      <p class="jc-subtitle">
+        Authored writeups + auto-generated tearsheets.
+        <a href="/manuscripts/">browse all →</a>
+      </p>
+      <ul class="jc-list">
+        <li>
+          <a class="jc-list-item" href="/manuscripts/README.md">
+            <span class="jc-list-title">Readme</span>
+            <span class="jc-list-meta">authored</span>
+            <span class="jc-list-path">manuscripts/README.md</span>
+          </a>
+        </li>
+        <li>
+          <a class="jc-list-item" href="/manuscripts/model-card.md">
+            <span class="jc-list-title">Model Card</span>
+            <span class="jc-list-meta">authored</span>
+            <span class="jc-list-path">manuscripts/model-card.md</span>
+          </a>
+        </li>
+        <li>
+          <a class="jc-list-item" href="/manuscripts/tearsheets/train.md">
+            <span class="jc-list-title">Train</span>
+            <span class="jc-list-meta">tearsheet</span>
+            <span class="jc-list-path">manuscripts/tearsheets/train.md</span>
+          </a>
+        </li>
+        <li>
+          <a class="jc-list-item" href="/journal">
+            <span class="jc-list-title">Journal</span>
+            <span class="jc-list-meta">run log (append-only)</span>
+            <span class="jc-list-path">manuscripts/journal.md</span>
           </a>
         </li>
       </ul>
@@ -479,7 +573,7 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
             <td>
               <span class="jc-status jc-status-ok">ok</span>
             </td>
-            <td>2026-04-18T18:10:00.835325+00:00</td>
+            <td>2026-04-18T19:02:18.496064+00:00</td>
             <td class="jc-num">5</td>
           </tr>
           <tr>
@@ -488,8 +582,8 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
             <td>
               <span class="jc-status jc-status-ok">ok</span>
             </td>
-            <td>2026-04-18T18:10:00.829164+00:00</td>
-            <td class="jc-num">6</td>
+            <td>2026-04-18T19:02:18.490006+00:00</td>
+            <td class="jc-num">5</td>
           </tr>
           <tr>
             <td><a href="train.html">notebooks/train.py</a></td>
@@ -497,8 +591,8 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
             <td>
               <span class="jc-status jc-status-ok">ok</span>
             </td>
-            <td>2026-04-18T18:10:00.821404+00:00</td>
-            <td class="jc-num">218</td>
+            <td>2026-04-18T19:02:18.482626+00:00</td>
+            <td class="jc-num">263</td>
           </tr>
           <tr>
             <td><a href="train.html">notebooks/train.py</a></td>
@@ -506,8 +600,8 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
             <td>
               <span class="jc-status jc-status-ok">ok</span>
             </td>
-            <td>2026-04-18T18:10:00.601016+00:00</td>
-            <td class="jc-num">5</td>
+            <td>2026-04-18T19:02:18.217657+00:00</td>
+            <td class="jc-num">6</td>
           </tr>
           <tr>
             <td><a href="train.html">notebooks/train.py</a></td>
@@ -515,8 +609,8 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
             <td>
               <span class="jc-status jc-status-ok">ok</span>
             </td>
-            <td>2026-04-18T18:10:00.594017+00:00</td>
-            <td class="jc-num">39</td>
+            <td>2026-04-18T19:02:18.210261+00:00</td>
+            <td class="jc-num">56</td>
           </tr>
           <tr>
             <td><a href="train.html">notebooks/train.py</a></td>
@@ -524,8 +618,8 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
             <td>
               <span class="jc-status jc-status-ok">ok</span>
             </td>
-            <td>2026-04-18T18:10:00.552661+00:00</td>
-            <td class="jc-num">118</td>
+            <td>2026-04-18T19:02:18.152081+00:00</td>
+            <td class="jc-num">131</td>
           </tr>
         </tbody>
       </table>

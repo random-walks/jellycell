@@ -75,4 +75,4 @@ subgraph — including this note's headline numbers — invalidates.
 
 - Notebooks: [`../notebooks/`](../notebooks/)
 - Tearsheets: [`tearsheets/`](tearsheets/)
-- HTML reports: `reports/*.html` after `jellycell render`.
+- HTML reports: `site/*.html` after `jellycell render`.

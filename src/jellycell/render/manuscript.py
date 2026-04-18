@@ -67,9 +67,7 @@ class ManuscriptCatalog:
         return bool(self.authored or self.tearsheets or self.journal)
 
 
-def discover_manuscripts(
-    project: Project, *, current_rel: str | None = None
-) -> ManuscriptCatalog:
+def discover_manuscripts(project: Project, *, current_rel: str | None = None) -> ManuscriptCatalog:
     """Walk ``manuscripts/`` and classify each ``.md`` file.
 
     Classification rules:
@@ -170,9 +168,7 @@ def render_manuscript_page(
     )
 
 
-def render_manuscripts_index(
-    project: Project, *, env: Environment, pygments_css: str
-) -> str:
+def render_manuscripts_index(project: Project, *, env: Environment, pygments_css: str) -> str:
     """Render the ``/manuscripts/`` landing page listing every manuscript."""
     catalog = discover_manuscripts(project)
     return env.get_template("manuscripts_index.html.j2").render(
@@ -193,9 +189,7 @@ def _tearsheet_source_notebook(project: Project, md_rel: str) -> str | None:
     return None
 
 
-def _adjacent(
-    catalog: ManuscriptCatalog, md_rel: str, *, offset: int
-) -> ManuscriptLink | None:
+def _adjacent(catalog: ManuscriptCatalog, md_rel: str, *, offset: int) -> ManuscriptLink | None:
     """Return the previous or next tearsheet when browsing tearsheets in order.
 
     Authored manuscripts and the journal don't get prev/next navigation —

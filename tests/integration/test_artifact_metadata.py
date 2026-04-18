@@ -44,7 +44,7 @@ _NOTEBOOK_WITH_META = (
 def _bootstrap(tmp_path: Path) -> Project:
     cfg = default_config("meta-test")
     cfg.dump(tmp_path / "jellycell.toml")
-    for d in ("notebooks", "data", "artifacts", "reports", "manuscripts"):
+    for d in ("notebooks", "data", "artifacts", "site", "manuscripts"):
         (tmp_path / d).mkdir(exist_ok=True)
     return Project(root=tmp_path.resolve(), config=cfg)
 

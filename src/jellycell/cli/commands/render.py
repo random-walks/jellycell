@@ -1,4 +1,4 @@
-"""`jellycell render` — generate HTML reports for notebooks."""
+"""`jellycell render` — generate the HTML catalogue under ``site/``."""
 
 from __future__ import annotations
 
@@ -34,7 +34,7 @@ class RenderReport(BaseModel):
     entries: list[RenderedEntry] = Field(default_factory=list)
 
 
-@app.command("render", help="Render notebooks to HTML under reports/.")
+@app.command("render", help="Render notebooks to HTML under site/.")
 def render(
     ctx: typer.Context,
     notebook: Path | None = typer.Argument(
@@ -46,7 +46,7 @@ def render(
         help="Base64-inline image assets for a self-contained HTML file.",
     ),
 ) -> None:
-    """Generate HTML reports from cached manifests."""
+    """Generate the HTML catalogue from cached manifests."""
     opts: GlobalOptions = ctx.obj
     start = notebook.resolve() if notebook else (opts.project_override or Path.cwd())
     try:
@@ -78,7 +78,7 @@ def render(
                 )
                 for r in results
             ]
-            index_path = str(project.reports_dir / "index.html")
+            index_path = str(project.site_dir / "index.html")
     finally:
         renderer.close()
 

@@ -1,6 +1,6 @@
 # Decompose — trend, seasonality, residuals
 
-> **Tearsheet** for [`notebooks/02-decompose.py`](../../notebooks/02-decompose.py) · [HTML report](../../reports/02-decompose.html) · last run `2026-04-18T06:20:41+00:00`
+> **Tearsheet** for [`notebooks/02-decompose.py`](../../notebooks/02-decompose.py) · [HTML report](../../site/02-decompose.html) · last run `2026-04-18T19:02:22+00:00`
 
 Loads the Parquet artifact from `01-explore.py`, splits the series into
 three components using classical additive decomposition:

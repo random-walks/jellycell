@@ -93,7 +93,7 @@ Minimum to carry in your head when navigating the tree:
   `runner.py` (per-cell loop + cache decisions + manifest building),
   `pool.py` (kernel reuse for batch runs), `env_hash.py` (lockfile-aware).
 - **`render/`** — jinja2 templates + nbconvert output helpers + asset
-  deduplication (`reports/_assets/`).
+  deduplication (`site/_assets/`).
 - **`server/`** — starlette app + SSE broker + watchfiles binding.
 - **`cli/`** — typer commands. Every command emits `--json` with a
   versioned schema (§10.1).

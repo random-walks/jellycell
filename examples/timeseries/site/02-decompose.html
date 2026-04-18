@@ -124,6 +124,62 @@ a:hover { text-decoration: underline; }
 .jc-path { color: var(--muted); font-family: var(--mono); font-size: 13px; margin: 0; }
 .jc-subtitle { color: var(--muted); margin: 0; }
 
+/* -------------------------------------------------------------- Manuscript body */
+
+.jc-md-body { margin-top: 24px; max-width: 780px; }
+.jc-md-body h1,
+.jc-md-body h2,
+.jc-md-body h3 { margin-top: 32px; margin-bottom: 10px; line-height: 1.25; }
+.jc-md-body h1 { font-size: 24px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+.jc-md-body h2 { font-size: 20px; }
+.jc-md-body h3 { font-size: 17px; color: #111; }
+.jc-md-body p { margin: 12px 0; }
+.jc-md-body blockquote {
+  border-left: 3px solid var(--accent);
+  background: var(--accent-weak);
+  padding: 10px 14px;
+  margin: 16px 0;
+  color: #333;
+}
+.jc-md-body code {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: var(--mono);
+  font-size: 13.5px;
+}
+.jc-md-body pre {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  overflow-x: auto;
+}
+.jc-md-body pre code { background: none; border: none; padding: 0; }
+.jc-md-body table {
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 14px;
+}
+.jc-md-body th,
+.jc-md-body td {
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  text-align: left;
+}
+.jc-md-body th { background: #fafbfc; }
+.jc-md-body img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin: 8px 0;
+}
+.jc-md-body em { color: #444; }
+.jc-md-body hr { border: 0; border-top: 1px solid var(--border); margin: 24px 0; }
+
 /* -------------------------------------------------------------- Cells */
 
 .jc-cells { margin-top: 32px; display: flex; flex-direction: column; gap: 16px; }
@@ -440,6 +496,9 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
     <span>notebooks/02-decompose.py</span>
   </nav>
   <nav class="jc-prevnext">
+    <a class="jc-tearsheet-link" href="/manuscripts/tearsheets/02-decompose.md" title="Curated tearsheet for this notebook">
+      Tearsheet →
+    </a>
     <a class="jc-prev" href="01-explore.html" title="Previous notebook">← 01-explore</a>
     <a class="jc-next" href="03-forecast.html" title="Next notebook">03-forecast →</a>
   </nav>
@@ -525,7 +584,7 @@ left. All three are persisted as artifacts.</p>
 <span class="jc-cell-name">loaded</span>    <span class="jc-cell-kind jc-cell-kind-load">jc.load</span>
     <span class="jc-cell-stats">
       <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">338 ms</span>
+      <span class="jc-timing">389 ms</span>
     </span>
     <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
   </header>
@@ -586,7 +645,7 @@ date
 <code>trend</code>    </span>
     <span class="jc-cell-stats">
       <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">9 ms</span>
+      <span class="jc-timing">8 ms</span>
     </span>
     <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
   </header>
@@ -626,7 +685,7 @@ Sun    2.80
 <code>trend</code> <code>seasonality</code>    </span>
     <span class="jc-cell-stats">
       <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">6 ms</span>
+      <span class="jc-timing">4 ms</span>
     </span>
     <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
   </header>
@@ -692,7 +751,7 @@ residual mean: -0.000 (should be near 0)
 <code>persist</code>    </span>
     <span class="jc-cell-stats">
       <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">382 ms</span>
+      <span class="jc-timing">390 ms</span>
     </span>
     <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
   </header>

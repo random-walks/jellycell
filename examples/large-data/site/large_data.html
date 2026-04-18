@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="generator" content="jellycell">
-<meta name="jellycell:notebook" content="notebooks/train.py">
-<title>train — ml-experiment</title>
+<meta name="jellycell:notebook" content="notebooks/large_data.py">
+<title>large_data — large-data</title>
 <style>
 :root {
   --bg: #fefefe;
@@ -123,6 +123,62 @@ a:hover { text-decoration: underline; }
 .jc-title h1 { margin: 0 0 4px; font-size: 28px; }
 .jc-path { color: var(--muted); font-family: var(--mono); font-size: 13px; margin: 0; }
 .jc-subtitle { color: var(--muted); margin: 0; }
+
+/* -------------------------------------------------------------- Manuscript body */
+
+.jc-md-body { margin-top: 24px; max-width: 780px; }
+.jc-md-body h1,
+.jc-md-body h2,
+.jc-md-body h3 { margin-top: 32px; margin-bottom: 10px; line-height: 1.25; }
+.jc-md-body h1 { font-size: 24px; border-bottom: 1px solid var(--border); padding-bottom: 6px; }
+.jc-md-body h2 { font-size: 20px; }
+.jc-md-body h3 { font-size: 17px; color: #111; }
+.jc-md-body p { margin: 12px 0; }
+.jc-md-body blockquote {
+  border-left: 3px solid var(--accent);
+  background: var(--accent-weak);
+  padding: 10px 14px;
+  margin: 16px 0;
+  color: #333;
+}
+.jc-md-body code {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: var(--mono);
+  font-size: 13.5px;
+}
+.jc-md-body pre {
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  overflow-x: auto;
+}
+.jc-md-body pre code { background: none; border: none; padding: 0; }
+.jc-md-body table {
+  border-collapse: collapse;
+  margin: 16px 0;
+  font-size: 14px;
+}
+.jc-md-body th,
+.jc-md-body td {
+  border: 1px solid var(--border);
+  padding: 6px 10px;
+  text-align: left;
+}
+.jc-md-body th { background: #fafbfc; }
+.jc-md-body img {
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin: 8px 0;
+}
+.jc-md-body em { color: #444; }
+.jc-md-body hr { border: 0; border-top: 1px solid var(--border); margin: 24px 0; }
 
 /* -------------------------------------------------------------- Cells */
 
@@ -435,11 +491,14 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
 <body class="jc-layout">
 <header class="jc-header">
   <nav class="jc-breadcrumb">
-    <a href="index.html">ml-experiment</a>
+    <a href="index.html">large-data</a>
     <span class="sep">/</span>
-    <span>notebooks/train.py</span>
+    <span>notebooks/large_data.py</span>
   </nav>
   <nav class="jc-prevnext">
+    <a class="jc-tearsheet-link" href="/manuscripts/tearsheets/large_data.md" title="Curated tearsheet for this notebook">
+      Tearsheet →
+    </a>
   </nav>
 </header>
 <div class="jc-shell">
@@ -448,25 +507,19 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
       <h3>Contents</h3>
       <ul class="jc-toc">
         <li class="jc-toc-lvl-1 jc-toc-heading">
-          <a href="#cell-0">Tiny training loop</a>
+          <a href="#cell-0">Large-data workflow</a>
         </li>
         <li class="jc-toc-lvl-3 jc-toc-code">
           <a href="#cell-1">config</a>
         </li>
         <li class="jc-toc-lvl-3 jc-toc-code">
-          <a href="#cell-2">toy_dataset</a>
+          <a href="#cell-2">sample</a>
         </li>
         <li class="jc-toc-lvl-3 jc-toc-code">
-          <a href="#cell-3">train</a>
+          <a href="#cell-3">headline</a>
         </li>
         <li class="jc-toc-lvl-3 jc-toc-code">
-          <a href="#cell-4">loss_curve</a>
-        </li>
-        <li class="jc-toc-lvl-3 jc-toc-code">
-          <a href="#cell-5">metrics</a>
-        </li>
-        <li class="jc-toc-lvl-3 jc-toc-code">
-          <a href="#cell-6">checkpoint</a>
+          <a href="#cell-4">class_balance</a>
         </li>
       </ul>
     </section>
@@ -474,8 +527,8 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
   <main class="jc-main">
     <article class="jc-notebook">
       <header class="jc-title">
-        <h1>train</h1>
-        <p class="jc-path">notebooks/train.py</p>
+        <h1>large_data</h1>
+        <p class="jc-path">notebooks/large_data.py</p>
       </header>
       <section class="jc-cells">
 <section class="jc-cell jc-cell-markdown" id="cell-0" data-cell-id="0">
@@ -486,14 +539,20 @@ span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 
   </header>
   <div class="jc-cell-body">
     <div class="jc-cell-source">
-<h1>Tiny training loop</h1>
-<p>A one-parameter linear regression fit with gradient descent, plus a
-loss curve and final metrics. Every run dumps:</p>
+<h1>Large-data workflow</h1>
+<p>Demonstrates the <strong>git-ignore the bulky bits, commit the story</strong> pattern:</p>
 <ul>
-<li><code>artifacts/checkpoint.json</code> — the final weight + full loss history.</li>
-<li><code>artifacts/metrics.json</code> — end-of-training summary (for the tearsheet table).</li>
-<li><code>artifacts/loss_curve.png</code> — training loss vs. epoch.</li>
+<li><code>data/seed.json</code> — a tiny committed seed controls generation. Edit the
+seed and the downstream cache invalidates.</li>
+<li><code>artifacts/large_data/sample_*.parquet</code> — generated dump, <strong>git-ignored</strong>
+(see <a href="../.gitignore"><code>.gitignore</code></a>). Reviewers re-run <code>jellycell run</code> to
+reproduce it locally; the bytes never hit version control.</li>
+<li><code>artifacts/large_data/headline.json</code> — a small committed digest. Fits
+in the tearsheet as a key/value table so reviewers see the last-run
+stats on GitHub without needing the parquet.</li>
 </ul>
+<p>The project has <code>max_committed_size_mb = 10</code> set low so the generated
+parquet trips the warning at the end of <code>jellycell run</code>.</p>
 
     </div>
   </div>
@@ -504,17 +563,19 @@ loss curve and final metrics. Every run dumps:</p>
 <span class="jc-cell-name">config</span>    <span class="jc-cell-kind jc-cell-kind-setup">jc.setup</span>
     <span class="jc-cell-stats">
       <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">118 ms</span>
+      <span class="jc-timing">131 ms</span>
     </span>
     <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
   </header>
   <div class="jc-cell-body">
     <div class="jc-cell-source">
-<div class="jc-code"><pre><span></span><span class="n">EPOCHS</span> <span class="o">=</span> <span class="mi">40</span>
-<span class="n">LR</span> <span class="o">=</span> <span class="mf">0.02</span>
-<span class="n">SEED</span> <span class="o">=</span> <span class="mi">0</span>
-<span class="n">TRUE_W</span> <span class="o">=</span> <span class="mf">1.7</span>
-<span class="n">NOISE</span> <span class="o">=</span> <span class="mf">0.25</span>
+<div class="jc-code"><pre><span></span><span class="c1"># 500k rows × 12 features ≈ 48 MB parquet. Enough to trip the 10 MB</span>
+<span class="c1"># max_committed_size_mb warning below — dial it up to 5_000_000 for a</span>
+<span class="c1"># &quot;really big&quot; run, down to 50_000 for a fast smoke test. The downstream</span>
+<span class="c1"># cache-key tracks this value, so the subgraph re-runs on any change.</span>
+<span class="n">N_ROWS</span> <span class="o">=</span> <span class="mi">500_000</span>
+<span class="n">N_FEATURES</span> <span class="o">=</span> <span class="mi">12</span>
+<span class="n">SEED</span> <span class="o">=</span> <span class="mi">42</span>
 </pre></div>
 
     </div>
@@ -523,199 +584,148 @@ loss curve and final metrics. Every run dumps:</p>
 <section class="jc-cell jc-cell-code" id="cell-2" data-cell-id="2">
   <header class="jc-cell-head">
     <a class="jc-cell-ordinal" href="#cell-2" title="Link to this cell">#2</a>
-<span class="jc-cell-name">toy_dataset</span>    <span class="jc-cell-kind jc-cell-kind-load">jc.load</span>
+<span class="jc-cell-name">sample</span>    <span class="jc-cell-deps">
+      deps:
+<code>config</code>    </span>
     <span class="jc-cell-stats">
       <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">39 ms</span>
+      <span class="jc-timing">337 ms</span>
     </span>
     <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
   </header>
   <div class="jc-cell-body">
     <div class="jc-cell-source">
-<div class="jc-code"><pre><span></span><span class="c1"># Noisy linear data: y ≈ TRUE_W * x + ε.</span>
+<div class="jc-code"><pre><span></span><span class="c1"># Generate the &quot;big&quot; parquet. Not hand-written data — a reproducible</span>
+<span class="c1"># synthetic sample derived from the seed so any reviewer gets identical</span>
+<span class="c1"># bytes without checking in the file.</span>
+<span class="c1">#</span>
+<span class="c1"># Reads `data/seed.json` directly via `jc.load` inside this cell (rather</span>
+<span class="c1"># than through a separate `seed` cell) so the subgraph works cleanly</span>
+<span class="c1"># across mixed cache-hit / re-run boundaries — the seed config doesn&#39;t</span>
+<span class="c1"># need to live in the kernel&#39;s memory.</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
-<span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">SEED</span><span class="p">)</span>
-<span class="n">x</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="o">-</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">128</span><span class="p">)</span>
-<span class="n">noise</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">NOISE</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
-<span class="n">y</span> <span class="o">=</span> <span class="n">TRUE_W</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">noise</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;dataset: </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="si">}</span><span class="s2"> points   target w: </span><span class="si">{</span><span class="n">TRUE_W</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">jellycell.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jc</span>
+
+<span class="n">seed_cfg</span> <span class="o">=</span> <span class="n">jc</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;data/seed.json&quot;</span><span class="p">)</span>
+<span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="n">SEED</span> <span class="o">+</span> <span class="n">seed_cfg</span><span class="p">[</span><span class="s2">&quot;offset&quot;</span><span class="p">])</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="n">seed_cfg</span><span class="p">[</span><span class="s2">&quot;mean&quot;</span><span class="p">],</span> <span class="n">scale</span><span class="o">=</span><span class="n">seed_cfg</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">],</span> <span class="n">size</span><span class="o">=</span><span class="p">(</span><span class="n">N_ROWS</span><span class="p">,</span> <span class="n">N_FEATURES</span><span class="p">))</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="sa">f</span><span class="s2">&quot;f</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">N_FEATURES</span><span class="p">)])</span>
+<span class="n">df</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;f0&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;f1&quot;</span><span class="p">]</span> <span class="o">-</span> <span class="mf">0.25</span> <span class="o">*</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;f2&quot;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+<span class="c1"># Explicit path keeps the .gitignore glob simple.</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">jc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">df</span><span class="p">,</span> <span class="s2">&quot;artifacts/large_data/sample_dataset.parquet&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2"> rows × </span><span class="si">{</span><span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> cols → </span><span class="si">{</span><span class="n">out</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
 </pre></div>
 
     </div>
     <div class="jc-cell-outputs">
-<pre class="jc-stream jc-stdout">dataset: 128 points   target w: 1.7
+<pre class="jc-stream jc-stdout">500,000 rows × 13 cols → /Users/blaise/Desktop/blaise-oss/jellycell/examples/large-data/artifacts/large_data/sample_dataset.parquet
 </pre>
+    </div>
+    <div class="jc-cell-artifacts">
+      <span class="jc-label">artifacts</span>
+      <a class="jc-artifact-chip" href="/artifacts/large_data/sample_dataset.parquet" download="sample_dataset.parquet" title="artifacts/large_data/sample_dataset.parquet">
+        <span class="jc-chip-name">sample_dataset.parquet</span>
+        <span class="jc-chip-size">49.0 MB</span>
+      </a>
     </div>
   </div>
 </section>
 <section class="jc-cell jc-cell-code" id="cell-3" data-cell-id="3">
   <header class="jc-cell-head">
     <a class="jc-cell-ordinal" href="#cell-3" title="Link to this cell">#3</a>
-<span class="jc-cell-name">train</span>    <span class="jc-cell-deps">
+<span class="jc-cell-name">headline</span>    <span class="jc-cell-deps">
       deps:
-<code>toy_dataset</code> <code>config</code>    </span>
+<code>sample</code>    </span>
     <span class="jc-cell-stats">
       <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">5 ms</span>
+      <span class="jc-timing">54 ms</span>
     </span>
     <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
   </header>
   <div class="jc-cell-body">
     <div class="jc-cell-source">
-<div class="jc-code"><pre><span></span><span class="c1"># Vanilla full-batch gradient descent on MSE.</span>
-<span class="n">w</span> <span class="o">=</span> <span class="mf">0.0</span>
-<span class="n">loss_history</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-<span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">EPOCHS</span><span class="p">):</span>
-    <span class="n">pred</span> <span class="o">=</span> <span class="n">w</span> <span class="o">*</span> <span class="n">x</span>
-    <span class="n">grad</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="mf">2.0</span> <span class="o">*</span> <span class="p">(</span><span class="n">pred</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span> <span class="o">*</span> <span class="n">x</span><span class="p">))</span>
-    <span class="n">w</span> <span class="o">-=</span> <span class="n">LR</span> <span class="o">*</span> <span class="n">grad</span>
-    <span class="n">loss_history</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">pred</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)))</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;fitted w: </span><span class="si">{</span><span class="n">w</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">   target w: </span><span class="si">{</span><span class="n">TRUE_W</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;final loss: </span><span class="si">{</span><span class="n">loss_history</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="si">:</span><span class="s2">.4f</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<div class="jc-code"><pre><span></span><span class="c1"># A compact digest of the underlying data. This IS committed (few KB) and</span>
+<span class="c1"># carries enough summary stats for the tearsheet. It&#39;s a good pattern:</span>
+<span class="c1"># commit the summary, git-ignore the bulk.</span>
+<span class="c1">#</span>
+<span class="c1"># Reads both the parquet bytes and its own file size off disk so this cell</span>
+<span class="c1"># works when `sample` is cached (the in-memory `out` Path from `sample`</span>
+<span class="c1"># isn&#39;t available across cache/run boundaries).</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span> <span class="k">as</span> <span class="n">_Path</span>
+
+<span class="n">parquet</span> <span class="o">=</span> <span class="n">_Path</span><span class="p">(</span><span class="s2">&quot;artifacts/large_data/sample_dataset.parquet&quot;</span><span class="p">)</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">jc</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">parquet</span><span class="p">))</span>
+<span class="n">headline</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;rows&quot;</span><span class="p">:</span> <span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">),</span>
+    <span class="s2">&quot;features&quot;</span><span class="p">:</span> <span class="n">df</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="s2">&quot;positive_rate&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">mean</span><span class="p">()),</span> <span class="mi">4</span><span class="p">),</span>
+    <span class="s2">&quot;feature_mean&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">mean</span><span class="p">()),</span> <span class="mi">4</span><span class="p">),</span>
+    <span class="s2">&quot;feature_std&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">df</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">std</span><span class="p">()),</span> <span class="mi">4</span><span class="p">),</span>
+    <span class="s2">&quot;size_mb&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">parquet</span><span class="o">.</span><span class="n">stat</span><span class="p">()</span><span class="o">.</span><span class="n">st_size</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1024</span> <span class="o">*</span> <span class="mi">1024</span><span class="p">),</span> <span class="mi">2</span><span class="p">),</span>
+<span class="p">}</span>
+<span class="n">jc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">headline</span><span class="p">,</span> <span class="s2">&quot;artifacts/large_data/headline.json&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">headline</span><span class="p">)</span>
 </pre></div>
 
     </div>
     <div class="jc-cell-outputs">
-<pre class="jc-stream jc-stdout">fitted w: 0.7903   target w: 1.7
-final loss: 0.4149
+<pre class="jc-stream jc-stdout">{&#x27;rows&#x27;: 500000, &#x27;features&#x27;: 12, &#x27;positive_rate&#x27;: 0.5009, &#x27;feature_mean&#x27;: 0.0003, &#x27;feature_std&#x27;: 1.0003, &#x27;size_mb&#x27;: 48.97}
 </pre>
+    </div>
+    <div class="jc-cell-artifacts">
+      <span class="jc-label">artifacts</span>
+      <a class="jc-artifact-chip" href="/artifacts/large_data/headline.json" download="headline.json" title="artifacts/large_data/headline.json">
+        <span class="jc-chip-name">headline.json</span>
+        <span class="jc-chip-size">136 B</span>
+      </a>
     </div>
   </div>
 </section>
 <section class="jc-cell jc-cell-code" id="cell-4" data-cell-id="4">
   <header class="jc-cell-head">
     <a class="jc-cell-ordinal" href="#cell-4" title="Link to this cell">#4</a>
-<span class="jc-cell-name">loss_curve</span>    <span class="jc-cell-kind jc-cell-kind-figure">jc.figure</span>
+<span class="jc-cell-name">class_balance</span>    <span class="jc-cell-kind jc-cell-kind-figure">jc.figure</span>
     <span class="jc-cell-deps">
       deps:
-<code>train</code>    </span>
+<code>headline</code>    </span>
     <span class="jc-cell-stats">
       <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">218 ms</span>
+      <span class="jc-timing">191 ms</span>
     </span>
     <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
   </header>
   <div class="jc-cell-body">
     <div class="jc-cell-source">
-<div class="jc-code"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<div class="jc-code"><pre><span></span><span class="c1"># A tiny figure that fits in a tearsheet. Path-less — layout=by_notebook</span>
+<span class="c1"># from jellycell.toml drops it under artifacts/large_data/ automatically.</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
 
-<span class="kn">import</span><span class="w"> </span><span class="nn">jellycell.api</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">jc</span>
-
-<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">7</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">))</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">EPOCHS</span> <span class="o">+</span> <span class="mi">1</span><span class="p">),</span> <span class="n">loss_history</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;#4f46e5&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">1.6</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Epoch&quot;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;MSE loss&quot;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Training loss per epoch&quot;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+<span class="n">counts</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="s2">&quot;label&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">value_counts</span><span class="p">()</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
+<span class="n">fig</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">bar</span><span class="p">([</span><span class="s2">&quot;0&quot;</span><span class="p">,</span> <span class="s2">&quot;1&quot;</span><span class="p">],</span> <span class="n">counts</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;#6b7280&quot;</span><span class="p">,</span> <span class="s2">&quot;#4f46e5&quot;</span><span class="p">])</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Count&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Label balance (n=</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">df</span><span class="p">)</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">grid</span><span class="p">(</span><span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">counts</span><span class="o">.</span><span class="n">values</span><span class="p">):</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">v</span><span class="si">:</span><span class="s2">,</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">ha</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span> <span class="n">va</span><span class="o">=</span><span class="s2">&quot;bottom&quot;</span><span class="p">,</span> <span class="n">fontsize</span><span class="o">=</span><span class="mi">9</span><span class="p">)</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">tight_layout</span><span class="p">()</span>
-<span class="n">jc</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span>
-    <span class="n">path</span><span class="o">=</span><span class="s2">&quot;artifacts/loss_curve.png&quot;</span><span class="p">,</span>
-    <span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">,</span>
-    <span class="n">caption</span><span class="o">=</span><span class="s2">&quot;Figure 1: training loss (MSE) per epoch&quot;</span><span class="p">,</span>
-    <span class="n">notes</span><span class="o">=</span><span class="p">(</span>
-        <span class="s2">&quot;Monotone decrease, no oscillation, no divergence — LR and batch &quot;</span>
-        <span class="s2">&quot;size are in a stable regime for this dataset. 40 epochs not quite &quot;</span>
-        <span class="s2">&quot;enough for convergence (see model-card.md).&quot;</span>
-    <span class="p">),</span>
-    <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;training&quot;</span><span class="p">,</span> <span class="s2">&quot;diagnostic&quot;</span><span class="p">],</span>
-<span class="p">)</span>
+<span class="n">jc</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">fig</span><span class="o">=</span><span class="n">fig</span><span class="p">)</span>
 </pre></div>
 
     </div>
     <div class="jc-cell-outputs">
-<pre class="jc-text-plain">PosixPath(&#x27;/Users/blaise/Desktop/blaise-oss/jellycell/examples/ml-experiment/artifacts/loss_curve.png&#x27;)</pre>
-<pre class="jc-text-plain">&lt;Figure size 700x320 with 1 Axes&gt;</pre>
-<img class="jc-image" src="_assets/e4b789e0db96c497.png" alt="" />
+<pre class="jc-text-plain">PosixPath(&#x27;/Users/blaise/Desktop/blaise-oss/jellycell/examples/large-data/artifacts/large_data/class_balance.png&#x27;)</pre>
+<pre class="jc-text-plain">&lt;Figure size 500x300 with 1 Axes&gt;</pre>
+<img class="jc-image" src="_assets/703820105d88a836.png" alt="" />
     </div>
     <div class="jc-cell-artifacts">
       <span class="jc-label">artifacts</span>
-      <a class="jc-artifact-chip" href="/artifacts/loss_curve.png" download="loss_curve.png" title="artifacts/loss_curve.png">
-        <span class="jc-chip-name">loss_curve.png</span>
-        <span class="jc-chip-size">19.9 KB</span>
-      </a>
-    </div>
-  </div>
-</section>
-<section class="jc-cell jc-cell-code" id="cell-5" data-cell-id="5">
-  <header class="jc-cell-head">
-    <a class="jc-cell-ordinal" href="#cell-5" title="Link to this cell">#5</a>
-<span class="jc-cell-name">metrics</span>    <span class="jc-cell-deps">
-      deps:
-<code>train</code>    </span>
-    <span class="jc-cell-stats">
-      <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">6 ms</span>
-    </span>
-    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
-  </header>
-  <div class="jc-cell-body">
-    <div class="jc-cell-source">
-<div class="jc-code"><pre><span></span><span class="n">metrics</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s2">&quot;epochs&quot;</span><span class="p">:</span> <span class="n">EPOCHS</span><span class="p">,</span>
-    <span class="s2">&quot;learning_rate&quot;</span><span class="p">:</span> <span class="n">LR</span><span class="p">,</span>
-    <span class="s2">&quot;final_weight&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">w</span><span class="p">,</span> <span class="mi">4</span><span class="p">),</span>
-    <span class="s2">&quot;target_weight&quot;</span><span class="p">:</span> <span class="n">TRUE_W</span><span class="p">,</span>
-    <span class="s2">&quot;final_loss&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">loss_history</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="mi">4</span><span class="p">),</span>
-    <span class="s2">&quot;initial_loss&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="n">loss_history</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">4</span><span class="p">),</span>
-    <span class="s2">&quot;weight_error_abs&quot;</span><span class="p">:</span> <span class="nb">round</span><span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">w</span> <span class="o">-</span> <span class="n">TRUE_W</span><span class="p">),</span> <span class="mi">4</span><span class="p">),</span>
-<span class="p">}</span>
-<span class="n">jc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span>
-    <span class="n">metrics</span><span class="p">,</span>
-    <span class="s2">&quot;artifacts/metrics.json&quot;</span><span class="p">,</span>
-    <span class="n">caption</span><span class="o">=</span><span class="s2">&quot;Table 1: end-of-training metrics&quot;</span><span class="p">,</span>
-    <span class="n">notes</span><span class="o">=</span><span class="p">(</span>
-        <span class="s2">&quot;final_weight vs target_weight shows how far the optimizer got. &quot;</span>
-        <span class="s2">&quot;weight_error_abs = |target − fitted|.&quot;</span>
-    <span class="p">),</span>
-    <span class="n">tags</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;training&quot;</span><span class="p">,</span> <span class="s2">&quot;result&quot;</span><span class="p">],</span>
-<span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">metrics</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-    <div class="jc-cell-outputs">
-<pre class="jc-stream jc-stdout">{&#x27;epochs&#x27;: 40, &#x27;learning_rate&#x27;: 0.02, &#x27;final_weight&#x27;: 0.7903, &#x27;target_weight&#x27;: 1.7, &#x27;final_loss&#x27;: 0.4149, &#x27;initial_loss&#x27;: 1.2033, &#x27;weight_error_abs&#x27;: 0.9097}
-</pre>
-    </div>
-    <div class="jc-cell-artifacts">
-      <span class="jc-label">artifacts</span>
-      <a class="jc-artifact-chip" href="/artifacts/metrics.json" download="metrics.json" title="artifacts/metrics.json">
-        <span class="jc-chip-name">metrics.json</span>
-        <span class="jc-chip-size">173 B</span>
-      </a>
-    </div>
-  </div>
-</section>
-<section class="jc-cell jc-cell-code" id="cell-6" data-cell-id="6">
-  <header class="jc-cell-head">
-    <a class="jc-cell-ordinal" href="#cell-6" title="Link to this cell">#6</a>
-<span class="jc-cell-name">checkpoint</span>    <span class="jc-cell-deps">
-      deps:
-<code>train</code>    </span>
-    <span class="jc-cell-stats">
-      <span class="jc-status jc-status-ok">ok</span>
-      <span class="jc-timing">5 ms</span>
-    </span>
-    <button class="jc-toggle" aria-label="Toggle cell source" aria-expanded="true">−</button>
-  </header>
-  <div class="jc-cell-body">
-    <div class="jc-cell-source">
-<div class="jc-code"><pre><span></span><span class="c1"># Full loss history lives in the checkpoint alongside the weight. Real</span>
-<span class="c1"># projects would write tensors here; jellycell&#39;s cache is content-</span>
-<span class="c1"># addressed so identical checkpoints dedup on disk.</span>
-<span class="n">jc</span><span class="o">.</span><span class="n">save</span><span class="p">({</span><span class="s2">&quot;weight&quot;</span><span class="p">:</span> <span class="n">w</span><span class="p">,</span> <span class="s2">&quot;history&quot;</span><span class="p">:</span> <span class="n">loss_history</span><span class="p">},</span> <span class="s2">&quot;artifacts/checkpoint.json&quot;</span><span class="p">)</span>
-</pre></div>
-
-    </div>
-    <div class="jc-cell-outputs">
-<pre class="jc-text-plain">PosixPath(&#x27;/Users/blaise/Desktop/blaise-oss/jellycell/examples/ml-experiment/artifacts/checkpoint.json&#x27;)</pre>
-    </div>
-    <div class="jc-cell-artifacts">
-      <span class="jc-label">artifacts</span>
-      <a class="jc-artifact-chip" href="/artifacts/checkpoint.json" download="checkpoint.json" title="artifacts/checkpoint.json">
-        <span class="jc-chip-name">checkpoint.json</span>
-        <span class="jc-chip-size">1011 B</span>
+      <a class="jc-artifact-chip" href="/artifacts/large_data/class_balance.png" download="class_balance.png" title="artifacts/large_data/class_balance.png">
+        <span class="jc-chip-name">class_balance.png</span>
+        <span class="jc-chip-size">12.9 KB</span>
       </a>
     </div>
   </div>

@@ -32,7 +32,7 @@ my-analysis/
 ├── notebooks/
 ├── data/
 ├── artifacts/
-├── reports/
+├── site/
 └── manuscripts/
 ```
 
@@ -86,7 +86,7 @@ jellycell lint --fix       # auto-apply fixable violations
 Render static HTML:
 
 ```bash
-jellycell render            # writes reports/index.html + one page per notebook
+jellycell render            # writes site/index.html + one page per notebook
 ```
 
 Or serve live (watches for changes, SSE-reloads the page):
@@ -100,7 +100,7 @@ Opens `http://127.0.0.1:5179/`.
 ## Export
 
 ```bash
-jellycell export ipynb notebooks/hello.py   # writes reports/hello.ipynb
+jellycell export ipynb notebooks/hello.py   # writes site/hello.ipynb
 jellycell export md notebooks/hello.py      # MyST markdown for Sphinx/Jupyter Book
 ```
 

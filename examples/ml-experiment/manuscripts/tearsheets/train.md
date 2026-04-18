@@ -1,6 +1,6 @@
 # Tiny training loop
 
-> **Tearsheet** for [`notebooks/train.py`](../../notebooks/train.py) · [HTML report](../../reports/train.html) · last run `2026-04-18T18:10:00+00:00`
+> **Tearsheet** for [`notebooks/train.py`](../../notebooks/train.py) · [HTML report](../../site/train.html) · last run `2026-04-18T19:02:18+00:00`
 
 A one-parameter linear regression fit with gradient descent, plus a
 loss curve and final metrics. Every run dumps:

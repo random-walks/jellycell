@@ -106,7 +106,7 @@ my-project/
 ├── notebooks/              # .py notebooks (jupytext percent format)
 ├── data/                   # inputs
 ├── artifacts/              # jc.save outputs
-├── reports/                # rendered HTML (jellycell render)
+├── site/                # rendered HTML (jellycell render)
 └── .jellycell/cache/       # content-addressed cache (gitignored)
 ```
 

@@ -43,7 +43,7 @@ examples/large-data/
 │   ├── class_balance.png                 # committed (small)
 │   ├── headline.json                     # committed (tiny digest)
 │   └── sample_dataset.parquet            # NOT committed — regenerate locally
-├── reports/                              # HTML reports (committed; small)
+├── site/                              # HTML reports (committed; small)
 └── manuscripts/
     ├── README.md
     ├── data-notes.md                     # hand-authored reproducibility protocol

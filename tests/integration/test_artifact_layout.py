@@ -23,7 +23,7 @@ def _bootstrap(tmp_path: Path, *, layout: str = "flat", max_mb: int = 50) -> Pro
     cfg = default_config("layout-test")
     cfg.artifacts = ArtifactsConfig(layout=layout, max_committed_size_mb=max_mb)  # type: ignore[arg-type]
     cfg.dump(tmp_path / "jellycell.toml")
-    for d in ("notebooks", "data", "artifacts", "reports", "manuscripts"):
+    for d in ("notebooks", "data", "artifacts", "site", "manuscripts"):
         (tmp_path / d).mkdir(exist_ok=True)
     return Project(root=tmp_path.resolve(), config=cfg)
 

@@ -90,19 +90,19 @@ class Renderer:
 
     # ------------------------------------------------------------ high level
     def render_notebook(self, notebook_path: Path) -> RenderedNotebook:
-        """Render a single notebook to ``reports/<stem>.html``. Returns the result."""
+        """Render a single notebook to ``site/<stem>.html``. Returns the result."""
         nb = format_parse(notebook_path)
         notebook_rel = str(notebook_path.relative_to(self.project.root))
         stem = notebook_path.stem
 
         manifests = self._collect_manifests(notebook_rel)
 
-        output_path = self.project.reports_dir / f"{stem}.html"
+        output_path = self.project.site_dir / f"{stem}.html"
         output_path.parent.mkdir(parents=True, exist_ok=True)
-        # Shared assets dir under reports/_assets/ — content-hashed filenames
+        # Shared assets dir under site/_assets/ — content-hashed filenames
         # deduplicate naturally and one /_assets/ mount serves both the static
         # files and the live server.
-        assets_dir = self.project.reports_dir / "_assets"
+        assets_dir = self.project.site_dir / "_assets"
 
         cells_html: list[str] = []
         cached_count = 0
@@ -148,7 +148,7 @@ class Renderer:
 
     def render_index(self) -> Path:
         """Render a project-level index listing every notebook + recent cache entries."""
-        self.project.reports_dir.mkdir(parents=True, exist_ok=True)
+        self.project.site_dir.mkdir(parents=True, exist_ok=True)
         notebook_paths = sorted(self.project.notebooks_dir.rglob("*.py"))
         notebooks = []
         for path in notebook_paths:
@@ -185,7 +185,7 @@ class Renderer:
             pygments_css=self._pygments_css,
             catalog=catalog,
         )
-        output = self.project.reports_dir / "index.html"
+        output = self.project.site_dir / "index.html"
         output.write_text(page, encoding="utf-8")
         return output
 

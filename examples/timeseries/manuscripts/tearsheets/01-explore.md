@@ -1,6 +1,6 @@
 # Explore — daily time series
 
-> **Tearsheet** for [`notebooks/01-explore.py`](../../notebooks/01-explore.py) · [HTML report](../../reports/01-explore.html) · last run `2026-04-18T06:20:40+00:00`
+> **Tearsheet** for [`notebooks/01-explore.py`](../../notebooks/01-explore.py) · [HTML report](../../site/01-explore.html) · last run `2026-04-18T19:02:20+00:00`
 
 A self-contained tour of:
 

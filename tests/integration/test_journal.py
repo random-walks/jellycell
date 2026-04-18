@@ -42,7 +42,7 @@ def _bootstrap(tmp_path: Path, *, enabled: bool = True, path: str = "journal.md"
     cfg = default_config("journal-test")
     cfg.journal = JournalConfig(enabled=enabled, path=path)
     cfg.dump(tmp_path / "jellycell.toml")
-    for d in ("notebooks", "data", "artifacts", "reports", "manuscripts"):
+    for d in ("notebooks", "data", "artifacts", "site", "manuscripts"):
         (tmp_path / d).mkdir(exist_ok=True)
     return Project(root=tmp_path.resolve(), config=cfg)
 

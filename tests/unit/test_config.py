@@ -22,7 +22,7 @@ name = "full"
 notebooks = "notebooks"
 data = "data"
 artifacts = "artifacts"
-reports = "reports"
+site = "site"
 manuscripts = "manuscripts"
 cache = ".jellycell/cache"
 

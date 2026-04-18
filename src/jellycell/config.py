@@ -31,7 +31,12 @@ class PathsConfig(BaseModel):
     notebooks: str = "notebooks"
     data: str = "data"
     artifacts: str = "artifacts"
-    reports: str = "reports"
+    site: str = "site"
+    """Static HTML catalogue — where ``jellycell render`` + ``jellycell
+    export`` publish their outputs. Distinct from ``manuscripts/`` (prose
+    + tearsheets, markdown, GitHub-native). The live viewer reads and
+    serves from here; projects may git-ignore it if they don't need a
+    checked-in static site."""
     manuscripts: str = "manuscripts"
     cache: str = ".jellycell/cache"
 

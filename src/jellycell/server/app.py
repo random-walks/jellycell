@@ -72,10 +72,10 @@ def build_app(project: Project, *, broker: ReloadBroker | None = None) -> Starle
         Route("/api/state.json", endpoint=_state_json(state)),
         Route("/events", endpoint=_events(state)),
     ]
-    # Shared image assets — the renderer writes to reports/_assets/. Relative
+    # Shared image assets — the renderer writes to site/_assets/. Relative
     # hrefs in notebook HTML (e.g. `_assets/abc.png`) resolve here regardless
     # of whether the page is at `/`, `/<stem>.html`, or `/nb/<stem>`.
-    assets_dir = project.reports_dir / "_assets"
+    assets_dir = project.site_dir / "_assets"
     assets_dir.mkdir(parents=True, exist_ok=True)
     routes.append(_mount_static("/_assets", assets_dir))
     if project.artifacts_dir.exists():
@@ -132,9 +132,7 @@ def _manuscripts_index(state: _ServerState):  # type: ignore[no-untyped-def]
 
     async def handler(_request: Request) -> HTMLResponse:
         with Renderer(state.project, standalone=False) as r:
-            html = render_manuscripts_index(
-                state.project, env=r.env, pygments_css=r._pygments_css
-            )
+            html = render_manuscripts_index(state.project, env=r.env, pygments_css=r._pygments_css)
         return HTMLResponse(html)
 
     return handler

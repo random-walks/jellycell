@@ -50,7 +50,7 @@ paper/
 ├── notebooks/analysis.py
 ├── data/sample.csv                         # tiny input (committed)
 ├── artifacts/                              # figures + summary JSON
-├── reports/analysis.html                   # HTML report (committed)
+├── site/analysis.html                   # HTML report (committed)
 └── manuscripts/
     ├── README.md
     ├── paper.md                            # hand-authored paper draft

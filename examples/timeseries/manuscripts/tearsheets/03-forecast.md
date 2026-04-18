@@ -1,6 +1,6 @@
 # Forecast — exponential smoothing + diagnostics
 
-> **Tearsheet** for [`notebooks/03-forecast.py`](../../notebooks/03-forecast.py) · [HTML report](../../reports/03-forecast.html) · last run `2026-04-18T06:20:43+00:00`
+> **Tearsheet** for [`notebooks/03-forecast.py`](../../notebooks/03-forecast.py) · [HTML report](../../site/03-forecast.html) · last run `2026-04-18T19:02:24+00:00`
 
 Loads the decomposition, fits a simple exponential smoothing (level-only)
 with $\alpha = 0.3$, projects 30 days ahead, and checks residual whiteness
