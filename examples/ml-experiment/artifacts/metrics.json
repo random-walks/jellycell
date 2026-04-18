@@ -1,0 +1,9 @@
+{
+  "epochs": 40,
+  "learning_rate": 0.02,
+  "final_weight": 0.7903,
+  "target_weight": 1.7,
+  "final_loss": 0.4149,
+  "initial_loss": 1.2033,
+  "weight_error_abs": 0.9097
+}

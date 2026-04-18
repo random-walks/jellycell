@@ -11,7 +11,7 @@ my-project/
 ├── data/                # input data read by jc.load
 ├── artifacts/           # outputs written by jc.save / jc.figure / jc.table
 ├── reports/             # rendered HTML output
-├── manuscripts/         # narrative docs (optional)
+├── manuscripts/         # narrative docs + tearsheets (markdown, committed)
 └── .jellycell/
     └── cache/           # content-addressed cache (gitignored)
 ```
@@ -93,6 +93,26 @@ A notebook's PEP-723 block can override any field at file scope via a
 
 The block-scoped value wins for that file. Other `[tool.*]` tables are
 preserved unchanged.
+
+## `manuscripts/` — tearsheets and hand-authored writeups
+
+The `manuscripts/` directory holds markdown files that live alongside
+notebooks. Two flavors:
+
+- **Auto-generated tearsheets** from `jellycell export tearsheet <nb>` —
+  curated one-pagers with prose, inlined figures via relative paths
+  (`![](../artifacts/foo.png)`), and JSON summaries flattened into
+  two-column tables. The file goes to `manuscripts/<stem>.md` by default;
+  override with `--output PATH`. GitHub renders the file inline when you
+  browse it — no HTML preview service needed.
+- **Hand-authored writeups** (e.g. a paper draft, a decision memo) —
+  commit them under a different filename to avoid the tearsheet
+  regenerator overwriting your prose. Pattern: keep `tearsheet.md` auto,
+  write `paper.md` / `notes.md` / `reviewer-memo.md` by hand. Both can
+  reference the same `artifacts/` tree.
+
+Commit `manuscripts/` so reviewers and agents see the latest tearsheet
+without re-running anything.
 
 ## The `.jellycell/` directory
 

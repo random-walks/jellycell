@@ -13,14 +13,14 @@ from jellycell.cache.index import CacheIndex
 from jellycell.cache.manifest import Manifest
 from jellycell.cache.store import CacheStore
 from jellycell.cli.app import GlobalOptions, app
-from jellycell.export import export_ipynb, export_md
+from jellycell.export import export_ipynb, export_md, export_tearsheet
 from jellycell.paths import Project, ProjectNotFoundError
 
 _console = Console()
 
 export_app = typer.Typer(
     name="export",
-    help="Export notebooks (with cached outputs) to .ipynb or MyST .md.",
+    help="Export notebooks (with cached outputs) to .ipynb, MyST .md, or a curated tearsheet.",
     no_args_is_help=True,
 )
 app.add_typer(export_app, name="export")
@@ -104,6 +104,50 @@ def export_md_cmd(
         source=str(source.relative_to(project.root)),
         output=str(output),
         format="md",
+    )
+    _emit(opts, report)
+
+
+@export_app.command(
+    "tearsheet",
+    help="Curated markdown tearsheet (manuscripts/<stem>.md) — figures + JSON summaries, no code dump.",
+)
+def export_tearsheet_cmd(
+    ctx: typer.Context,
+    notebook: Path = typer.Argument(..., help="Source notebook (.py)."),
+    output: Path | None = typer.Option(
+        None,
+        "--output",
+        "-o",
+        help="Write to this path instead of manuscripts/<stem>.md.",
+    ),
+) -> None:
+    """Write a curated markdown tearsheet. Defaults to ``manuscripts/<stem>.md``.
+
+    Unlike ``export md``, this skips code source by default and only inlines
+    what renders naturally in markdown (figures, JSON summaries, setup cells).
+    The result is safe to commit and renders on GitHub.
+    """
+    opts: GlobalOptions = ctx.obj
+    opts_obj: GlobalOptions = ctx.obj
+    source = notebook.resolve()
+    try:
+        project = Project.from_path(source)
+    except ProjectNotFoundError as exc:
+        _fail(opts_obj, str(exc))
+    notebook_rel = str(source.relative_to(project.root))
+    store = CacheStore(project.cache_dir)
+    try:
+        manifests = _load_manifests(project, notebook_rel, store)
+        target = output.resolve() if output else project.manuscripts_dir / f"{source.stem}.md"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        export_tearsheet(source, manifests, target, project.root)
+    finally:
+        store.close()
+    report = ExportReport(
+        source=notebook_rel,
+        output=str(target),
+        format="tearsheet",
     )
     _emit(opts, report)
 

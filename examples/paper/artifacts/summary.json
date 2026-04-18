@@ -1,0 +1,12 @@
+{
+  "countries": 4,
+  "years_covered": [
+    2020,
+    2021
+  ],
+  "top_country": "US",
+  "top_country_total": 765000,
+  "combined_total": 1037000,
+  "largest_yoy_increase_country": "DE",
+  "largest_yoy_increase_pct": 0.5897
+}

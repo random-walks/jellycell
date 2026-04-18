@@ -80,13 +80,18 @@ jellycell view --host 0.0.0.0 --port 8080
 ### `jellycell cache ...`
 
 - `cache list` — show cached cell executions.
+- `cache prune [--older-than DURATION] [--keep-last N] [--dry-run]` — remove old entries.
 - `cache clear [-y]` — wipe the cache.
 - `cache rebuild-index` — re-scan manifests to rebuild SQLite index.
 
 ### `jellycell export <format> <notebook>`
 
 - `export ipynb` — `.ipynb` with cached outputs reattached.
-- `export md` — MyST markdown.
+- `export md` — MyST markdown (full notebook + every cell's outputs).
+- `export tearsheet [-o PATH]` — curated markdown tearsheet. Defaults to
+  `manuscripts/<stem>.md`. Includes markdown narration, inlined image
+  artifacts via relative paths, and JSON summaries flattened as
+  two-column tables. Safe to commit; GitHub renders it inline.
 
 ### `jellycell new <name>`
 
