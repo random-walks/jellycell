@@ -84,7 +84,19 @@ Serve the live catalogue (requires `[server]` extra).
 ```bash
 jellycell view                                # use [viewer] config
 jellycell view --host 0.0.0.0 --port 8080
+JELLYCELL_VIEW_NOCACHE=1 jellycell view       # disable response cache
 ```
+
+The live server is **disk-write-free for HTML pages** — it renders in
+memory and never touches `site/`. Image assets land in
+`.jellycell/cache/assets/` (content-addressed, git-ignored) and are
+served via the `/_assets/` static mount. `jellycell render` remains the
+only command that writes a portable static site under `site/`.
+
+Per-notebook HTML is cached in memory by a view-key that combines the
+notebook's source bytes + its cell cache keys — any edit or run
+invalidates cleanly. Set `JELLYCELL_VIEW_NOCACHE=1` in the environment
+when iterating on templates so every request re-renders.
 
 ### `jellycell cache ...`
 

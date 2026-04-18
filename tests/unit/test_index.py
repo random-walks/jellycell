@@ -105,3 +105,64 @@ class TestIndex:
             idx.insert(_manifest("k" * 64), tmp_path / "x.json")
             idx.clear()
             assert idx.list_all() == []
+
+
+class TestNotebookViewKey:
+    """Regression tests for :meth:`CacheIndex.notebook_view_key`.
+
+    The key is the server's response-cache key: it must change when
+    either the notebook source bytes change OR the set of cell cache
+    keys changes, and stay stable otherwise. Missing notebook files
+    return ``None`` so the caller can skip caching and render the 404
+    path naturally.
+    """
+
+    def test_stable_for_same_inputs(self, tmp_path: Path) -> None:
+        (tmp_path / "notebooks").mkdir()
+        nb = tmp_path / "notebooks" / "n.py"
+        nb.write_text("# /// script\n# ///\nprint('hi')\n", encoding="utf-8")
+        with CacheIndex(tmp_path / "state.db") as idx:
+            k1 = idx.notebook_view_key(tmp_path, "notebooks/n.py")
+            k2 = idx.notebook_view_key(tmp_path, "notebooks/n.py")
+        assert k1 is not None
+        assert k1 == k2
+
+    def test_changes_on_source_edit(self, tmp_path: Path) -> None:
+        (tmp_path / "notebooks").mkdir()
+        nb = tmp_path / "notebooks" / "n.py"
+        nb.write_text("# /// script\n# ///\nprint('hi')\n", encoding="utf-8")
+        with CacheIndex(tmp_path / "state.db") as idx:
+            before = idx.notebook_view_key(tmp_path, "notebooks/n.py")
+            nb.write_text("# /// script\n# ///\nprint('different')\n", encoding="utf-8")
+            after = idx.notebook_view_key(tmp_path, "notebooks/n.py")
+        assert before != after
+
+    def test_changes_on_new_manifest(self, tmp_path: Path) -> None:
+        (tmp_path / "notebooks").mkdir()
+        (tmp_path / "notebooks" / "n.py").write_text(
+            "# /// script\n# ///\nprint('hi')\n", encoding="utf-8"
+        )
+        with CacheIndex(tmp_path / "state.db") as idx:
+            empty_key = idx.notebook_view_key(tmp_path, "notebooks/n.py")
+            # Indexing a cell for this notebook must rotate the key, even
+            # though the source bytes haven't changed.
+            idx.insert(_manifest("k" * 64, notebook="notebooks/n.py"), tmp_path / "x.json")
+            populated_key = idx.notebook_view_key(tmp_path, "notebooks/n.py")
+        assert empty_key != populated_key
+
+    def test_none_for_missing_notebook(self, tmp_path: Path) -> None:
+        with CacheIndex(tmp_path / "state.db") as idx:
+            assert idx.notebook_view_key(tmp_path, "notebooks/gone.py") is None
+
+    def test_isolated_between_notebooks(self, tmp_path: Path) -> None:
+        """Adding a cell for notebook A doesn't affect notebook B's key."""
+        (tmp_path / "notebooks").mkdir()
+        nb_a = tmp_path / "notebooks" / "a.py"
+        nb_b = tmp_path / "notebooks" / "b.py"
+        nb_a.write_text("# /// script\n# ///\nx = 1\n", encoding="utf-8")
+        nb_b.write_text("# /// script\n# ///\ny = 2\n", encoding="utf-8")
+        with CacheIndex(tmp_path / "state.db") as idx:
+            b_before = idx.notebook_view_key(tmp_path, "notebooks/b.py")
+            idx.insert(_manifest("k" * 64, notebook="notebooks/a.py"), tmp_path / "x.json")
+            b_after = idx.notebook_view_key(tmp_path, "notebooks/b.py")
+        assert b_before == b_after

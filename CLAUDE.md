@@ -72,6 +72,10 @@ make release-check    # dry-run build + version print
 
 `jellycell prompt` emits the canonical agent guide — a single markdown doc covering layout, format, tags, API, and CLI reference. Content is the **§10.3 stability contract** (see [`docs/reference/contracts.md`](docs/reference/contracts.md)). Start by calling this in any new jellycell project.
 
+## Server vs. static
+
+`jellycell view` (live server) is **disk-write-free for HTML pages** — it renders in memory and caches responses by a notebook view-key. `jellycell render` (CLI) is the only path that populates `site/`. Live-mode assets land under `.jellycell/cache/assets/`; static-mode under `site/_assets/`. Both share the same Jinja templates. See [`docs/reference/architecture.md`](docs/reference/architecture.md#how-the-live-viewer-differs-from-jellycell-render).
+
 ## Versioning
 
 Patch bumps are cheap — prefer frequent small releases over feature-batching. Full policy in [docs/development/releasing.md](docs/development/releasing.md). When finishing a user-visible change, invoke the `release-bump` skill or run `/bump` to move `[Unreleased]` into a numbered entry.

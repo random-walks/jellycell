@@ -47,10 +47,33 @@ class RenderedNotebook:
     """Path of the source notebook, relative to project root."""
 
     output_path: Path
-    """Absolute path to the generated HTML file."""
+    """Path where the HTML would be / was written.
+
+    When ``write_pages=False`` the file is *not* actually created; the
+    path is still reported so callers know where the canonical artifact
+    would live in a static render. The HTML text is in :attr:`html`.
+    """
 
     cell_count: int
     cached_count: int
+
+    html: str | None = None
+    """Rendered HTML string — populated when the Renderer was created with
+    ``write_pages=False`` (server path). ``None`` in the default CLI
+    ``jellycell render`` flow where the file at :attr:`output_path` is
+    authoritative."""
+
+
+@dataclass(frozen=True)
+class RenderedIndex:
+    """Outcome of rendering the project index page.
+
+    Mirrors :class:`RenderedNotebook` so the server can fetch the HTML
+    string directly (``write_pages=False``) without touching disk.
+    """
+
+    output_path: Path
+    html: str | None = None
 
 
 @dataclass(frozen=True)
@@ -72,25 +95,103 @@ class SiblingNotebook:
     current: bool
 
 
-class Renderer:
-    """Converts notebooks + cached manifests into a browsable HTML catalogue."""
+@dataclass(frozen=True)
+class RendererEnv:
+    """Shared long-lived state for the rendering pipeline.
 
-    def __init__(self, project: Project, *, standalone: bool = False) -> None:
+    The Jinja environment (with compiled templates) and the Pygments CSS
+    are expensive to build and completely stateless across requests —
+    perfect to keep alive for the life of a server process. The
+    ``CacheStore`` and ``CacheIndex`` are deliberately **not** here;
+    those are opened per-render for simple SQLite thread safety.
+
+    ``assets_dir`` is captured at env-build time so the live server
+    points at ``.jellycell/cache/assets/`` while static ``jellycell
+    render`` stays with ``site/_assets/``.
+    """
+
+    jinja: Environment
+    pygments_css: str
+    assets_dir: Path
+
+    @classmethod
+    def for_static(cls, project: Project) -> RendererEnv:
+        """Env for ``jellycell render`` — assets under ``site/_assets/``."""
+        return cls(
+            jinja=_make_jinja_env(),
+            pygments_css=_make_pygments_css(),
+            assets_dir=project.site_dir / "_assets",
+        )
+
+    @classmethod
+    def for_server(cls, project: Project) -> RendererEnv:
+        """Env for ``jellycell view`` — assets under ``.jellycell/cache/assets/``
+        (served by the ``/_assets/`` static mount). Live server is
+        disk-write-free for HTML pages; assets still land on disk as
+        content-hashed blobs so the static mount has something to serve.
+        """
+        return cls(
+            jinja=_make_jinja_env(),
+            pygments_css=_make_pygments_css(),
+            assets_dir=project.cache_dir / "assets",
+        )
+
+
+def _make_jinja_env() -> Environment:
+    return Environment(
+        loader=PackageLoader("jellycell.render", "templates"),
+        autoescape=select_autoescape(["html", "xml"]),
+        trim_blocks=True,
+        lstrip_blocks=True,
+    )
+
+
+def _make_pygments_css() -> str:
+    css = HtmlFormatter(style=_PYGMENTS_STYLE).get_style_defs(".jc-code")
+    return str(css)
+
+
+class Renderer:
+    """Converts notebooks + cached manifests into a browsable HTML catalogue.
+
+    Pass ``write_pages=False`` to skip writing HTML files to disk (the
+    live server uses this mode and returns the HTML string directly via
+    :attr:`RenderedNotebook.html`).
+
+    Pass ``env=RendererEnv.for_server(project)`` in the server to reuse a
+    long-lived Jinja environment across requests; the default builds a
+    fresh env which is appropriate for the one-shot CLI path.
+    """
+
+    def __init__(
+        self,
+        project: Project,
+        *,
+        standalone: bool = False,
+        env: RendererEnv | None = None,
+        write_pages: bool = True,
+    ) -> None:
         self.project = project
         self.standalone = standalone
+        self.write_pages = write_pages
+        self.env_data = env or RendererEnv.for_static(project)
+        # Per-render handles — short-lived by design for SQLite thread safety.
         self.store = CacheStore(project.cache_dir)
         self.index = CacheIndex(project.cache_dir / "state.db")
-        self.env = Environment(
-            loader=PackageLoader("jellycell.render", "templates"),
-            autoescape=select_autoescape(["html", "xml"]),
-            trim_blocks=True,
-            lstrip_blocks=True,
-        )
-        self._pygments_css = HtmlFormatter(style=_PYGMENTS_STYLE).get_style_defs(".jc-code")
+        # Preserve the historical public attributes so existing callers
+        # (templates, tests) keep working without edits.
+        self.env = self.env_data.jinja
+        self._pygments_css = self.env_data.pygments_css
 
     # ------------------------------------------------------------ high level
     def render_notebook(self, notebook_path: Path) -> RenderedNotebook:
-        """Render a single notebook to ``site/<stem>.html``. Returns the result."""
+        """Render a single notebook to ``site/<stem>.html``. Returns the result.
+
+        With ``write_pages=True`` (the default) the HTML is written to
+        ``site/<stem>.html`` and :attr:`RenderedNotebook.html` is ``None``.
+        With ``write_pages=False`` (server path) disk is untouched and the
+        rendered string is returned via :attr:`RenderedNotebook.html`.
+        """
         nb = format_parse(notebook_path)
         notebook_rel = str(notebook_path.relative_to(self.project.root))
         stem = notebook_path.stem
@@ -98,11 +199,11 @@ class Renderer:
         manifests = self._collect_manifests(notebook_rel)
 
         output_path = self.project.site_dir / f"{stem}.html"
-        output_path.parent.mkdir(parents=True, exist_ok=True)
-        # Shared assets dir under site/_assets/ — content-hashed filenames
-        # deduplicate naturally and one /_assets/ mount serves both the static
-        # files and the live server.
-        assets_dir = self.project.site_dir / "_assets"
+        if self.write_pages:
+            output_path.parent.mkdir(parents=True, exist_ok=True)
+        # Assets dir is captured at env-build time: `site/_assets/` for the
+        # static CLI path, `.jellycell/cache/assets/` for the live server.
+        assets_dir = self.env_data.assets_dir
 
         cells_html: list[str] = []
         cached_count = 0
@@ -138,17 +239,25 @@ class Renderer:
             next_nb=next_nb,
             tearsheet_link=tearsheet_link,
         )
-        output_path.write_text(page, encoding="utf-8")
+        if self.write_pages:
+            output_path.write_text(page, encoding="utf-8")
         return RenderedNotebook(
             notebook=notebook_rel,
             output_path=output_path,
             cell_count=len(nb.cells),
             cached_count=cached_count,
+            html=None if self.write_pages else page,
         )
 
-    def render_index(self) -> Path:
-        """Render a project-level index listing every notebook + recent cache entries."""
-        self.project.site_dir.mkdir(parents=True, exist_ok=True)
+    def render_index(self) -> RenderedIndex:
+        """Render a project-level index listing every notebook + recent cache entries.
+
+        Returns a :class:`RenderedIndex`. ``write_pages=True`` (default)
+        writes ``site/index.html`` to disk; ``write_pages=False`` stashes
+        the HTML in :attr:`RenderedIndex.html` without touching disk.
+        """
+        if self.write_pages:
+            self.project.site_dir.mkdir(parents=True, exist_ok=True)
         notebook_paths = sorted(self.project.notebooks_dir.rglob("*.py"))
         notebooks = []
         for path in notebook_paths:
@@ -186,8 +295,12 @@ class Renderer:
             catalog=catalog,
         )
         output = self.project.site_dir / "index.html"
-        output.write_text(page, encoding="utf-8")
-        return output
+        if self.write_pages:
+            output.write_text(page, encoding="utf-8")
+        return RenderedIndex(
+            output_path=output,
+            html=None if self.write_pages else page,
+        )
 
     def render_all(self) -> list[RenderedNotebook]:
         """Render every notebook in the project plus the index."""

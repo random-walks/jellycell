@@ -93,12 +93,49 @@ Minimum to carry in your head when navigating the tree:
   `runner.py` (per-cell loop + cache decisions + manifest building),
   `pool.py` (kernel reuse for batch runs), `env_hash.py` (lockfile-aware).
 - **`render/`** — jinja2 templates + nbconvert output helpers + asset
-  deduplication (`site/_assets/`).
+  deduplication. ``RendererEnv`` holds the shareable (and expensive)
+  state — compiled Jinja env, Pygments CSS, assets dir — with two
+  factory methods: ``for_static(project)`` (assets under
+  ``site/_assets/``) and ``for_server(project)`` (assets under
+  ``.jellycell/cache/assets/``). ``Renderer`` takes an optional ``env``
+  + ``write_pages`` flag: the CLI path writes ``site/*.html`` to disk
+  (default), the server path returns HTML strings and never touches
+  ``site/``.
 - **`server/`** — starlette app + SSE broker + watchfiles binding.
+  Holds one long-lived ``RendererEnv`` per process and an in-memory
+  response cache keyed on ``CacheIndex.notebook_view_key`` (source
+  bytes + ordered cell cache keys). ``JELLYCELL_VIEW_NOCACHE=1``
+  disables the cache for template development.
 - **`cli/`** — typer commands. Every command emits `--json` with a
   versioned schema (§10.1).
 - **`export/`** — derived-output generators: ipynb, MyST markdown,
   tearsheets.
+
+## How the live viewer differs from `jellycell render`
+
+Both paths share the same Jinja templates + output helpers, but diverge
+deliberately in two ways:
+
+| Concern               | `jellycell render` (CLI)       | `jellycell view` (server)              |
+| --------------------- | ------------------------------ | -------------------------------------- |
+| HTML pages            | `site/<stem>.html` on disk     | streamed HTML string, no disk write    |
+| Image assets          | `site/_assets/<hash>.png`      | `.jellycell/cache/assets/<hash>.png`   |
+| Response caching      | n/a (one-shot)                 | in-memory, keyed by notebook view-key  |
+| Jinja / Pygments      | built per-invocation           | built once at app startup, reused      |
+| Cache + SQLite        | opened per render              | same (per-request, thread-local)       |
+
+**Why two assets dirs**: `site/_assets/` is part of the portable static
+site you'd upload to a server or GitHub Pages. `.jellycell/cache/assets/`
+is content-addressed blob storage parallel to the rest of the cache;
+it's always gitignored, doesn't bloat the committed repo, and the live
+server mounts it directly at `/_assets/`. If you use both modes in the
+same project, you get assets in both places — small files, content-
+hashed, no sync logic needed.
+
+**Why response caching**: re-rendering an unchanged notebook on every
+page reload is pure waste. The view-key changes on any edit (source
+bytes) or any run (new cell cache keys), so the cache is always
+correct without explicit busting.
 
 ## When to update this page
 

@@ -16,8 +16,9 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+import os
 from contextlib import asynccontextmanager
-from dataclasses import asdict
+from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
@@ -36,11 +37,17 @@ from jellycell.render.manuscript import (
     render_manuscript_page,
     render_manuscripts_index,
 )
+from jellycell.render.renderer import RendererEnv
 from jellycell.server.sse import ReloadBroker, event_to_sse
 from jellycell.server.watch import watch_project
 
 if TYPE_CHECKING:
     from collections.abc import AsyncIterator
+
+#: Opt-out escape hatch for the response cache. Set in the environment when
+#: developing templates — every request re-renders so edits appear without
+#: bouncing the server.
+_NOCACHE_ENV = "JELLYCELL_VIEW_NOCACHE"
 
 
 def build_app(project: Project, *, broker: ReloadBroker | None = None) -> Starlette:
@@ -72,10 +79,12 @@ def build_app(project: Project, *, broker: ReloadBroker | None = None) -> Starle
         Route("/api/state.json", endpoint=_state_json(state)),
         Route("/events", endpoint=_events(state)),
     ]
-    # Shared image assets — the renderer writes to site/_assets/. Relative
-    # hrefs in notebook HTML (e.g. `_assets/abc.png`) resolve here regardless
-    # of whether the page is at `/`, `/<stem>.html`, or `/nb/<stem>`.
-    assets_dir = project.site_dir / "_assets"
+    # Live-mode assets live under `.jellycell/cache/assets/` — `RendererEnv.
+    # for_server()` writes image blobs here as content-hashed files; the
+    # `/_assets/` mount serves them back to notebook pages. `site/_assets/`
+    # stays the static-CLI-only destination; the live server never touches
+    # it, which is the whole point of this layout.
+    assets_dir = state.env.assets_dir
     assets_dir.mkdir(parents=True, exist_ok=True)
     routes.append(_mount_static("/_assets", assets_dir))
     if project.artifacts_dir.exists():
@@ -85,32 +94,125 @@ def build_app(project: Project, *, broker: ReloadBroker | None = None) -> Starle
     return Starlette(debug=False, lifespan=lifespan, routes=routes)
 
 
+@dataclass
+class _CachedResponse:
+    """One entry in the server's per-notebook-stem response cache."""
+
+    key: str
+    html: str
+
+
 class _ServerState:
-    """Mutable server state — Renderer is created lazily, broker shared."""
+    """Live-viewer state — long-lived Jinja env + response cache + broker.
+
+    The env (Jinja templates + Pygments CSS + assets dir) is built once at
+    app startup and reused across every request. Cache handles
+    (``CacheStore`` / ``CacheIndex``) are still opened per render inside
+    ``Renderer`` so SQLite stays thread-local — simpler than pooling.
+
+    ``_response_cache`` is keyed by notebook stem (or the sentinel
+    ``"__index__"`` for the project index). Each entry carries the
+    ``notebook_view_key`` from ``CacheIndex`` — when the current key
+    matches the cached one, the HTML is reused verbatim. Any edit to the
+    notebook source or any new run invalidates the key, so the server
+    always serves the up-to-date view without explicit cache busting.
+
+    Set ``JELLYCELL_VIEW_NOCACHE=1`` in the environment to skip the cache
+    entirely (handy when iterating on templates with the server running).
+    """
 
     def __init__(self, project: Project, broker: ReloadBroker) -> None:
         self.project = project
         self.broker = broker
+        self.env: RendererEnv = RendererEnv.for_server(project)
+        self.env.assets_dir.mkdir(parents=True, exist_ok=True)
+        self._response_cache: dict[str, _CachedResponse] = {}
+        self._nocache = bool(os.environ.get(_NOCACHE_ENV))
 
-    def render_notebook(self, stem: str) -> Path:
+    def render_notebook_html(self, stem: str) -> str:
+        """Return the rendered HTML string for ``/nb/<stem>``.
+
+        Hits the response cache when the notebook's view-key hasn't
+        changed since the last render; otherwise re-renders with
+        ``write_pages=False`` so ``site/<stem>.html`` stays unchanged.
+        """
+        path = self._find_notebook(stem)
+        if path is None:
+            raise FileNotFoundError(stem)
+
+        index = CacheIndex(self.project.cache_dir / "state.db")
+        try:
+            key = index.notebook_view_key(
+                self.project.root, str(path.relative_to(self.project.root))
+            )
+        finally:
+            index.close()
+
+        if not self._nocache and key is not None:
+            cached = self._response_cache.get(stem)
+            if cached is not None and cached.key == key:
+                return cached.html
+
+        with Renderer(self.project, env=self.env, write_pages=False) as r:
+            result = r.render_notebook(path)
+        html = result.html or ""  # result.html is always set when write_pages=False
+
+        if not self._nocache and key is not None:
+            self._response_cache[stem] = _CachedResponse(key=key, html=html)
+        return html
+
+    def render_index_html(self) -> str:
+        """Return the rendered HTML string for ``/``.
+
+        The index page's view-key is the sha256 of every notebook's
+        view-key concatenated — changes anywhere in the project
+        invalidate the cached index without tracking dependencies
+        explicitly.
+        """
+        index_key = self._index_view_key()
+        if not self._nocache and index_key is not None:
+            cached = self._response_cache.get("__index__")
+            if cached is not None and cached.key == index_key:
+                return cached.html
+
+        with Renderer(self.project, env=self.env, write_pages=False) as r:
+            result = r.render_index()
+        html = result.html or ""
+
+        if not self._nocache and index_key is not None:
+            self._response_cache["__index__"] = _CachedResponse(key=index_key, html=html)
+        return html
+
+    def _find_notebook(self, stem: str) -> Path | None:
         for path in self.project.notebooks_dir.rglob("*.py"):
             if path.stem == stem:
-                # Shared `/_assets/` mount means relative `_assets/*.png`
-                # resolves correctly — no need to inline images.
-                with Renderer(self.project, standalone=False) as r:
-                    result = r.render_notebook(path)
-                return result.output_path
-        raise FileNotFoundError(stem)
+                return path
+        return None
 
-    def render_index(self) -> Path:
-        with Renderer(self.project, standalone=False) as r:
-            return r.render_index()
+    def _index_view_key(self) -> str | None:
+        """Derive an index-level view key by rolling up each notebook's key."""
+        import hashlib
+
+        index = CacheIndex(self.project.cache_dir / "state.db")
+        try:
+            parts: list[str] = []
+            for path in sorted(self.project.notebooks_dir.rglob("*.py")):
+                rel = str(path.relative_to(self.project.root))
+                nk = index.notebook_view_key(self.project.root, rel)
+                if nk is None:
+                    return None
+                parts.append(nk)
+        finally:
+            index.close()
+        if not parts:
+            return "empty"
+        return hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()
 
 
 def _index(state: _ServerState):  # type: ignore[no-untyped-def]
     async def handler(_request: Request) -> HTMLResponse:
-        path = state.render_index()
-        return HTMLResponse(path.read_text(encoding="utf-8"))
+        html = state.render_index_html()
+        return HTMLResponse(html)
 
     return handler
 
@@ -119,10 +221,10 @@ def _notebook(state: _ServerState):  # type: ignore[no-untyped-def]
     async def handler(request: Request) -> HTMLResponse:
         stem = request.path_params["stem"]
         try:
-            path = state.render_notebook(stem)
+            html = state.render_notebook_html(stem)
         except FileNotFoundError as exc:
             raise HTTPException(status_code=404, detail=str(exc)) from exc
-        return HTMLResponse(path.read_text(encoding="utf-8"))
+        return HTMLResponse(html)
 
     return handler
 
@@ -131,8 +233,11 @@ def _manuscripts_index(state: _ServerState):  # type: ignore[no-untyped-def]
     """``/manuscripts/`` landing page — authored + tearsheets + journal listing."""
 
     async def handler(_request: Request) -> HTMLResponse:
-        with Renderer(state.project, standalone=False) as r:
-            html = render_manuscripts_index(state.project, env=r.env, pygments_css=r._pygments_css)
+        html = render_manuscripts_index(
+            state.project,
+            env=state.env.jinja,
+            pygments_css=state.env.pygments_css,
+        )
         return HTMLResponse(html)
 
     return handler
@@ -147,16 +252,15 @@ def _manuscript_page(state: _ServerState):  # type: ignore[no-untyped-def]
         # paths and ``..``-based traversal before touching the filesystem.
         if ".." in Path(rel).parts or Path(rel).is_absolute():
             raise HTTPException(status_code=404, detail=rel)
-        with Renderer(state.project, standalone=False) as r:
-            try:
-                html = render_manuscript_page(
-                    state.project,
-                    rel,
-                    env=r.env,
-                    pygments_css=r._pygments_css,
-                )
-            except FileNotFoundError as exc:
-                raise HTTPException(status_code=404, detail=str(exc)) from exc
+        try:
+            html = render_manuscript_page(
+                state.project,
+                rel,
+                env=state.env.jinja,
+                pygments_css=state.env.pygments_css,
+            )
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
         return HTMLResponse(html)
 
     return handler
@@ -176,13 +280,12 @@ def _journal(state: _ServerState):  # type: ignore[no-untyped-def]
                     "run `jellycell run <notebook>` once to create it."
                 ),
             )
-        with Renderer(state.project, standalone=False) as r:
-            html = render_manuscript_page(
-                state.project,
-                journal_rel,
-                env=r.env,
-                pygments_css=r._pygments_css,
-            )
+        html = render_manuscript_page(
+            state.project,
+            journal_rel,
+            env=state.env.jinja,
+            pygments_css=state.env.pygments_css,
+        )
         return HTMLResponse(html)
 
     return handler

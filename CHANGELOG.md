@@ -61,6 +61,40 @@ First public release.
 - Claude Code infra: CLAUDE.md, slash commands (`/spec-check`, `/phase-status`), subagents, skills (`spec-invariant`, `phase-budget`, `piggyback-first`).
 - Release pipeline on PyPI via trusted publisher (OIDC).
 
+### Features — live viewer: disk-write-free + response cache + long-lived env
+
+`jellycell view` no longer writes HTML pages to disk on request. The
+server is a read-only view over notebooks + cache; `jellycell render`
+is the only thing that populates `site/`. Three coupled changes:
+
+- **In-memory rendering** — `Renderer` gains a `write_pages: bool = True`
+  kwarg (default preserves CLI behavior) and returns the HTML string
+  via `RenderedNotebook.html` / new `RenderedIndex.html` when pages
+  aren't written. The server uses `write_pages=False` and streams
+  responses straight from memory.
+- **Response cache** — per-notebook in-memory cache in `_ServerState`,
+  keyed by `CacheIndex.notebook_view_key(project_root, rel)` — the
+  sha256 of the notebook's source bytes combined with its ordered cell
+  cache keys. Any edit (source) or any run (new manifests) rotates the
+  key, so the cache is always correct without explicit busting. Index
+  page caches off a rollup of every notebook's view-key.
+- **Long-lived `RendererEnv`** — Jinja templates + Pygments CSS +
+  assets dir bundle built once at server startup via
+  `RendererEnv.for_server(project)` and reused across all requests.
+  Per-request still opens short-lived `CacheStore` / `CacheIndex`
+  handles so SQLite stays thread-local. `for_static(project)` is the
+  CLI factory.
+- **Assets relocated for the live path** — the `/_assets/` mount now
+  points at `.jellycell/cache/assets/` (content-addressed, always
+  git-ignored). `site/_assets/` stays the static-CLI-only destination.
+  If you use both modes, you get assets in both places — small files,
+  content-hashed filenames dedupe within each tree, no sync logic.
+- **`JELLYCELL_VIEW_NOCACHE=1`** env var disables the response cache
+  for template-iteration workflows.
+
+§10 contracts: none touched. Pure additive / backwards-compatible
+API — default `Renderer()` call writes to disk as before.
+
 ### Renamed — `reports/` → `site/`
 
 Clearer separation from `manuscripts/`. The old name conflated HTML

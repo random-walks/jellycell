@@ -79,7 +79,7 @@ def test_static_and_server_index_are_identical(tmp_path: Path) -> None:
 
     with Renderer(project, standalone=False) as r:
         static_index = r.render_index()
-    static_html = static_index.read_text(encoding="utf-8")
+    static_html = static_index.output_path.read_text(encoding="utf-8")
 
     with TestClient(build_app(project)) as client:
         served_html = client.get("/").text

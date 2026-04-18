@@ -839,7 +839,7 @@ UK: +1.4%
   });
 
   // SSE live-reload. Only activates when served from the jellycell server.
-  // When viewing static reports/ files, window.location.protocol is file: or
+  // When viewing static site/ files, window.location.protocol is file: or
   // the EventSource connect fails silently — either way, no-op.
   if (typeof EventSource === "undefined") return;
   if (window.location.protocol.indexOf("http") !== 0) return;
