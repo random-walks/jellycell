@@ -91,8 +91,46 @@ class TestOuterAgentsDetection:
         result = runner.invoke(app, ["prompt", "--write", str(inner)])
         assert result.exit_code == 1
         assert "found AGENTS.md at" in result.output
+        # Error message surfaces both escape hatches.
+        assert "--nested" in result.output
         assert "--force" in result.output
         assert not (inner / "AGENTS.md").exists()
+
+    def test_nested_bypasses_outer_detection_without_force(self, tmp_path: Path) -> None:
+        """--nested is the polite "I know, intentional inner scope" flag."""
+        (tmp_path / "AGENTS.md").write_text("# outer", encoding="utf-8")
+        inner = tmp_path / "sub-project"
+        inner.mkdir()
+        result = runner.invoke(app, ["prompt", "--write", "--nested", str(inner)])
+        assert result.exit_code == 0, result.output
+        assert (inner / "AGENTS.md").is_file()
+        # Outer untouched — --nested writes the inner override, nothing more.
+        assert (tmp_path / "AGENTS.md").read_text(encoding="utf-8") == "# outer"
+        # Console output flags this as intentional nesting (not a scatter-warning).
+        assert "nested:" in result.output
+
+    def test_nested_still_refuses_existing_target_file(self, tmp_path: Path) -> None:
+        """--nested bypasses outer-detection only — overwrite protection still applies."""
+        (tmp_path / "AGENTS.md").write_text("# outer", encoding="utf-8")
+        inner = tmp_path / "sub-project"
+        inner.mkdir()
+        (inner / "AGENTS.md").write_text("# custom inner", encoding="utf-8")
+        result = runner.invoke(app, ["prompt", "--write", "--nested", str(inner)])
+        assert result.exit_code == 1
+        assert "already exist" in result.output
+        # Custom inner content preserved.
+        assert (inner / "AGENTS.md").read_text(encoding="utf-8") == "# custom inner"
+
+    def test_nested_plus_force_overwrites_inner(self, tmp_path: Path) -> None:
+        """--nested + --force is the full polyglot refresh path."""
+        (tmp_path / "AGENTS.md").write_text("# outer", encoding="utf-8")
+        inner = tmp_path / "sub-project"
+        inner.mkdir()
+        (inner / "AGENTS.md").write_text("# stale inner", encoding="utf-8")
+        result = runner.invoke(app, ["prompt", "--write", "--nested", "--force", str(inner)])
+        assert result.exit_code == 0, result.output
+        assert (inner / "AGENTS.md").read_text(encoding="utf-8").startswith("# Agent guide")
+        assert (tmp_path / "AGENTS.md").read_text(encoding="utf-8") == "# outer"
 
     def test_force_overrides_outer_warning(self, tmp_path: Path) -> None:
         (tmp_path / "AGENTS.md").write_text("# outer", encoding="utf-8")
@@ -153,3 +191,16 @@ class TestJsonOutput:
         report = json.loads(result.output.strip().splitlines()[-1])
         assert report["outer_agents_md"] is not None
         assert report["outer_agents_md"].endswith("AGENTS.md")
+        # --force bypasses the outer-detection check but is NOT the same as --nested,
+        # which is about intent. `nested` only flags true when --nested was passed.
+        assert report["nested"] is False
+
+    def test_json_flags_nested_true_when_intentional(self, tmp_path: Path) -> None:
+        (tmp_path / "AGENTS.md").write_text("# outer", encoding="utf-8")
+        inner = tmp_path / "sub"
+        inner.mkdir()
+        result = runner.invoke(app, ["--json", "prompt", "--write", "--nested", str(inner)])
+        assert result.exit_code == 0, result.output
+        report = json.loads(result.output.strip().splitlines()[-1])
+        assert report["outer_agents_md"] is not None
+        assert report["nested"] is True

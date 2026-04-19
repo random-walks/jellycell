@@ -48,6 +48,7 @@ class PromptWriteReport(BaseModel):
     written: list[str]
     skipped: list[str]
     outer_agents_md: str | None = None
+    nested: bool = False
 
 
 def _read_guide() -> str:
@@ -119,6 +120,14 @@ def prompt(
         False, "--write", help="Write AGENTS.md + CLAUDE.md to DIRECTORY instead of stdout."
     ),
     force: bool = typer.Option(False, "--force", help="Overwrite existing AGENTS.md / CLAUDE.md."),
+    nested: bool = typer.Option(
+        False,
+        "--nested",
+        help=(
+            "Acknowledge an outer AGENTS.md and write an intentional inner override "
+            "without --force. Still refuses to clobber an existing target file."
+        ),
+    ),
     agents_only: bool = typer.Option(
         False, "--agents-only", help="Skip the CLAUDE.md stub (AGENTS.md only)."
     ),
@@ -131,10 +140,12 @@ def prompt(
         typer.echo(_read_guide(), nl=False)
         return
     target = (directory or Path.cwd()).resolve()
-    _do_write(opts, target, force=force, agents_only=agents_only)
+    _do_write(opts, target, force=force, nested=nested, agents_only=agents_only)
 
 
-def _do_write(opts: GlobalOptions, target: Path, *, force: bool, agents_only: bool) -> None:
+def _do_write(
+    opts: GlobalOptions, target: Path, *, force: bool, nested: bool, agents_only: bool
+) -> None:
     if not target.is_dir():
         _fail(opts, f"{target} is not a directory.")
 
@@ -142,12 +153,13 @@ def _do_write(opts: GlobalOptions, target: Path, *, force: bool, agents_only: bo
     claude_path = target / "CLAUDE.md"
 
     outer = _find_outer_agents_md(target)
-    if outer is not None and not force:
+    if outer is not None and not force and not nested:
         _fail(
             opts,
             f"found AGENTS.md at {outer} — agentic tools compose nested "
             "AGENTS.md files, so the outer one already applies here. "
-            "Re-run with --force to write an inner override for this subdirectory.",
+            "Re-run with --nested to intentionally add an inner override "
+            "for this subtree, or --force to bypass all checks.",
         )
 
     conflicts: list[Path] = []
@@ -178,6 +190,7 @@ def _do_write(opts: GlobalOptions, target: Path, *, force: bool, agents_only: bo
         written=written,
         skipped=skipped,
         outer_agents_md=str(outer) if outer else None,
+        nested=nested and outer is not None,
     )
     if opts.json_output:
         typer.echo(report.model_dump_json())
@@ -187,8 +200,9 @@ def _do_write(opts: GlobalOptions, target: Path, *, force: bool, agents_only: bo
         for path in skipped:
             _console.print(f"[dim]skipped[/dim] {path}")
         if outer is not None:
+            prefix = "[cyan]nested:[/cyan]" if nested else "[yellow]note:[/yellow]"
             _console.print(
-                f"[yellow]note:[/yellow] outer AGENTS.md at {outer} — "
+                f"{prefix} outer AGENTS.md at {outer} — "
                 "inner override wins for this subtree per the AGENTS.md spec."
             )
 

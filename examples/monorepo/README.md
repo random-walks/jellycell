@@ -121,12 +121,39 @@ Git-ignore (this root `.gitignore` covers every showcase):
 
 ## Polyglot monorepos
 
-Nothing about jellycell's walk-up is Python-specific. If you drop this
-structure deeper — `packages/python-showcase/showcase-marketing/` —
-inside a pnpm/turbo/Next.js repo, jellycell still works identically,
-provided `AGENTS.md` sits at the outer git root. Shell out through
-`uv --directory packages/python-showcase run jellycell --project
-<showcase> …` from your pnpm scripts.
+If you drop this structure deeper — `packages/python-showcase/
+showcase-marketing/` — inside a pnpm/turbo/Next.js repo, you choose
+between two AGENTS.md placements:
+
+- **Nested** (recommended) — `packages/python-showcase/AGENTS.md`
+  scopes jellycell's ~12 KB guide to the Python subtree; the outer
+  repo can still have its own `AGENTS.md` at the git root covering
+  TypeScript / monorepo conventions. Agents compose both per the
+  AGENTS.md spec.
+- **Single root** — one `AGENTS.md` at the git root covers
+  everything. Simpler but pollutes the root with Python-specific
+  rules.
+
+The `uv --directory` vs `uv --project` knob controls cwd-dependent
+commands like `jellycell prompt --write`. When an outer `AGENTS.md`
+exists at the git root and you want a nested inner one, pass
+`--nested` to skip the scatter-prevention refuse:
+
+```bash
+# Nested: writes AGENTS.md at packages/python-showcase/ alongside an
+# outer root AGENTS.md. --directory cd's in; --nested acknowledges
+# the outer.
+uv --directory packages/python-showcase run jellycell prompt --write --nested
+
+# Root: writes a single AGENTS.md at the git root. --project stays
+# in cwd; no --nested needed.
+uv --project packages/python-showcase run jellycell prompt --write
+```
+
+Full write-up:
+[project-layout.md#polyglot-monorepos](https://jellycell.readthedocs.io/en/latest/project-layout.html#polyglot-monorepos)
+including the complete flag table and pnpm-script wrapper recipes for
+the `--project`-takes-a-showcase-name ergonomics.
 
 ## See also
 

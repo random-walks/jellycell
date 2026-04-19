@@ -152,30 +152,44 @@ Emit the canonical [agent guide](agent-guide.md) to stdout, or install
 it as `AGENTS.md` + `CLAUDE.md` with `--write`.
 
 ```bash
-jellycell prompt | pbcopy                    # stdout — pipe into your agent
-jellycell prompt --write                     # drop AGENTS.md + CLAUDE.md in cwd
-jellycell prompt --write /path/to/repo-root  # target a specific directory
-jellycell prompt --write --agents-only       # skip the CLAUDE.md stub
-jellycell prompt --write --force             # overwrite existing files
+jellycell prompt | pbcopy                           # stdout — pipe into your agent
+jellycell prompt --write                            # drop AGENTS.md + CLAUDE.md in cwd
+jellycell prompt --write /path/to/repo-root         # target a specific directory
+jellycell prompt --write --agents-only              # skip the CLAUDE.md stub
+jellycell prompt --write --nested                   # intentional inner nesting (polyglot)
+jellycell prompt --write --force                    # overwrite existing files
 ```
 
 Flags:
 
-- `--write` — switch from stdout emission to disk-install mode. Without
-  it, the command behaves identically to pre-1.1 (§10.3 stability
-  contract preserves the stdout bytes).
-- `--force` — required to overwrite an existing `AGENTS.md` or
-  `CLAUDE.md`, or to write an inner override when an outer `AGENTS.md`
-  is detected in an ancestor directory.
+- `--write` — switch from stdout emission to disk-install mode.
+  Without it, the command behaves identically to pre-1.1 (the §10.3
+  stability contract preserves the stdout bytes).
+- `--nested` — acknowledge an outer `AGENTS.md` detected in an
+  ancestor directory and write an intentional inner override to the
+  target. Bypasses the outer-detection refuse only; still refuses to
+  clobber an existing target file without `--force`. Use this when
+  adopting the polyglot Pattern A layout (jellycell's guide at the
+  Python subtree root, repo-wide `AGENTS.md` at the git root).
+- `--force` — bypass every check: outer-AGENTS-detection refuse *and*
+  overwrite an existing `AGENTS.md` / `CLAUDE.md` at the target.
 - `--agents-only` — write only `AGENTS.md`, skip the `CLAUDE.md` stub.
   Useful when Claude Code isn't in the mix.
+
+| Target state                                       | Flag needed            |
+| -------------------------------------------------- | ---------------------- |
+| No outer AGENTS.md, no existing target file        | (none)                 |
+| Outer AGENTS.md exists, no existing inner file     | `--nested`             |
+| Existing target file (any scope)                   | `--force`              |
+| Outer AGENTS.md exists + existing inner target     | `--nested --force`     |
 
 **Monorepo safety**: `--write` walks up the directory tree looking for
 an existing `AGENTS.md` (stopping at the first `.git/` directory,
 `$HOME`, or filesystem root). If one is found in an ancestor, the
-command refuses to write an inner duplicate and prints a hint pointing
-at `--force`. See [project-layout.md](project-layout.md#multi-project--monorepo-pattern)
-for the recommended monorepo layout.
+command refuses by default and prints a hint pointing at `--nested`
+(for intentional inner scoping) or `--force` (to bypass all checks).
+See [project-layout.md](project-layout.md#multi-project--monorepo-pattern)
+for the recommended monorepo layouts.
 
 **What's in AGENTS.md**: the same content as `jellycell prompt` stdout,
 with the MyST `:::{important}` directive rewritten as a plain-markdown
