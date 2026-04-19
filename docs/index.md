@@ -24,7 +24,7 @@ Every cell's output is keyed on `(source, deps, env)`. Re-run is a cache hit; ch
 :::
 
 :::{grid-item-card} Agent-friendly
-Every command supports `--json`; `jellycell prompt` emits a canonical guide so Claude Code / OpenAI agents drop in without onboarding.
+Every command supports `--json`. `jellycell prompt --write` drops `AGENTS.md` + `CLAUDE.md` at your repo root so Cursor, Codex, Copilot, Claude Code, and Aider pick up the canonical agent guide automatically.
 :::
 ::::
 

@@ -6,6 +6,81 @@ Versioning policy: **patch bumps are cheap**. See [docs/development/releasing.md
 
 ## [Unreleased]
 
+## [1.1.0] — 2026-04-18
+
+Agentic-IDE reach + AI-friendly docs delivery. No code breaks anything
+under v1.0; §10.3 stdout bytes are preserved (no snapshot regen).
+
+### Features — agent surface
+
+- **`jellycell prompt --write [DIR]`** drops `AGENTS.md` + a 1-line
+  `CLAUDE.md` stub into the target directory (defaults to cwd).
+  `AGENTS.md` is the full `jellycell prompt` content with the MyST
+  `:::{important}` directive rewritten as a GitHub-rendered blockquote;
+  `CLAUDE.md` points at `AGENTS.md` so Claude Code picks it up via its
+  own convention. Single command, every AGENTS.md-native tool (Cursor,
+  Codex, GitHub Copilot, Aider, Zed, Warp, Windsurf, Junie, RooCode,
+  Gemini CLI, …) now sees jellycell's §10.3 guide. `--force` overwrites
+  existing files; `--agents-only` skips the `CLAUDE.md` stub.
+- **Monorepo-safe scatter prevention**: `jellycell prompt --write`
+  walks ancestors for an outer `AGENTS.md` (stops at `.git/`, `$HOME`,
+  or filesystem root) and refuses to write a duplicate inside unless
+  `--force` is passed. Agentic tools compose nested AGENTS.md files —
+  one file at the repo root covers every jellycell project underneath.
+- **`jellycell init` AGENTS.md hint**: end-of-init, `jellycell init`
+  detects whether an outer `AGENTS.md` already covers the target and
+  prints either `✓ agent guide detected at ../AGENTS.md` or a tip
+  showing how to add one via `jellycell prompt --write`. Advisory
+  only — `init` never writes `AGENTS.md` itself, no scaffold pollution.
+  `InitReport.agents_md_hint: str | None` exposes the detected path in
+  `--json` mode (§10.1 additive; no `schema_version` bump).
+- **`PromptWriteReport`** pydantic model for `jellycell prompt --write
+  --json` with `schema_version: 1`, `written`, `skipped`,
+  `outer_agents_md`. Pinned by `tests/integration/test_json_schemas.py`.
+
+### Docs — AI-friendly delivery
+
+- **`sphinx-llms-txt` integration**. The Sphinx build now emits
+  `docs/_build/html/llms.txt` (curated index of all project pages) and
+  `llms-full.txt` (full markdown concat). Read the Docs auto-serves
+  them at `https://jellycell.readthedocs.io/llms.txt` and
+  `/llms-full.txt` — single URLs that any agent (Cursor / Claude Code
+  / Codex with WebFetch) can ingest for up-to-date jellycell context.
+  Autodoc2-generated apidocs excluded from `llms.txt` to keep the index
+  curated; they flow through to `llms-full.txt`.
+- **`context7.json`** at repo root registers jellycell with the
+  [Context7](https://context7.com) MCP docs service. Users who run the
+  Context7 MCP (`@upstash/context7-mcp` or `https://mcp.context7.com/mcp`)
+  get jellycell's docs queryable alongside every other indexed library
+  without per-library MCP installs. **User-initiated step**: submit the
+  repo at [context7.com/add-library](https://context7.com/add-library)
+  to kick off indexing.
+
+### Docs — alignment
+
+- **`docs/getting-started.md`** — new "Bootstrap agent DX" step after
+  `jellycell init`; "Agent onboarding" section rewritten around
+  `--write`.
+- **`docs/index.md`** — "Agent-friendly" card updated with the new
+  one-command flow.
+- **`docs/project-layout.md`** — new "Multi-project / monorepo
+  pattern" section documenting the one-AGENTS.md-at-repo-root
+  convention + how jellycell's tooling enforces it.
+- **`docs/cli-reference.md`** — full `--write` / `--force` /
+  `--agents-only` documentation + monorepo-safety note.
+- **README.md** — quickstart gains the `jellycell prompt --write`
+  line; "Agents drop in without onboarding" bullet updated.
+
+### Contracts (§10)
+
+- §10.1 `--json` schemas: `InitReport` gains `agents_md_hint: str | None`
+  (additive, no bump). `PromptWriteReport` is new.
+- §10.2 cache key: unchanged. `MINOR_VERSION` stays at 1.
+- §10.3 agent guide content: **unchanged**. `jellycell prompt` stdout
+  bytes are byte-identical; the snapshot at
+  `tests/unit/test_prompt_snapshot/test_prompt_snapshot.yml` is not
+  regenerated.
+
 ## [1.0.0] — 2026-04-18
 
 First public release.
@@ -165,5 +240,6 @@ Each contract has a documented ceremony for changes — see [docs/development/re
 - `cache prune` removes manifests but not blobs. diskcache deduplicates content-addressed storage so disk impact is small; a ref-counted blob GC lands in a future release.
 - `jc.cache` argument hashing uses pickle. Unpicklable inputs raise clearly at call time; a JSON-default fallback can come later.
 
-[Unreleased]: https://github.com/random-walks/jellycell/compare/v1.0.0...HEAD
+[Unreleased]: https://github.com/random-walks/jellycell/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/random-walks/jellycell/releases/tag/v1.1.0
 [1.0.0]: https://github.com/random-walks/jellycell/releases/tag/v1.0.0

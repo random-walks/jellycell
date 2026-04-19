@@ -128,6 +128,15 @@ class TestSchemas:
             r.close()
         data_regression.check(_shape(report.model_dump()), basename="run_report")
 
+    def test_prompt_write(self, tmp_path: Path, data_regression: pytest.FixtureRequest) -> None:
+        # .git marker prevents the outer-AGENTS.md walk from wandering.
+        (tmp_path / ".git").mkdir()
+        _snapshot(
+            data_regression,
+            ["--json", "prompt", "--write", str(tmp_path)],
+            basename="prompt_write",
+        )
+
     def test_render(self, tmp_path: Path, data_regression: pytest.FixtureRequest) -> None:
         project = _project(tmp_path)
         nb = project.notebooks_dir / "nb.py"

@@ -17,7 +17,7 @@ jellycell keeps the things that made notebooks useful (cell-level thinking, rich
 - **Outputs are content-addressed.** Every cell's output is keyed on `(normalized source, declared + detected deps, lockfile-aware env hash)`. Re-run → cache hit. Change a cell → only that cell + its dependents re-execute. Outputs live in a sidecar cache, not in your commits.
 - **Provenance is first-class.** Every artifact is tagged with the cell + notebook + cache key that produced it. `jc.load("artifacts/foo.json")` implicitly declares the dep edge. No hand-written DAGs.
 - **HTML reports are free.** `jellycell render` produces byte-identical static HTML; `jellycell view` serves the same pages live with SSE-backed reload while you edit. Side-nav, artifact browser, no build step.
-- **Agents drop in without onboarding.** Every CLI command supports `--json` with a versioned schema. `jellycell prompt` emits a canonical agent guide — the exact instructions Claude Code or your own agent needs to work in the project without hand-holding.
+- **Agents drop in without onboarding.** Every CLI command supports `--json` with a versioned schema. `jellycell prompt --write` drops `AGENTS.md` + `CLAUDE.md` at your repo root so Cursor, Codex, GitHub Copilot, Claude Code, Aider, and every other AGENTS.md-native tool picks up the canonical agent guide with zero config.
 
 ## Install
 
@@ -33,6 +33,9 @@ Requires Python ≥ 3.11.
 ```bash
 jellycell init my-project
 cd my-project
+
+# (Once per repo) drop AGENTS.md + CLAUDE.md so Cursor / Codex / Copilot / Claude Code read jellycell's agent guide
+jellycell prompt --write
 
 # Scaffold a notebook
 jellycell new tour

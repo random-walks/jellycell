@@ -1,0 +1,7 @@
+{
+  "projectTitle": "jellycell",
+  "description": "Reproducible-analysis notebook tool: plain-text .py notebooks in jupytext percent format, content-addressed per-cell output cache, live HTML viewer. Agent-friendly via `jellycell prompt` (stdout) or `jellycell prompt --write` (AGENTS.md + CLAUDE.md).",
+  "folders": ["docs/"],
+  "excludeFolders": ["docs/_build", "docs/apidocs"],
+  "previousVersions": []
+}
