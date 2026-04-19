@@ -52,6 +52,68 @@ on top if it turns out to be necessary.
   The tag is opt-in and additive; untagged notebooks are byte-for-
   byte identical to the 1.3.1 tearsheet output.
 
+## [1.3.4] — 2026-04-19
+
+`jc.table` first-run ergonomics patch — pyarrow is now shipped by
+default, and mixed-dtype object columns (common in regression
+output) round-trip instead of crashing pyarrow's parquet writer.
+Closes [#13](https://github.com/random-walks/jellycell/issues/13)
+and [#14](https://github.com/random-walks/jellycell/issues/14).
+
+### Deps — `pyarrow` is a default dependency
+
+Before 1.3.4, calling `jc.table(df)` on a clean install raised
+`ImportError: Unable to find a usable engine; tried using: 'pyarrow',
+'fastparquet'` because pandas needs a parquet engine and pyarrow
+isn't a pandas-core dep. Every user hit this on the first `jc.table`
+cell.
+
+`pyarrow>=15` moved from the `[examples]` optional extra into
+`[project].dependencies`. Rationale:
+
+- pandas 3.x is moving toward pyarrow-backed dtypes by default, so
+  pyarrow is becoming non-optional for most pandas users anyway.
+- The wheel is ~30 MB — small enough that the default-install cost
+  is outweighed by a working first-run.
+- `jc.table` is the canonical tabular primitive; a user running
+  their first notebook shouldn't have to diagnose a pandas error to
+  find out they need a separate package.
+
+Also, as a belt-and-suspenders for environments where pyarrow is
+somehow missing at runtime (forcibly uninstalled, import failure),
+`jc.table` now re-raises any `ImportError` from `to_parquet` with a
+clean message pointing at `pip install pyarrow`.
+
+### API — mixed-dtype columns auto-cast to string
+
+`jc.table` now detects object columns whose inferred dtype is
+``mixed*`` (per `pandas.api.types.infer_dtype`) and casts them to
+string before writing. Pure-string and pure-numeric columns are
+untouched.
+
+Before:
+
+```python
+df = pd.DataFrame({"var": ["x", "y"], "p": ["<.001", 0.84]})
+jc.table(df, name="ols")
+# → ArrowInvalid: Could not convert '<.001' with type str: tried to
+#   convert to double (deep in pyarrow's parquet writer).
+```
+
+After: the `p` column is cast to string before write, round-trips as
+string on `pd.read_parquet`. The information loss is minimal for the
+common case (p-values, categorical labels that may have been typed
+as numbers); callers who need a specific dtype should pre-cast
+explicitly.
+
+### Contracts (§10)
+
+- All unchanged. No cache-key, JSON schema, or agent-guide content
+  touched. The auto-cast is additive behavior that surfaces on an
+  input type that previously crashed, so it doesn't affect
+  round-trips for any DataFrame that worked in 1.3.1. Adding a
+  default dependency is a standard patch-level change.
+
 ## [1.3.3] — 2026-04-19
 
 CLI ergonomics patch — `jellycell run` and `jellycell export *` now

@@ -36,6 +36,11 @@ dependencies = [
     "jinja2>=3",
     "platformdirs>=4",
     "tomli-w>=1",
+    # pyarrow: required by jc.table for parquet serialization. Shipped by
+    # default (~30 MB wheel) so users hit a working first-run instead of
+    # an ImportError from pandas. pandas 3.x is also moving toward pyarrow-
+    # backed dtypes by default, so this is increasingly non-optional.
+    "pyarrow>=15",
 ]
 
 [project.optional-dependencies]
@@ -61,7 +66,6 @@ examples = [
     "numpy>=1.26",
     "pandas>=2.0",
     "matplotlib>=3.7",
-    "pyarrow>=15",
 ]
 all = ["jellycell[server]"]
 dev = [

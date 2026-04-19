@@ -139,14 +139,65 @@ def table(
 
     Like :func:`figure`, the default path honors ``[artifacts] layout`` and
     ``caption`` / ``notes`` / ``tags`` flow into the artifact's manifest record.
+
+    Object columns with mixed types (e.g., a p-value column holding both
+    ``"<.001"`` strings and numeric floats) are automatically cast to string
+    before serialization — pyarrow rejects mixed dtypes with a cryptic error
+    deep in the parquet writer, and the information loss of treating
+    everything-as-string is minimal for the common regression-output case.
+    Pure-string and pure-numeric object columns are left untouched.
     """
     ctx = get_context()
     stem = name or (ctx.cell_name if ctx and ctx.cell_name else "table")
     target = _resolve_out(_layout_path(ctx, stem, "parquet"))
     target.parent.mkdir(parents=True, exist_ok=True)
-    df.to_parquet(target)
+    normalized = _normalize_object_columns(df)
+    try:
+        normalized.to_parquet(target)
+    except ImportError as exc:
+        raise ImportError(
+            "jc.table requires pyarrow to serialize DataFrames to parquet. "
+            "Install with: pip install pyarrow"
+        ) from exc
     _record_artifact_metadata(target, caption=caption, notes=notes, tags=tags)
     return target
+
+
+def _normalize_object_columns(df: Any) -> Any:
+    """Auto-cast object columns with mixed dtypes to string.
+
+    pyarrow's parquet writer requires one dtype per column. Pandas stores
+    heterogeneous columns as ``object`` and pyarrow picks a dtype on write —
+    mixed float+str columns (common in regression output, where a p-value
+    cell may be either ``"<.001"`` or ``0.84``) blow up with an
+    ``ArrowInvalid`` deep in the serializer.
+
+    We detect columns where pandas' :func:`~pandas.api.types.infer_dtype`
+    returns a ``mixed*`` code and cast them to string before write. Pure-str
+    object columns and pure-numeric columns are left untouched so their
+    round-trip dtype stays faithful.
+
+    Returns a shallow copy with the normalization applied; the caller's
+    DataFrame is not mutated.
+    """
+    try:
+        import pandas as pd
+    except ImportError:
+        return df
+    if not isinstance(df, pd.DataFrame):
+        return df
+    mixed_cols = [
+        col
+        for col in df.columns
+        if df[col].dtype == object
+        and pd.api.types.infer_dtype(df[col], skipna=True).startswith("mixed")
+    ]
+    if not mixed_cols:
+        return df
+    out = df.copy()
+    for col in mixed_cols:
+        out[col] = out[col].astype("string")
+    return out
 
 
 def _record_artifact_metadata(
