@@ -55,6 +55,7 @@ docs = [
     "sphinxcontrib-typer>=0.5",
     "sphinx-design>=0.6",
     "sphinx-copybutton>=0.5",
+    "sphinx-llms-txt>=0.7",
 ]
 examples = [
     "numpy>=1.26",

@@ -18,6 +18,47 @@ my-project/
 
 All paths are configurable — see the `[paths]` section of `jellycell.toml`.
 
+## Multi-project / monorepo pattern
+
+One repo can hold several jellycell projects side by side — a
+marketing-analysis project next to a churn-model project, for instance.
+The right layout puts a single `AGENTS.md` at the **repo root**, not
+one per jellycell project:
+
+```
+my-repo/
+├── AGENTS.md                       # one agent guide covering everything
+├── CLAUDE.md                       # 3-line stub → AGENTS.md
+├── README.md
+├── pyproject.toml                  # or requirements.txt / uv.lock / ...
+├── marketing-analysis/             # a jellycell project
+│   ├── jellycell.toml
+│   ├── notebooks/
+│   ├── artifacts/
+│   └── site/
+└── churn-model/                    # another jellycell project
+    ├── jellycell.toml
+    ├── notebooks/
+    ├── artifacts/
+    └── site/
+```
+
+One AGENTS.md at repo root covers every jellycell project underneath.
+Agentic tools (Cursor, Codex, Copilot, Aider, Zed, Windsurf) compose
+nested AGENTS.md files — an outer file applies to every inner path
+unless an inner one overrides it. Jellycell's tooling is aware of this:
+
+- `jellycell init <subdir>` detects an outer `AGENTS.md` and prints
+  `✓ agent guide detected at ../AGENTS.md — Cursor / Codex / Copilot /
+  Claude Code already covered.` (instead of the usual "tip: add one").
+- `jellycell prompt --write <subdir>` refuses to scatter a duplicate
+  inside `<subdir>` when an outer `AGENTS.md` is found. Pass `--force`
+  only if you want an inner override for that subtree.
+
+The walk stops at the repo's `.git/` directory (or `$HOME`, or the
+filesystem root — whichever comes first), so AGENTS.md files sitting
+in random ancestor directories above the repo don't trip the check.
+
 ## Full `jellycell.toml` reference
 
 See [`jellycell.toml.example`](https://github.com/random-walks/jellycell/blob/main/jellycell.toml.example) in the repo root for a commented reference. Sections:

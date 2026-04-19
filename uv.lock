@@ -1242,6 +1242,7 @@ dev = [
     { name = "sphinx-autodoc2" },
     { name = "sphinx-copybutton" },
     { name = "sphinx-design" },
+    { name = "sphinx-llms-txt" },
     { name = "sphinxcontrib-typer" },
     { name = "sse-starlette" },
     { name = "starlette" },
@@ -1258,6 +1259,7 @@ docs = [
     { name = "sphinx-autodoc2" },
     { name = "sphinx-copybutton" },
     { name = "sphinx-design" },
+    { name = "sphinx-llms-txt" },
     { name = "sphinxcontrib-typer" },
 ]
 examples = [
@@ -1320,6 +1322,8 @@ requires-dist = [
     { name = "sphinx-copybutton", marker = "extra == 'docs'", specifier = ">=0.5" },
     { name = "sphinx-design", marker = "extra == 'dev'", specifier = ">=0.6" },
     { name = "sphinx-design", marker = "extra == 'docs'", specifier = ">=0.6" },
+    { name = "sphinx-llms-txt", marker = "extra == 'dev'", specifier = ">=0.7" },
+    { name = "sphinx-llms-txt", marker = "extra == 'docs'", specifier = ">=0.7" },
     { name = "sphinxcontrib-typer", marker = "extra == 'dev'", specifier = ">=0.5" },
     { name = "sphinxcontrib-typer", marker = "extra == 'docs'", specifier = ">=0.5" },
     { name = "sse-starlette", marker = "extra == 'all'", specifier = ">=2" },
@@ -3197,6 +3201,19 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/13/7b/804f311da4663a4aecc6cf7abd83443f3d4ded970826d0c958edc77d4527/sphinx_design-0.7.0.tar.gz", hash = "sha256:d2a3f5b19c24b916adb52f97c5f00efab4009ca337812001109084a740ec9b7a", size = 2203582, upload-time = "2026-01-19T13:12:53.297Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/30/cf/45dd359f6ca0c3762ce0490f681da242f0530c49c81050c035c016bfdd3a/sphinx_design-0.7.0-py3-none-any.whl", hash = "sha256:f82bf179951d58f55dca78ab3706aeafa496b741a91b1911d371441127d64282", size = 2220350, upload-time = "2026-01-19T13:12:51.077Z" },
+]
+
+[[package]]
+name = "sphinx-llms-txt"
+version = "0.7.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "sphinx", version = "9.0.4", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "sphinx", version = "9.1.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/d3/dd/6d7fa7d6f51ee20959f1734cdbd62e99880dcd87576ce554d4bb8aaabdd7/sphinx_llms_txt-0.7.1.tar.gz", hash = "sha256:b5cefec19d3fd56670aa4a28917d17d32b22c61a9feadbab8564ad11e932f5c0", size = 32464, upload-time = "2025-12-16T22:31:26.379Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c2/17/a751012a0910e3c3afa41a5d40bdf00132466d072d25891ae7ec1f70dafd/sphinx_llms_txt-0.7.1-py3-none-any.whl", hash = "sha256:8f1cfcfe5897f5be118792f33f73eeb04cbbf66fc60c4c15982ec59252522263", size = 22545, upload-time = "2025-12-16T22:31:25.075Z" },
 ]
 
 [[package]]

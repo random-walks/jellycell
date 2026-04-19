@@ -26,6 +26,7 @@ extensions = [
     "sphinx_design",
     "sphinx_copybutton",
     "sphinxcontrib.typer",
+    "sphinx_llms_txt",
 ]
 
 source_suffix = {
@@ -92,6 +93,21 @@ intersphinx_mapping = {
 
 copybutton_prompt_text = r"^\$ |^> "
 copybutton_prompt_is_regexp = True
+
+# -- sphinx-llms-txt ---------------------------------------------------------
+
+llms_txt_title = "jellycell"
+llms_txt_summary = (
+    "Reproducible-analysis notebook tool: plain-text .py notebooks in "
+    "jupytext percent format, content-addressed per-cell output cache, "
+    "live HTML viewer. The §10.3 agent guide is also available via "
+    "`jellycell prompt` (stdout) or `jellycell prompt --write` (AGENTS.md + "
+    "CLAUDE.md stub at your repo root)."
+)
+# The autodoc2 apidocs balloon the curated index; exclude from llms.txt but
+# let them flow through to llms-full.txt so agents pulling the full form
+# get the whole surface.
+llms_txt_exclude = ["apidocs/**"]
 
 # -- Nitpicky ----------------------------------------------------------------
 

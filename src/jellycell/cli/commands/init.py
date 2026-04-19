@@ -10,6 +10,7 @@ from pydantic import BaseModel
 from rich.console import Console
 
 from jellycell.cli.app import GlobalOptions, app
+from jellycell.cli.commands.prompt import _find_outer_agents_md
 from jellycell.config import default_config
 
 _console = Console()
@@ -22,6 +23,7 @@ class InitReport(BaseModel):
     path: str
     name: str
     created: list[str]
+    agents_md_hint: str | None = None
 
 
 @app.command("init", help="Scaffold a new jellycell project.")
@@ -53,7 +55,13 @@ def init(
             keep.write_text("", encoding="utf-8")
         created.append(f"{d}/")
 
-    report = InitReport(path=str(target), name=project_name, created=created)
+    outer = _find_outer_agents_md(target)
+    report = InitReport(
+        path=str(target),
+        name=project_name,
+        created=created,
+        agents_md_hint=str(outer) if outer else None,
+    )
 
     if opts.json_output:
         typer.echo(report.model_dump_json())
@@ -61,6 +69,16 @@ def init(
         _console.print(f"[green]ok[/green] initialized jellycell project at {target}")
         for name_item in report.created:
             _console.print(f"  [dim]+ {name_item}[/dim]")
+        if outer is not None:
+            _console.print(
+                f"  [dim]✓ agent guide detected at {outer} — "
+                "Cursor / Codex / Copilot / Claude Code already covered.[/dim]"
+            )
+        else:
+            _console.print(
+                "  [dim]tip: run 'jellycell prompt --write <repo-root>' to drop "
+                "AGENTS.md + CLAUDE.md so agentic tools read jellycell's guide.[/dim]"
+            )
 
 
 def _fail(opts: GlobalOptions, msg: str) -> None:

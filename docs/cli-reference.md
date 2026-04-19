@@ -148,8 +148,36 @@ jellycell new analysis        # creates notebooks/analysis.py
 
 ### `jellycell prompt`
 
-Emit the canonical [agent guide](agent-guide.md) to stdout.
+Emit the canonical [agent guide](agent-guide.md) to stdout, or install
+it as `AGENTS.md` + `CLAUDE.md` with `--write`.
 
 ```bash
-jellycell prompt | pbcopy
+jellycell prompt | pbcopy                    # stdout — pipe into your agent
+jellycell prompt --write                     # drop AGENTS.md + CLAUDE.md in cwd
+jellycell prompt --write /path/to/repo-root  # target a specific directory
+jellycell prompt --write --agents-only       # skip the CLAUDE.md stub
+jellycell prompt --write --force             # overwrite existing files
 ```
+
+Flags:
+
+- `--write` — switch from stdout emission to disk-install mode. Without
+  it, the command behaves identically to pre-1.1 (§10.3 stability
+  contract preserves the stdout bytes).
+- `--force` — required to overwrite an existing `AGENTS.md` or
+  `CLAUDE.md`, or to write an inner override when an outer `AGENTS.md`
+  is detected in an ancestor directory.
+- `--agents-only` — write only `AGENTS.md`, skip the `CLAUDE.md` stub.
+  Useful when Claude Code isn't in the mix.
+
+**Monorepo safety**: `--write` walks up the directory tree looking for
+an existing `AGENTS.md` (stopping at the first `.git/` directory,
+`$HOME`, or filesystem root). If one is found in an ancestor, the
+command refuses to write an inner duplicate and prints a hint pointing
+at `--force`. See [project-layout.md](project-layout.md#multi-project--monorepo-pattern)
+for the recommended monorepo layout.
+
+**What's in AGENTS.md**: the same content as `jellycell prompt` stdout,
+with the MyST `:::{important}` directive rewritten as a plain-markdown
+blockquote so GitHub renders it natively. All other markdown is
+preserved verbatim.
