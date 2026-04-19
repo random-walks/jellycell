@@ -387,4 +387,164 @@ class TestHeaderAndFooter:
         )
         text = out.read_text(encoding="utf-8")
         assert "Auto-generated" in text
+
+
+class TestTearsheetTagFiltering:
+    """Artifact filtering via the ``tearsheet`` tag (closes #15).
+
+    When no cell/artifact carries the tag, behavior is unchanged (everything
+    renderable inlines). When the tag appears anywhere in the notebook's
+    artifacts or cell metadata, the exporter switches to opt-in mode and
+    includes only artifacts tagged tearsheet (or produced by a tagged cell).
+    """
+
+    _NOTEBOOK_TWO_FIGS = (
+        "# /// script\n# dependencies = []\n# ///\n\n"
+        "# %% [markdown]\n# # Filtering\n\n"
+        '# %% tags=["jc.figure", "name=main"]\n'
+        "pass\n\n"
+        '# %% tags=["jc.figure", "name=debug"]\n'
+        "pass\n"
+    )
+
+    def _write_png(self, target: Path) -> None:
+        # Same 1x1 transparent PNG fixture used elsewhere.
+        payload = bytes.fromhex(
+            "89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4"
+            "89000000094944415478da63000100000500010d0a2db40000000049454e44ae"
+            "426082"
+        )
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(payload)
+
+    def _bootstrap_two_figs(
+        self, tmp_path: Path
+    ) -> tuple[Path, Path, ArtifactRecord, ArtifactRecord]:
+        project = _bootstrap_project(tmp_path)
+        nb = _write_notebook(project, self._NOTEBOOK_TWO_FIGS)
+        main = project / "artifacts" / "main.png"
+        debug = project / "artifacts" / "debug.png"
+        self._write_png(main)
+        self._write_png(debug)
+        main_art = ArtifactRecord(
+            path="artifacts/main.png", sha256="a" * 64, size=main.stat().st_size
+        )
+        debug_art = ArtifactRecord(
+            path="artifacts/debug.png", sha256="b" * 64, size=debug.stat().st_size
+        )
+        return project, nb, main_art, debug_art
+
+    def test_no_tags_anywhere_means_include_all(self, tmp_path: Path) -> None:
+        """Regression: legacy notebooks still include every renderable artifact."""
+        project, nb, main_art, debug_art = self._bootstrap_two_figs(tmp_path)
+        manifests = {
+            "nb:1": _make_manifest("nb:1", artifacts=[main_art]),
+            "nb:2": _make_manifest("nb:2", artifacts=[debug_art]),
+        }
+        out = export_tearsheet(
+            nb,
+            manifests_by_cell=manifests,
+            output_path=project / "manuscripts" / "tearsheets" / "nb.md",
+            project_root=project,
+        )
+        text = out.read_text(encoding="utf-8")
+        assert "main.png" in text
+        assert "debug.png" in text
+
+    def test_artifact_level_tag_filters(self, tmp_path: Path) -> None:
+        """``jc.figure(tags=['tearsheet'])`` on one artifact excludes the untagged one."""
+        project, nb, main_art, debug_art = self._bootstrap_two_figs(tmp_path)
+        main_art.tags = ["tearsheet"]
+        manifests = {
+            "nb:1": _make_manifest("nb:1", artifacts=[main_art]),
+            "nb:2": _make_manifest("nb:2", artifacts=[debug_art]),
+        }
+        out = export_tearsheet(
+            nb,
+            manifests_by_cell=manifests,
+            output_path=project / "manuscripts" / "tearsheets" / "nb.md",
+            project_root=project,
+        )
+        text = out.read_text(encoding="utf-8")
+        assert "main.png" in text
+        # Debug figure excluded — untagged artifact under opt-in mode.
+        assert "debug.png" not in text
+
+    def test_cell_level_tag_filters(self, tmp_path: Path) -> None:
+        """Cell-level ``tearsheet`` tag marks every artifact from that cell."""
+        project = _bootstrap_project(tmp_path)
+        nb = _write_notebook(
+            project,
+            "# /// script\n# dependencies = []\n# ///\n\n"
+            "# %% [markdown]\n# # Filtering\n\n"
+            '# %% tags=["jc.figure", "name=main", "tearsheet"]\n'
+            "pass\n\n"
+            '# %% tags=["jc.figure", "name=debug"]\n'
+            "pass\n",
+        )
+        main = project / "artifacts" / "main.png"
+        debug = project / "artifacts" / "debug.png"
+        self._write_png(main)
+        self._write_png(debug)
+        main_art = ArtifactRecord(
+            path="artifacts/main.png", sha256="a" * 64, size=main.stat().st_size
+        )
+        debug_art = ArtifactRecord(
+            path="artifacts/debug.png", sha256="b" * 64, size=debug.stat().st_size
+        )
+        manifests = {
+            "nb:1": _make_manifest("nb:1", artifacts=[main_art]),
+            "nb:2": _make_manifest("nb:2", artifacts=[debug_art]),
+        }
+        out = export_tearsheet(
+            nb,
+            manifests_by_cell=manifests,
+            output_path=project / "manuscripts" / "tearsheets" / "nb.md",
+            project_root=project,
+        )
+        text = out.read_text(encoding="utf-8")
+        assert "main.png" in text
+        # Filter engaged because cell 1 has the tag; debug cell (no tag) excluded.
+        assert "debug.png" not in text
+
+    def test_json_artifacts_respect_filter(self, tmp_path: Path) -> None:
+        """Filtering works identically for JSON summaries, not just images."""
+        project = _bootstrap_project(tmp_path)
+        nb = _write_notebook(
+            project,
+            "# /// script\n# dependencies = []\n# ///\n\n"
+            '# %% tags=["jc.step", "name=report"]\n'
+            "pass\n\n"
+            '# %% tags=["jc.step", "name=diagnostic"]\n'
+            "pass\n",
+        )
+        (project / "artifacts").mkdir(exist_ok=True)
+        (project / "artifacts" / "headline.json").write_text(
+            json.dumps({"value": 42}), encoding="utf-8"
+        )
+        (project / "artifacts" / "scratch.json").write_text(
+            json.dumps({"debug": True}), encoding="utf-8"
+        )
+        headline = ArtifactRecord(
+            path="artifacts/headline.json",
+            sha256="a" * 64,
+            size=10,
+            tags=["tearsheet"],
+        )
+        scratch = ArtifactRecord(path="artifacts/scratch.json", sha256="b" * 64, size=10)
+        manifests = {
+            "nb:0": _make_manifest("nb:0", artifacts=[headline]),
+            "nb:1": _make_manifest("nb:1", artifacts=[scratch]),
+        }
+        out = export_tearsheet(
+            nb,
+            manifests_by_cell=manifests,
+            output_path=project / "manuscripts" / "tearsheets" / "nb.md",
+            project_root=project,
+        )
+        text = out.read_text(encoding="utf-8")
+        # Headline JSON is flattened into a table.
+        assert "`value`" in text
+        # Debug JSON not rendered at all.
+        assert "`debug`" not in text
         assert "Regenerating overwrites this file" in text

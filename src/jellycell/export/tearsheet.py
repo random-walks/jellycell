@@ -18,6 +18,27 @@ Inclusion rules:
 - Everything else (plain ``step`` cells, parquet artifacts, stream output,
   display-data blobs) is skipped.
 
+## Artifact filtering — ``tearsheet`` tag (opt-in)
+
+For notebooks with many intermediate debug artifacts, mark the subset
+that belongs on the polished tearsheet with the ``tearsheet`` tag,
+either on the cell or on the artifact:
+
+    # Cell-level tag — all artifacts from this cell are included.
+    # %% tags=["jc.figure", "name=fig1", "tearsheet"]
+    jc.figure("artifacts/headline.png", caption="Main result")
+
+    # Or artifact-level — fine-grained (a cell can produce multiple
+    # artifacts, only some tearsheet-worthy):
+    jc.save(debug_dict, "artifacts/debug.json")                # excluded
+    jc.save(headline, "artifacts/headline.json",
+            tags=["tearsheet"])                                # included
+
+Filtering is auto-enabled when **any** artifact in the run carries
+the ``tearsheet`` tag (cell- or artifact-level). A notebook with no
+tagging behaves exactly as before — every renderable artifact is
+inlined — so the feature is strictly additive.
+
 Default output is ``manuscripts/tearsheets/<stem>.md``. That subfolder
 convention keeps auto-generated files out of the hand-authored work that
 lives at the root of ``manuscripts/`` — paper drafts, decision memos,
@@ -37,6 +58,7 @@ from jellycell.format import parse as format_parse
 from jellycell.format.cells import Cell, Notebook
 
 _IMAGE_EXTS = frozenset({"png", "svg", "jpg", "jpeg", "gif", "webp"})
+_TEARSHEET_TAG = "tearsheet"
 
 
 def export_tearsheet(
@@ -58,6 +80,8 @@ def export_tearsheet(
     stem = notebook_path.stem
     notebook_rel = notebook_path.resolve().relative_to(project_root.resolve())
     out_dir = output_path.parent.resolve()
+    tearsheet_cell_ids = _cells_tagged_tearsheet(nb, stem)
+    tearsheet_only = _any_tearsheet_tag(manifests_by_cell, tearsheet_cell_ids)
 
     lines: list[str] = []
     title, title_cell_ordinal = _extract_title(nb, fallback=stem)
@@ -76,6 +100,8 @@ def export_tearsheet(
             out_dir=out_dir,
             project_root=project_root,
             skip_title_ordinal=title_cell_ordinal,
+            tearsheet_only=tearsheet_only,
+            tearsheet_cell_ids=tearsheet_cell_ids,
         )
         if cell_lines:
             lines.extend(cell_lines)
@@ -93,6 +119,56 @@ def export_tearsheet(
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text("\n".join(lines).rstrip() + "\n", encoding="utf-8")
     return output_path
+
+
+def _cells_tagged_tearsheet(nb: Notebook, stem: str) -> set[str]:
+    """Return cell_ids whose raw metadata tags include ``tearsheet``.
+
+    Tags at the cell level mark every artifact the cell produces as
+    tearsheet-worthy. Complements artifact-level ``tags=["tearsheet"]``
+    on ``jc.*`` calls, which is finer-grained.
+    """
+    out: set[str] = set()
+    for ordinal, cell in enumerate(nb.cells):
+        raw_tags = cell.metadata.get("tags", [])
+        if isinstance(raw_tags, list) and _TEARSHEET_TAG in raw_tags:
+            out.add(f"{stem}:{ordinal}")
+    return out
+
+
+def _any_tearsheet_tag(
+    manifests_by_cell: dict[str, Manifest], tearsheet_cell_ids: set[str]
+) -> bool:
+    """Determine whether tag-based filtering should kick in for this notebook.
+
+    Returns ``True`` when at least one cell or artifact carries the
+    ``tearsheet`` tag — in which case the exporter includes only tagged
+    artifacts. When nothing is tagged, we keep the legacy include-everything
+    behavior (strictly additive upgrade).
+    """
+    if tearsheet_cell_ids:
+        return True
+    for manifest in manifests_by_cell.values():
+        for art in manifest.artifacts:
+            if _TEARSHEET_TAG in art.tags:
+                return True
+    return False
+
+
+def _artifact_passes_filter(
+    art: Any, cell_id: str, tearsheet_only: bool, tearsheet_cell_ids: set[str]
+) -> bool:
+    """Return whether ``art`` should be inlined given the current filter.
+
+    When ``tearsheet_only`` is off, everything passes — legacy behavior.
+    When on, the artifact must either carry the ``tearsheet`` tag itself
+    or belong to a cell whose metadata tags include it.
+    """
+    if not tearsheet_only:
+        return True
+    if _TEARSHEET_TAG in art.tags:
+        return True
+    return cell_id in tearsheet_cell_ids
 
 
 def _extract_title(nb: Notebook, *, fallback: str) -> tuple[str, int | None]:
@@ -147,6 +223,8 @@ def _render_cell(
     out_dir: Path,
     project_root: Path,
     skip_title_ordinal: int | None,
+    tearsheet_only: bool,
+    tearsheet_cell_ids: set[str],
 ) -> list[str]:
     """Render one cell into tearsheet lines. Empty list = skip."""
     if cell.cell_type == "markdown":
@@ -154,15 +232,35 @@ def _render_cell(
     if cell.cell_type != "code":
         return []
 
-    manifest = manifests_by_cell.get(f"{stem}:{ordinal}")
+    cell_id = f"{stem}:{ordinal}"
+    manifest = manifests_by_cell.get(cell_id)
     lines: list[str] = []
 
     if cell.spec.kind == "setup":
         lines.extend(_render_setup_cell(cell))
 
     if manifest is not None:
-        lines.extend(_render_image_artifacts(cell, manifest, out_dir, project_root))
-        lines.extend(_render_json_artifacts(cell, manifest, project_root))
+        lines.extend(
+            _render_image_artifacts(
+                cell,
+                manifest,
+                out_dir,
+                project_root,
+                cell_id=cell_id,
+                tearsheet_only=tearsheet_only,
+                tearsheet_cell_ids=tearsheet_cell_ids,
+            )
+        )
+        lines.extend(
+            _render_json_artifacts(
+                cell,
+                manifest,
+                project_root,
+                cell_id=cell_id,
+                tearsheet_only=tearsheet_only,
+                tearsheet_cell_ids=tearsheet_cell_ids,
+            )
+        )
 
     return lines
 
@@ -196,7 +294,14 @@ def _render_setup_cell(cell: Cell) -> list[str]:
 
 
 def _render_image_artifacts(
-    cell: Cell, manifest: Manifest, out_dir: Path, project_root: Path
+    cell: Cell,
+    manifest: Manifest,
+    out_dir: Path,
+    project_root: Path,
+    *,
+    cell_id: str,
+    tearsheet_only: bool,
+    tearsheet_cell_ids: set[str],
 ) -> list[str]:
     """Inline each image artifact with optional caption/notes/tags trailers.
 
@@ -214,6 +319,8 @@ def _render_image_artifacts(
     """
     lines: list[str] = []
     for art in manifest.artifacts:
+        if not _artifact_passes_filter(art, cell_id, tearsheet_only, tearsheet_cell_ids):
+            continue
         ext = art.path.rsplit(".", 1)[-1].lower() if "." in art.path else ""
         if ext not in _IMAGE_EXTS:
             continue
@@ -231,7 +338,15 @@ def _render_image_artifacts(
     return lines
 
 
-def _render_json_artifacts(cell: Cell, manifest: Manifest, project_root: Path) -> list[str]:
+def _render_json_artifacts(
+    cell: Cell,
+    manifest: Manifest,
+    project_root: Path,
+    *,
+    cell_id: str,
+    tearsheet_only: bool,
+    tearsheet_cell_ids: set[str],
+) -> list[str]:
     """Flatten JSON artifacts into a two-column table.
 
     Label precedence: explicit ``caption`` from the ``jc.save(..., caption=...)``
@@ -242,6 +357,8 @@ def _render_json_artifacts(cell: Cell, manifest: Manifest, project_root: Path) -
     _ = cell
     lines: list[str] = []
     for art in manifest.artifacts:
+        if not _artifact_passes_filter(art, cell_id, tearsheet_only, tearsheet_cell_ids):
+            continue
         if not art.path.endswith(".json"):
             continue
         abs_path = project_root / art.path

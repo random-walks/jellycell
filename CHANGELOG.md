@@ -6,6 +6,52 @@ Versioning policy: **patch bumps are cheap**. See [docs/development/releasing.md
 
 ## [Unreleased]
 
+## [1.3.5] — 2026-04-19
+
+Tearsheet artifact filtering — scope a noisy notebook's tearsheet to
+the artifacts that actually belong there, via a declarative
+``tearsheet`` tag. Closes
+[#15](https://github.com/random-walks/jellycell/issues/15).
+
+### Export — ``tearsheet`` tag opt-in
+
+Notebooks with many intermediate debug artifacts previously produced
+noisy tearsheets; cleaning up required either deleting intermediate
+files or hand-editing the generated markdown (both lost on
+regeneration). Now you can mark the polished subset with a
+``tearsheet`` tag at either granularity:
+
+```python
+# Cell-level — every artifact from this cell is included.
+# %% tags=["jc.figure", "name=fig1", "tearsheet"]
+jc.figure("artifacts/headline.png", caption="Main result")
+
+# Or artifact-level — fine-grained (a cell can produce many artifacts,
+# only some tearsheet-worthy):
+jc.save(debug_dict, "artifacts/debug.json")                  # excluded
+jc.save(headline, "artifacts/headline.json",
+        tags=["tearsheet"])                                  # included
+```
+
+Filtering is **auto-enabled** when any artifact in the run carries
+the tag (cell- or artifact-level). A notebook with no tagging
+behaves exactly as before — every renderable artifact is inlined.
+
+### Why tag-based over CLI flag
+
+We considered a ``--include-artifacts`` glob flag for one-off
+exports. Tag-based is declarative and persistent: the notebook
+self-documents which artifacts are tearsheet-worthy, and every
+subsequent ``jellycell export tearsheet`` produces the same output
+without re-typing globs. A follow-up minor can layer a CLI override
+on top if it turns out to be necessary.
+
+### Contracts (§10)
+
+- All unchanged. No cache-key / JSON schema / agent-guide touches.
+  The tag is opt-in and additive; untagged notebooks are byte-for-
+  byte identical to the 1.3.1 tearsheet output.
+
 ## [1.3.1] — 2026-04-19
 
 Docs patch — fixes a self-contradicting pnpm wrapper recipe
