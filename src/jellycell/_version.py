@@ -16,7 +16,7 @@ See CLAUDE.md and spec §10 for the full contract.
 
 from __future__ import annotations
 
-__version__ = "1.2.0"
+__version__ = "1.3.0"
 
 MINOR_VERSION: int = 1
 """Spec §10.2 cache-key counter. Bump on any cache/hashing behavior change.

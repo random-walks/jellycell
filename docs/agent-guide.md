@@ -42,11 +42,13 @@ each with its own `jellycell.toml` in a subdirectory. Caches, artifacts, and
 `site/` output stay scoped to each project's subtree; one `AGENTS.md` at the
 root covers every project inside. `jellycell init <subdir>` and
 `jellycell prompt --write <subdir>` are monorepo-aware — they detect an outer
-`AGENTS.md` and refuse to scatter duplicates without `--force`. From the
-monorepo root, run commands via `jellycell run <subdir>/notebooks/foo.py`
-or `jellycell --project <subdir> render`. See
-[project-layout](project-layout.md#multi-project--monorepo-pattern) for the
-full convention.
+`AGENTS.md` and refuse to scatter duplicates by default. Pass `--nested` for
+intentional inner scoping (polyglot pattern: jellycell's guide at the Python
+subtree, repo-wide `AGENTS.md` at the git root) or `--force` to bypass all
+checks. From the monorepo root, run commands via
+`jellycell run <subdir>/notebooks/foo.py` or `jellycell --project <subdir>
+render`. See [project-layout](project-layout.md#multi-project--monorepo-pattern)
+for the full convention including polyglot patterns and pnpm script recipes.
 
 ## File format
 

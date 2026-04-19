@@ -6,6 +6,89 @@ Versioning policy: **patch bumps are cheap**. See [docs/development/releasing.md
 
 ## [Unreleased]
 
+## [1.3.0] — 2026-04-19
+
+Polyglot UX fixes from real-world dogfood: a new `--nested` flag that
+removes a `--force` misnomer, plus docs that actually describe the
+two legitimate AGENTS.md placements instead of framing one as a trap.
+
+### Features — `jellycell prompt --write --nested`
+
+- **New `--nested` flag**. Acknowledges an outer `AGENTS.md` detected
+  in an ancestor and writes an intentional inner override at the
+  target without needing `--force`. Still refuses to clobber an
+  existing target file (use `--force` for that). Semantics:
+
+  | Target state                                      | Flag       |
+  | ------------------------------------------------- | ---------- |
+  | No outer, no existing target file                 | (none)     |
+  | Outer AGENTS.md exists, no existing inner file    | `--nested` |
+  | Existing target file (any scope)                  | `--force`  |
+  | Outer AGENTS.md + existing inner target           | `--nested --force` |
+
+  Before 1.3.0, adopting the polyglot "nested" layout required
+  `--force`, which semantically implied "clobber everything" and
+  lumped two distinct intents (acknowledge outer / overwrite target)
+  into one flag. `--nested` separates them.
+
+- **`PromptWriteReport.nested: bool`** field added to the `--json`
+  output (§10.1 additive — no `schema_version` bump). `true` when
+  `--nested` was passed AND an outer `AGENTS.md` was detected;
+  `false` otherwise (including on `--force`-only writes that
+  happened to suppress the same check).
+
+- **Error message on outer-detection** now surfaces both escape
+  hatches: "Re-run with `--nested` to intentionally add an inner
+  override for this subtree, or `--force` to bypass all checks."
+
+### Docs — polyglot patterns
+
+- **`docs/project-layout.md` polyglot subsection** rewritten around
+  two defensible AGENTS.md placements:
+  - *Pattern A (recommended for polyglot)* — `AGENTS.md` at the
+    Python subtree (`packages/python-showcase/AGENTS.md`) alongside
+    an outer repo-wide `AGENTS.md` at the git root. Agents compose
+    both per the AGENTS.md spec.
+  - *Pattern B* — single `AGENTS.md` at the git root.
+
+  Use `uv --directory` (cd's in) + `--nested` for Pattern A; use
+  `uv --project` (stays in cwd) for Pattern B. Previous 1.2.0
+  wording framed `uv --directory` as a trap, which was only correct
+  for Pattern B.
+- **pnpm wrapper recipes** added for the `--project` Typer-global
+  footgun. Jellycell's `--project <path>` must precede the
+  subcommand, which conflicts with pnpm's natural "positional arg
+  at the end" script shape. A tiny `bash -c '… --project "$1"
+  <subcmd> "${@:2}"' --` wrapper bridges it; the new subsection
+  shows five ready-to-paste scripts (`showcase:run`, `showcase:init`,
+  `showcase:render`, `showcase:view`, `showcase:lint`).
+- **"If you already have an AGENTS.md" note** documents the current
+  clobber-or-hand-merge reality plus the `AGENTS.jellycell.md`
+  sibling-file workaround. Previews a future `jellycell prompt
+  --append` flag using Next.js-style `<!-- BEGIN:jellycell -->` /
+  `<!-- END:jellycell -->` marker blocks (that's the emerging
+  community convention; agents.md spec is silent). Shipping the
+  append flag itself is a future minor — this release just
+  documents intent.
+- **`docs/cli-reference.md`** — `--nested` documented with the
+  full flag table.
+- **`docs/agent-guide.md`** — "Single-project vs monorepo"
+  section updated to mention `--nested` (§10.3 additive; snapshot
+  regenerated from 11915 → 12140 bytes; canonical headers
+  preserved).
+- **`examples/monorepo/README.md`** polyglot section updated to
+  show `--nested` in the Pattern A command.
+
+### Contracts (§10)
+
+- §10.1 `--json` schemas: **additive** — `PromptWriteReport` gains
+  `nested: bool` field. No `schema_version` bump. Snapshot
+  regenerated.
+- §10.2 cache key: unchanged. `MINOR_VERSION` stays at 1.
+- §10.3 agent guide content: **additive** — one paragraph added to
+  the existing "Single-project vs monorepo" section. Snapshot
+  regenerated.
+
 ## [1.2.0] — 2026-04-19
 
 Monorepo patterns — one Python env, multiple jellycell projects — now
@@ -328,7 +411,8 @@ Each contract has a documented ceremony for changes — see [docs/development/re
 - `cache prune` removes manifests but not blobs. diskcache deduplicates content-addressed storage so disk impact is small; a ref-counted blob GC lands in a future release.
 - `jc.cache` argument hashing uses pickle. Unpicklable inputs raise clearly at call time; a JSON-default fallback can come later.
 
-[Unreleased]: https://github.com/random-walks/jellycell/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/random-walks/jellycell/compare/v1.3.0...HEAD
+[1.3.0]: https://github.com/random-walks/jellycell/releases/tag/v1.3.0
 [1.2.0]: https://github.com/random-walks/jellycell/releases/tag/v1.2.0
 [1.1.2]: https://github.com/random-walks/jellycell/releases/tag/v1.1.2
 [1.1.1]: https://github.com/random-walks/jellycell/releases/tag/v1.1.1

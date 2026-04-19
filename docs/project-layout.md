@@ -106,12 +106,119 @@ Nothing about jellycell's walk-up is Python-specific. If your Python
 package lives deep inside a pnpm / turbo / Node repo —
 `packages/python-showcase/showcase-marketing/` — jellycell works
 identically, provided `AGENTS.md` sits somewhere at or above the
-project dir and at or below the git root. Shell out through
-`uv --directory packages/python-showcase run jellycell …` from your
-pnpm scripts.
+project dir and at or below the git root. You have two defensible
+patterns for where `AGENTS.md` goes; pick based on your repo shape.
+
+**Pattern A — AGENTS.md at the Python subtree root** (recommended for
+polyglot). `packages/python-showcase/AGENTS.md` scopes jellycell's
+~12 KB §10.3 guide to the subtree where it's relevant. An outer
+repo-wide `AGENTS.md` can still sit at the git root covering
+monorepo-structure, TypeScript conventions, etc. — agents compose
+them per the AGENTS.md spec (Codex concatenates outer→inner; Cursor,
+GitLab Duo, and others read both). When an outer `AGENTS.md` is
+present, tell jellycell the nesting is intentional with `--nested`:
+
+```bash
+# Writes AGENTS.md + CLAUDE.md at packages/python-showcase/.
+# `uv --directory` cd's into that dir before running, which is exactly
+# what we want for Pattern A. `--nested` says "I know there's an outer
+# AGENTS.md at the repo root, this is a deliberate inner override."
+uv --directory packages/python-showcase run jellycell prompt --write --nested
+```
+
+`--nested` bypasses the outer-AGENTS-detection refuse *only*; it still
+refuses to clobber an existing target file (use `--force` to refresh
+an existing inner AGENTS.md).
+
+**Pattern B — AGENTS.md at the git root** (good for Python-first
+repos or when you want a single source of truth). `uv --project`
+points uv at the Python package's env *without* changing cwd, so
+`jellycell prompt --write` lands `AGENTS.md` at the repo root:
+
+```bash
+# cwd stays at the monorepo root; AGENTS.md + CLAUDE.md land there.
+# No --nested needed because there's no outer AGENTS.md to compose with.
+uv --project packages/python-showcase run jellycell prompt --write
+```
+
+The `uv --directory` vs `uv --project` knob is what controls
+cwd-dependent behavior (`jellycell prompt --write` without a path
+argument; `jellycell init <name>` with a relative name). Once you've
+chosen a pattern, day-to-day `run` / `render` / `view` invocations
+work the same under either:
+
+```bash
+# Notebook path anchored to the Python package root — same under A or B:
+uv --directory packages/python-showcase run jellycell run showcase-marketing/notebooks/tour.py
+```
+
+Flag summary for `jellycell prompt --write`:
+
+| Target state                                      | Flag needed |
+| ------------------------------------------------- | ----------- |
+| No outer, no existing target file                 | (none)      |
+| Outer AGENTS.md exists, no existing inner file    | `--nested`  |
+| Existing target file (any scope)                  | `--force`   |
+| Outer AGENTS.md exists + existing inner file      | `--nested --force` |
+
+### pnpm wrapper recipes
+
+Jellycell's `--project <path>` is a Typer **global** option — it must
+precede the subcommand (`jellycell --project X render`, not
+`jellycell render --project X`). That's awkward to wire through pnpm
+scripts that accept a positional showcase name at the end. A tiny bash
+wrapper bridges the gap:
+
+```json
+{
+  "scripts": {
+    "showcase:run":    "uv --project packages/python-showcase run jellycell run",
+    "showcase:init":   "uv --project packages/python-showcase run jellycell init",
+    "showcase:render": "bash -c 'uv --project packages/python-showcase run jellycell --project \"$1\" render \"${@:2}\"' --",
+    "showcase:view":   "bash -c 'uv --project packages/python-showcase run jellycell --project \"$1\" view \"${@:2}\"' --",
+    "showcase:lint":   "bash -c 'uv --project packages/python-showcase run jellycell --project \"$1\" lint \"${@:2}\"' --"
+  }
+}
+```
+
+Then from the repo root:
+
+```bash
+pnpm showcase:run showcase-marketing/notebooks/tour.py
+pnpm showcase:render showcase-marketing               # "$1" → --project showcase-marketing
+pnpm showcase:view   showcase-churn                   # live viewer on :5179
+pnpm showcase:lint   showcase-marketing --fix         # extras flow through
+```
+
+`showcase:run` and `showcase:init` don't need the wrapper because
+their first argument already locates the project (a notebook path or a
+target directory).
 
 See [`examples/monorepo/`](https://github.com/random-walks/jellycell/tree/main/examples/monorepo)
 for a minimal, runnable reference.
+
+### If you already have an AGENTS.md
+
+`jellycell prompt --write` **refuses to clobber** an existing
+`AGENTS.md` or `CLAUDE.md` at the target. `--force` is the only
+bypass today; see the flag table above. There's no in-file merge
+primitive yet.
+
+- **Polyglot, want jellycell's guide inside the Python subtree** —
+  `--nested` (no outer-detection refuse) plus `--force` (only if an
+  inner `AGENTS.md` already exists). The outer root `AGENTS.md`
+  stays untouched; composition happens at agent-read time.
+- **Single-root pattern, existing hand-written AGENTS.md** — merge
+  by hand: back up your file, run `--force`, paste your repo-
+  specific preamble back. Or keep your hand-written `AGENTS.md` and
+  write jellycell's to a sibling `AGENTS.jellycell.md` that your
+  main file references with a plain markdown link.
+
+A future release will add `jellycell prompt --append` with Next.js-
+style `<!-- BEGIN:jellycell … -->` / `<!-- END:jellycell … -->`
+marker blocks, idempotently refreshed in place. That removes the
+`--force`-or-clobber tradeoff for mixed AGENTS.md files. Track /
+influence at [github.com/random-walks/jellycell](https://github.com/random-walks/jellycell).
 
 ## Full `jellycell.toml` reference
 

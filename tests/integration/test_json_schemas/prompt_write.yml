@@ -1,3 +1,4 @@
+nested: bool
 outer_agents_md: 'null'
 schema_version: int
 skipped:
