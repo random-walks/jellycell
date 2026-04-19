@@ -83,6 +83,7 @@ jc.table(summary, caption="Sales summary")
 - **PEP-723 script header**: `requires-python` + `dependencies` + optional `[tool.jellycell]` file-scope overrides (allow-listed keys: `project.name`, `run.kernel`, `run.timeout_seconds`).
 - **Cell tags**: `# %% tags=[...]` markers carry `cell-id`, `name`, `kind`, `deps`, `timeout_s`. Parsed by `jellycell.format`.
 - **Cell kinds** (declared via `kind=`): `load`, `setup`, `step`, `figure`, `table`. Drives lint and tearsheet rendering.
+- **`tearsheet` tag** (1.3.5+): orthogonal to kind. Drop it on a cell (`tags=["jc.figure", "tearsheet"]`) or an artifact (`jc.save(x, path, tags=["tearsheet"])`) to filter which artifacts inline into `jellycell export tearsheet`. Any `tearsheet` tag in a notebook auto-enables filtering; no tags = every artifact inlined (old behavior).
 
 ## The `jc.*` API
 
@@ -92,7 +93,7 @@ jc.table(summary, caption="Sales summary")
 | --- | --- |
 | `jc.load(path)` | Read input; registers an implicit dep edge on the producing cell via the artifact lineage index |
 | `jc.save(obj, path, caption=..., notes=..., tags=[...])` | Write an artifact; metadata lands on the `ArtifactRecord` in the cell manifest |
-| `jc.figure(fig=..., caption=..., notes=..., tags=[...])` | Save a matplotlib figure (auto-path via `[artifacts] layout`) |
+| `jc.figure(path, fig=..., caption=..., notes=..., tags=[...])` | Save a matplotlib figure, or with no `fig=` and an existing file at `path`, register it without re-encoding (1.3.2+) |
 | `jc.table(df, caption=..., notes=..., tags=[...])` | Save a dataframe as markdown or parquet (layout-driven) |
 | `jc.deps("a", "b")` | Runtime-declared deps; AST-walked into the current cell's cache key |
 | `jc.cache` | Decorator that memoizes function calls via the content-addressed store |

@@ -57,7 +57,13 @@ Execute a notebook end-to-end with caching.
 jellycell run notebooks/foo.py
 jellycell run notebooks/foo.py --force                    # re-execute all cells
 jellycell run notebooks/foo.py -m "fixed sign error"      # journal entry message
+jellycell --project other/ run notebooks/foo.py           # resolve under other/
 ```
+
+`--project ROOT` (global) resolves the notebook under `ROOT/` first and
+falls back to cwd (fixed in 1.3.3, [#12](https://github.com/random-walks/jellycell/issues/12)).
+Now works symmetrically with `render`, `lint`, `cache`, `checkpoint`,
+`new`, `view`, and `export *`.
 
 After the run, `jellycell run` warns about any artifact larger than
 `[artifacts] max_committed_size_mb` (default 50) with `.gitignore` / Git
@@ -116,6 +122,15 @@ when iterating on templates so every request re-renders.
   paths, JSON summaries flattened as two-column tables, and a header
   link to `site/<stem>.html` when it exists. Safe to commit; GitHub
   renders it inline.
+
+  **Filtering via the `tearsheet` tag** (1.3.5+): mark the artifacts
+  worth inlining with `tags=["tearsheet"]`, either on the cell
+  (`# %% tags=["jc.figure", "tearsheet"]`) or the artifact call
+  (`jc.save(x, "artifacts/key.json", tags=["tearsheet"])`). As soon as
+  any artifact in the notebook carries the tag, tearsheet filtering
+  auto-enables and untagged artifacts are excluded. Notebooks with no
+  `tearsheet` tagging behave as before — every renderable artifact is
+  inlined. Closes [#15](https://github.com/random-walks/jellycell/issues/15).
 
 ### `jellycell checkpoint ...`
 

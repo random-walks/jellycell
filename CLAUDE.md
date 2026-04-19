@@ -72,6 +72,8 @@ make release-check    # dry-run build + version print
 
 `jellycell prompt` emits the canonical agent guide — a single markdown doc covering layout, format, tags, API, and CLI reference. Content is the **§10.3 stability contract** (see [`docs/reference/contracts.md`](docs/reference/contracts.md)). Start by calling this in any new jellycell project.
 
+Flags: `--write [DIR]` drops `AGENTS.md` + `CLAUDE.md` at DIR (defaults to cwd); `--nested` acknowledges an outer `AGENTS.md` and writes an intentional inner override without needing `--force`; `--force` bypasses all safety checks; `--agents-only` skips the `CLAUDE.md` stub.
+
 ## Server vs. static
 
 `jellycell view` (live server) is **disk-write-free for HTML pages** — it renders in memory and caches responses by a notebook view-key. `jellycell render` (CLI) is the only path that populates `site/`. Live-mode assets land under `.jellycell/cache/assets/`; static-mode under `site/_assets/`. Both share the same Jinja templates. See [`docs/reference/architecture.md`](docs/reference/architecture.md#two-render-paths).

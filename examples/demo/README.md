@@ -56,6 +56,10 @@ demo/
   hand-written `deps=` needed.
 - **JSON → tearsheet table** — every `jc.save(dict, "...json")` becomes
   a two-column markdown table in the tearsheet.
+- **`tearsheet` tag filtering** (1.3.5+) — only `summary.json` carries
+  `tags=["tearsheet"]` so the auto-tearsheet is scoped to the headline
+  result. `headline.json` is saved but not inlined. Remove the tag to
+  see every artifact in the tearsheet (old default behavior).
 - **Cache invalidation on source edit** — change `CONVERSIONS` in the
   setup cell and watch the next run re-execute only the affected subgraph.
 

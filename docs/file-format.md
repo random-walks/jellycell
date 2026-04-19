@@ -90,8 +90,14 @@ The `tags=[...]` list on the marker line. Two classes of tags:
 | `name=...`         | Cell's name. Referenceable via `deps=` elsewhere. | `name=summary`  |
 | `deps=a,b,c`       | Explicit deps. Comma-separated list of names.     | `deps=raw,env`  |
 | `timeout=N`        | Per-cell timeout in seconds                       | `timeout=60`    |
+| `tearsheet`        | Include this cell/artifact in `export tearsheet`  | `tearsheet`     |
 
 Tags round-trip losslessly through jupytext — verified by tests.
+
+**`jc.figure` accepts path-only invocation** (1.3.2+): call
+`jc.figure("artifacts/foo.png")` with no `fig=` and an existing file on disk
+to register it as an artifact without re-encoding. See the
+[agent guide](agent-guide.md) for the full two-mode signature.
 
 ## Cache-key semantics
 

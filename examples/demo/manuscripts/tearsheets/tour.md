@@ -1,6 +1,6 @@
 # jellycell tour
 
-> **Tearsheet** for [`notebooks/tour.py`](../../notebooks/tour.py) · [HTML report](../../site/tour.html) · last run `2026-04-18T19:02:16+00:00`
+> **Tearsheet** for [`notebooks/tour.py`](../../notebooks/tour.py) · [HTML report](../../site/tour.html) · last run `2026-04-19T19:19:01+00:00`
 
 Exercises the core `jc.*` API without external deps. Run with
 `jellycell run notebooks/tour.py`, then `jellycell export tearsheet
@@ -30,7 +30,7 @@ constructing a literal.
 
 The tearsheet auto-renders the saved JSON as a key/value table.
 
-**Summary**
+**Conversion headline**
 
 | field | value |
 | --- | --- |
@@ -38,6 +38,8 @@ The tearsheet auto-renders the saved JSON as a key/value table.
 | `total_sessions` | `450` |
 | `conversion_rate` | `0.0844` |
 | `conversions` | `38` |
+
+_tags: tearsheet_
 
 
 ## 5. Round-trip via `jc.load`
@@ -50,13 +52,6 @@ automatically, no hand-written `deps=` needed.
 
 Change `CONVERSIONS` in the setup cell and only the downstream
 subgraph (`rate` → `summary` → this cell) re-runs.
-
-**Headline**
-
-| field | value |
-| --- | --- |
-| `headline` | 38 of 450 sessions converted |
-
 
 ---
 

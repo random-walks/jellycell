@@ -63,7 +63,7 @@ jc.figure(
         "size are in a stable regime for this dataset. 40 epochs not quite "
         "enough for convergence (see model-card.md)."
     ),
-    tags=["training", "diagnostic"],
+    tags=["training", "diagnostic", "tearsheet"],
 )
 
 # %% tags=["jc.step", "name=metrics", "deps=train"]
@@ -84,7 +84,7 @@ jc.save(
         "final_weight vs target_weight shows how far the optimizer got. "
         "weight_error_abs = |target − fitted|."
     ),
-    tags=["training", "result"],
+    tags=["training", "result", "tearsheet"],
 )
 print(metrics)
 
