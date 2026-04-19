@@ -77,3 +77,68 @@ class TestCacheDecorator:
             return x + 1
 
         assert f(1) == 2
+
+
+class TestFigurePathOnly:
+    """``jc.figure(path)`` with a pre-existing image file, no fig="""
+
+    def _write_png(self, target: Path) -> None:
+        # 1x1 transparent PNG — smallest valid payload, avoids a matplotlib dep.
+        payload = bytes.fromhex(
+            "89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c4"
+            "89000000094944415478da63000100000500010d0a2db40000000049454e44ae"
+            "426082"
+        )
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_bytes(payload)
+
+    def test_returns_path_without_re_encoding(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.chdir(tmp_path)
+        src = tmp_path / "artifacts" / "fig.png"
+        self._write_png(src)
+        before = src.read_bytes()
+
+        out = jc.figure("artifacts/fig.png")
+
+        assert out == src.resolve()
+        # Path-only mode MUST NOT re-encode the image. Content unchanged.
+        assert out.read_bytes() == before
+
+    def test_passes_without_matplotlib_import(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Path-only mode must not pull in matplotlib (cheaper import graph).
+
+        Simulates an environment where matplotlib isn't installed: a call
+        that would have needed ``plt.gcf()`` still works if the path exists.
+        """
+        import sys
+
+        # Sabotage matplotlib imports — if figure() reaches the render path,
+        # the test fails with ImportError.
+        monkeypatch.setitem(sys.modules, "matplotlib", None)
+        monkeypatch.setitem(sys.modules, "matplotlib.pyplot", None)
+
+        monkeypatch.chdir(tmp_path)
+        src = tmp_path / "fig.png"
+        self._write_png(src)
+
+        out = jc.figure("fig.png")
+        assert out.exists()
+
+    def test_no_file_falls_back_to_matplotlib(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """If ``path`` doesn't point to an existing file, old behavior wins."""
+        monkeypatch.chdir(tmp_path)
+        # No file at "nope.png" — should try to savefig via plt.gcf(). We
+        # assert the ImportError surfaces (no matplotlib here) to confirm
+        # we took the render branch, not the path-only branch.
+        import sys
+
+        monkeypatch.setitem(sys.modules, "matplotlib", None)
+        monkeypatch.setitem(sys.modules, "matplotlib.pyplot", None)
+        with pytest.raises((ImportError, AttributeError)):
+            jc.figure("nope.png")

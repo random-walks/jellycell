@@ -54,15 +54,15 @@ on top if it turns out to be necessary.
 
 ## [1.3.2] — 2026-04-19
 
-Bug-fix patch — `jc.setup` cells now actually behave the way the docs
-(agent guide, `docs/file-format.md`, spec §7) promised: **uncached,
-run first**. Thanks to the blaise-website agent for the tight repro
-(issue [#10](https://github.com/random-walks/jellycell/issues/10)).
+Two independent patches landing in the same release slot — both
+came out of blaise-website dogfood. Thanks to the agent for the
+tight repros.
 
 ### Fixed — `jc.setup` cells are no longer cached
 
-Before 1.3.2, the runner treated setup cells like any other code
-cell: it computed a cache key, and on a cache hit it skipped
+Closes [#10](https://github.com/random-walks/jellycell/issues/10).
+Before this release, the runner treated setup cells like any other
+code cell: it computed a cache key, and on a cache hit it skipped
 execution entirely. But every `jellycell run` spawns a **fresh
 kernel** — so a cached setup cell's side effects (imports, module
 aliases, global constants) never landed in the kernel namespace.
@@ -95,18 +95,59 @@ reports `cached` (wrong — docs said uncached), cell 2 fails with
 docs). Setup cells now always execute, carry no cache key in the
 run report (`cache_key=null`), and leave no manifest / index entry.
 
+### Added — `jc.figure(path)` accepts path-only invocation
+
+Closes [#11](https://github.com/random-walks/jellycell/issues/11).
+Verbatim-mirror analyses with pre-rendered images on disk no longer
+need an `IPython.display.Image` workaround inside a `jc.figure`-tagged
+cell. `jc.figure` now has two modes:
+
+- **Render** (unchanged) — `fig=` given, or omitted with `plt.gcf()`
+  available: save the figure to `path`, honoring `[artifacts] layout`
+  when `path` is `None`.
+- **Path-only** (new) — `fig` omitted *and* `path` points to an existing
+  image file: skip the matplotlib re-encode. The file is registered
+  as an artifact (with caption / notes / tags flowing to the manifest)
+  and inlined via IPython `display(Image(...))` so the cell renders
+  in HTML/ipynb output.
+
+Reduces this boilerplate…
+
+```python
+# %% tags=["jc.figure", "name=fig1"]
+from IPython.display import Image
+Image("artifacts/figures/figure-1.png")
+# — inlines fine but loses caption/notes/tags for the manifest.
+```
+
+…to:
+
+```python
+# %% tags=["jc.figure", "name=fig1"]
+jc.figure(
+    "artifacts/figures/figure-1.png",
+    caption="System-wide ADA coverage",
+)
+```
+
+Fully backwards-compatible: existing call sites with explicit `fig=`
+keep their current behavior. Falling through to the render path
+when the file doesn't exist yet means the old "create on first run"
+pattern also still works.
+
 ### Contracts (§10)
 
-- **§10.2 cache key algorithm**: untouched. The hash function in
-  `cache/hashing.py` is unchanged — we only changed *when the
-  runner consults the cache*, not how keys are computed. No
-  `MINOR_VERSION` bump; existing cache entries for non-setup cells
-  remain valid.
-- **§10.1 `--json` schemas**: the `RunReport` shape is unchanged.
-  `CellResult.cache_key` was already `str | None` — setup cells
-  just now reliably fall into the `None` branch.
-- **§10.3 agent guide**: already accurate. The bug was a behavior
-  mismatch, not a doc mismatch.
+- **§10.2 cache key algorithm**: untouched. The setup-cells fix
+  changed *when the runner consults the cache*, not how keys are
+  computed; no `MINOR_VERSION` bump, existing cache entries for
+  non-setup cells remain valid.
+- **§10.1 `--json` schemas**: `RunReport` shape unchanged.
+  `CellResult.cache_key` was already `str | None`; setup cells now
+  reliably fall into the `None` branch.
+- **§10.3 agent guide**: already accurate. The setup-cells behavior
+  matches what the guide described all along; the new `jc.figure`
+  path-only mode is additive behavior callers opt into by dropping
+  `fig=`.
 
 ## [1.3.1] — 2026-04-19
 

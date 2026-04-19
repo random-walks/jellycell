@@ -58,11 +58,18 @@ def figure(
     tags: list[str] | None = None,
     fig: Any = None,
 ) -> Path:
-    """Save a matplotlib figure. If ``path`` is ``None``, a sensible default is chosen.
+    """Save a matplotlib figure, or register a pre-rendered image at ``path``.
 
-    When no path is given inside a run, the default location respects the
-    project's ``[artifacts] layout`` setting (``flat`` / ``by_notebook`` /
-    ``by_cell``). Explicit paths are always taken verbatim.
+    Two modes:
+
+    - **Render** — ``fig=`` given, or omitted with ``plt.gcf()`` available:
+      the figure is saved to ``path`` (or a sensible default if ``path`` is
+      ``None``, honoring ``[artifacts] layout``).
+    - **Path-only** — ``fig`` omitted and ``path`` points to an existing image
+      file: no matplotlib re-encode. The file is registered as an artifact
+      (metadata attached) and displayed inline via IPython. This is the
+      idiomatic form for verbatim-mirror analyses where figures are
+      pre-rendered on disk.
 
     ``caption`` / ``notes`` / ``tags`` flow into the artifact's
     :class:`ArtifactRecord` and show up in tearsheets alongside the image.
@@ -79,6 +86,20 @@ def figure(
         path_ = str(path)
 
     target = _resolve_out(path_)
+
+    # Path-only invocation: the image already exists on disk — register the
+    # artifact + display inline, skip the matplotlib re-encode. Only triggers
+    # when the caller explicitly passes a path (no auto-default) and didn't
+    # provide a fig; otherwise fall through to the render path.
+    if fig is None and path is not None and target.is_file():
+        # Touch the file so the runner's artifact-diff picks it up. mtime
+        # changes don't affect git (content-addressed), and the touch is a
+        # no-op if the file is outside the project's artifacts_dir.
+        target.touch()
+        _record_artifact_metadata(target, caption=caption, notes=notes, tags=tags)
+        _inline_display_image(target)
+        return target
+
     target.parent.mkdir(parents=True, exist_ok=True)
     if fig is None:
         import matplotlib.pyplot
@@ -87,6 +108,23 @@ def figure(
     fig.savefig(target, bbox_inches="tight")
     _record_artifact_metadata(target, caption=caption, notes=notes, tags=tags)
     return target
+
+
+def _inline_display_image(target: Path) -> None:
+    """Best-effort IPython inline display of an image file.
+
+    No-op outside an IPython-compatible context (plain Python, pytest, etc.);
+    inside a jellycell run the display_data message is captured by the
+    kernel and reattached to the cell on HTML/ipynb export.
+    """
+    try:
+        from IPython.display import Image, display
+    except ImportError:
+        return
+    try:
+        display(Image(filename=str(target)))  # type: ignore[no-untyped-call]
+    except Exception:
+        return
 
 
 def table(
