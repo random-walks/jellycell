@@ -102,9 +102,7 @@ def test_setup_cell_imports_survive_into_downstream_cache_miss(tmp_path: Path) -
     finally:
         runner2.close()
 
-    assert report2.status == "ok", [
-        (c.cell_id, c.status, c.error) for c in report2.cell_results
-    ]
+    assert report2.status == "ok", [(c.cell_id, c.status, c.error) for c in report2.cell_results]
     assert [c.status for c in report2.cell_results] == ["ok", "ok"]
 
 
