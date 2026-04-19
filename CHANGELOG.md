@@ -8,10 +8,13 @@ Versioning policy: **patch bumps are cheap**. See [docs/development/releasing.md
 
 ## [1.3.5] — 2026-04-19
 
-Tearsheet artifact filtering — scope a noisy notebook's tearsheet to
-the artifacts that actually belong there, via a declarative
-``tearsheet`` tag. Closes
-[#15](https://github.com/random-walks/jellycell/issues/15).
+Two bundled patches: tearsheet artifact filtering via a declarative
+``tearsheet`` tag (closes
+[#15](https://github.com/random-walks/jellycell/issues/15)) and
+CI-stability diagnostics for an intermittent Ubuntu-runner iopub
+hang (see
+[#21](https://github.com/random-walks/jellycell/issues/21)). No
+runtime behavior change for healthy kernels.
 
 ### Export — ``tearsheet`` tag opt-in
 
@@ -46,11 +49,40 @@ subsequent ``jellycell export tearsheet`` produces the same output
 without re-typing globs. A follow-up minor can layer a CLI override
 on top if it turns out to be necessary.
 
+### Fixed — kernel-timeout evalue now carries flake-triage diagnostics
+
+``Kernel.execute`` records the iopub message mix, first-busy timing,
+last-message timestamp, and kernel-liveness at timeout, and folds
+them into the timeout's ``evalue``. When the flake surfaces again
+the failure line tells us whether the kernel went ``busy`` at all,
+how long it's been since any iopub traffic, and whether the
+subprocess is still alive — which is what we need to decide between
+"kernel truly hung" and "cell truly running long" without attaching
+a debugger.
+
+Additionally, ``Kernel.execute`` now sends SIGINT to the kernel on
+timeout so the stuck cell bails out and the kernel is reusable for
+follow-up work (regression-tested in
+``test_interrupt_lets_kernel_reused_after_timeout``).
+
+### Changed — `tests/examples/test_examples_run.py` retries once on Timeout
+
+Until we have a root cause we don't want the flake to redden the
+board. The test wraps ``Runner.run`` with a one-shot retry bounded
+to ``Timeout`` errors (all other failure modes still fail on
+attempt 1), and the retry uses ``force=True`` so cached ``jc.load``
+cells re-execute in the fresh kernel — otherwise a hung-cell's
+dependencies (imports, globals) would be missing on attempt 2. The
+hung-attempt diagnostics are printed to stderr so CI logs carry
+evidence even when attempt 2 saves the run.
+
 ### Contracts (§10)
 
 - All unchanged. No cache-key / JSON schema / agent-guide touches.
-  The tag is opt-in and additive; untagged notebooks are byte-for-
-  byte identical to the 1.3.1 tearsheet output.
+  The tearsheet tag is opt-in and additive; untagged notebooks are
+  byte-for-byte identical to the 1.3.1 tearsheet output. The kernel
+  timeout diagnostics only surface on error paths — healthy kernels
+  see no behavior change.
 
 ## [1.3.4] — 2026-04-19
 
