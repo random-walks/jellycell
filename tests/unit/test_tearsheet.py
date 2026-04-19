@@ -531,9 +531,7 @@ class TestTearsheetTagFiltering:
             size=10,
             tags=["tearsheet"],
         )
-        scratch = ArtifactRecord(
-            path="artifacts/scratch.json", sha256="b" * 64, size=10
-        )
+        scratch = ArtifactRecord(path="artifacts/scratch.json", sha256="b" * 64, size=10)
         manifests = {
             "nb:0": _make_manifest("nb:0", artifacts=[headline]),
             "nb:1": _make_manifest("nb:1", artifacts=[scratch]),
