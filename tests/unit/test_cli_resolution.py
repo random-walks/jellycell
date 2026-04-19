@@ -73,9 +73,7 @@ class TestProjectOverride:
         other_cwd = tmp_path_factory.mktemp("other")
         monkeypatch.chdir(other_cwd)
 
-        resolved, project = resolve_notebook_and_project(
-            Path("notebooks/01.py"), project_root
-        )
+        resolved, project = resolve_notebook_and_project(Path("notebooks/01.py"), project_root)
         assert resolved == nb.resolve()
         assert project.root == project_root.resolve()
 
@@ -93,9 +91,7 @@ class TestProjectOverride:
         stray_nb.write_text("# stub\n", encoding="utf-8")
         monkeypatch.chdir(cwd)
 
-        resolved, project = resolve_notebook_and_project(
-            Path("stray.py"), project_root
-        )
+        resolved, project = resolve_notebook_and_project(Path("stray.py"), project_root)
         assert resolved == stray_nb.resolve()
         assert project.root == project_root.resolve()
 
