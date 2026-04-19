@@ -218,6 +218,20 @@ class Runner:
         cell_name = cell.spec.name
         cell_id = f"{_stem(notebook_rel)}:{ordinal}"
 
+        # `jc.setup` cells are uncached-by-contract (spec §7, agent-guide
+        # cell-tag table). Every `run` spawns a fresh kernel, so if we
+        # cached a setup cell its side effects — imports, globals — would
+        # vanish and later cache-miss cells would fail at runtime.
+        if cell.spec.kind == "setup":
+            return self._execute_uncached(
+                kernel=kernel,
+                project=project,
+                notebook_rel=notebook_rel,
+                cell=cell,
+                cell_id=cell_id,
+                cell_name=cell_name,
+            )
+
         # Merge tag-declared deps + AST-walked jc.deps(...) + resolved jc.load(...).
         # Static analysis catches the cases the runtime declared_deps can't
         # (because ctx.declared_deps is populated after cache_key is computed).
@@ -291,6 +305,47 @@ class Runner:
             cell_name=cell_name,
             status="ok" if execution.status == "ok" else "error",
             cache_key=cache_key,
+            duration_ms=duration_ms,
+            error=error,
+        )
+
+    def _execute_uncached(
+        self,
+        *,
+        kernel: Kernel,
+        project: Project,
+        notebook_rel: str,
+        cell: Cell,
+        cell_id: str,
+        cell_name: str | None,
+    ) -> CellResult:
+        """Run a cell that opts out of caching (``jc.setup``).
+
+        No cache key, no manifest, no index entry — setup cells leave no
+        trace in the store. ``cache_key`` is ``None`` on the returned
+        :class:`CellResult`, which also keeps them out of ``name_to_key``
+        (setup cells are not addressable as deps).
+        """
+        timeout_s = (
+            float(cell.spec.timeout_s)
+            if cell.spec.timeout_s is not None
+            else float(project.config.run.timeout_seconds)
+        )
+        prelude = _setup_prelude(project, notebook_rel, cell_id, cell_name)
+        t0 = time.perf_counter()
+        _ = kernel.execute(prelude)
+        execution = kernel.execute(cell.source, timeout=timeout_s)
+        duration_ms = int((time.perf_counter() - t0) * 1000)
+
+        error: CellError | None = None
+        if execution.status == "error":
+            error = _extract_error(execution)
+
+        return CellResult(
+            cell_id=cell_id,
+            cell_name=cell_name,
+            status="ok" if execution.status == "ok" else "error",
+            cache_key=None,
             duration_ms=duration_ms,
             error=error,
         )

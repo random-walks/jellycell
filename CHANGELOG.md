@@ -52,6 +52,62 @@ on top if it turns out to be necessary.
   The tag is opt-in and additive; untagged notebooks are byte-for-
   byte identical to the 1.3.1 tearsheet output.
 
+## [1.3.2] — 2026-04-19
+
+Bug-fix patch — `jc.setup` cells now actually behave the way the docs
+(agent guide, `docs/file-format.md`, spec §7) promised: **uncached,
+run first**. Thanks to the blaise-website agent for the tight repro
+(issue [#10](https://github.com/random-walks/jellycell/issues/10)).
+
+### Fixed — `jc.setup` cells are no longer cached
+
+Before 1.3.2, the runner treated setup cells like any other code
+cell: it computed a cache key, and on a cache hit it skipped
+execution entirely. But every `jellycell run` spawns a **fresh
+kernel** — so a cached setup cell's side effects (imports, module
+aliases, global constants) never landed in the kernel namespace.
+Downstream cache-miss cells that referenced those imports then
+failed at runtime with `NameError`.
+
+Minimal reproducer (fails on 1.3.1):
+
+```python
+# notebook.py
+# /// script
+# requires-python = ">=3.12"
+# dependencies = []
+# ///
+
+# %% tags=["jc.setup"]
+import jellycell.api as jc
+from IPython.display import Image
+
+# %% tags=["jc.figure", "name=fig1"]
+Image("artifacts/figures/foo.png")
+```
+
+Run once (both cells `ok`). Edit the figure cell. Run again: cell 1
+reports `cached` (wrong — docs said uncached), cell 2 fails with
+`NameError: name 'Image' is not defined`.
+
+1.3.2 takes the preferred of the two fixes noted on the issue:
+**skip the cache for `jc.setup` cells unconditionally** (match the
+docs). Setup cells now always execute, carry no cache key in the
+run report (`cache_key=null`), and leave no manifest / index entry.
+
+### Contracts (§10)
+
+- **§10.2 cache key algorithm**: untouched. The hash function in
+  `cache/hashing.py` is unchanged — we only changed *when the
+  runner consults the cache*, not how keys are computed. No
+  `MINOR_VERSION` bump; existing cache entries for non-setup cells
+  remain valid.
+- **§10.1 `--json` schemas**: the `RunReport` shape is unchanged.
+  `CellResult.cache_key` was already `str | None` — setup cells
+  just now reliably fall into the `None` branch.
+- **§10.3 agent guide**: already accurate. The bug was a behavior
+  mismatch, not a doc mismatch.
+
 ## [1.3.1] — 2026-04-19
 
 Docs patch — fixes a self-contradicting pnpm wrapper recipe
