@@ -1,4 +1,6 @@
 {
+  "url": "https://context7.com/random-walks/jellycell",
+  "public_key": "pk_RIxbmOCZyppRo9pw4GXFM",
   "projectTitle": "jellycell",
   "description": "Reproducible-analysis notebook tool: plain-text .py notebooks in jupytext percent format, content-addressed per-cell output cache, live HTML viewer.",
   "folders": ["docs/", "examples/"],
