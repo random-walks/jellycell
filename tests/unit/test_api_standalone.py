@@ -187,9 +187,7 @@ class TestTableMixedObjectColumns:
         restored = pd.read_parquet(out)
         assert restored["label"].tolist() == ["alpha", "beta", "gamma"]
 
-    def test_float_column_untouched(
-        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-    ) -> None:
+    def test_float_column_untouched(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Pure-float columns serialize at native precision — no stringification."""
         pd = pytest.importorskip("pandas")
         pytest.importorskip("pyarrow")
