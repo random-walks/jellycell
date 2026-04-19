@@ -6,6 +6,46 @@ Versioning policy: **patch bumps are cheap**. See [docs/development/releasing.md
 
 ## [Unreleased]
 
+## [1.3.1] — 2026-04-19
+
+Docs patch — fixes a self-contradicting pnpm wrapper recipe
+surfaced by a real polyglot dogfood (thanks to the blaise-website
+agent for the clean repro).
+
+### Docs — pnpm wrapper recipes use `uv --directory`
+
+The `docs/project-layout.md` *pnpm wrapper recipes* block in 1.3.0
+shipped every script using `uv --project packages/python-showcase`,
+but the usage examples that follow used `uv --directory`. For any
+showcase nested under `packages/python-showcase/` (the whole point
+of the section) `uv --project` keeps cwd at the repo root, so
+`pnpm showcase:run showcase-marketing/notebooks/tour.py` resolves
+against the repo root — **fails with "No jellycell.toml found"**.
+
+`uv --directory <path>` cd's into `<path>` before running, so
+relative showcase paths resolve under the Python package root —
+which is what every `showcase:*` script wants. Every wrapper now
+uses `uv --directory`. A short "why" paragraph explains when
+`uv --project` is still the right call (the one-shot
+`jellycell prompt --write` under Pattern B, where you want cwd
+pinned at the monorepo root so AGENTS.md lands there).
+
+Reproduce the old bug:
+
+```bash
+cd /tmp/anyrepo && git init -q
+uv init --package packages/python-showcase
+mkdir -p packages/python-showcase/foo/notebooks
+uv --project packages/python-showcase run jellycell run foo/notebooks/x.py
+# → "No jellycell.toml found walking up from /tmp/anyrepo/foo/notebooks/x.py"
+```
+
+No code changes. No contracts touched.
+
+### Contracts (§10)
+
+- All unchanged. Docs-only patch.
+
 ## [1.3.0] — 2026-04-19
 
 Polyglot UX fixes from real-world dogfood: a new `--nested` flag that
@@ -411,7 +451,8 @@ Each contract has a documented ceremony for changes — see [docs/development/re
 - `cache prune` removes manifests but not blobs. diskcache deduplicates content-addressed storage so disk impact is small; a ref-counted blob GC lands in a future release.
 - `jc.cache` argument hashing uses pickle. Unpicklable inputs raise clearly at call time; a JSON-default fallback can come later.
 
-[Unreleased]: https://github.com/random-walks/jellycell/compare/v1.3.0...HEAD
+[Unreleased]: https://github.com/random-walks/jellycell/compare/v1.3.1...HEAD
+[1.3.1]: https://github.com/random-walks/jellycell/releases/tag/v1.3.1
 [1.3.0]: https://github.com/random-walks/jellycell/releases/tag/v1.3.0
 [1.2.0]: https://github.com/random-walks/jellycell/releases/tag/v1.2.0
 [1.1.2]: https://github.com/random-walks/jellycell/releases/tag/v1.1.2
