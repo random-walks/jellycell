@@ -77,3 +77,20 @@ def test_declared_roots_contains_all_roots(tmp_path: Path) -> None:
         project.cache_dir,
     }
     assert set(project.declared_roots) == expected
+
+
+def test_from_root_loads_directly(tmp_path: Path) -> None:
+    """``--project`` wires through ``Project.from_root`` without walking up."""
+    _make_project(tmp_path)
+    project = Project.from_root(tmp_path)
+    assert project.root == tmp_path.resolve()
+
+
+def test_from_root_doesnt_walk_up(tmp_path: Path) -> None:
+    """``from_root`` asserts the exact root — doesn't walk up if config is missing."""
+    _make_project(tmp_path)
+    child = tmp_path / "child"
+    child.mkdir()
+    # If walked up this would find tmp_path's config; `from_root` must refuse.
+    with pytest.raises(ProjectNotFoundError):
+        Project.from_root(child)

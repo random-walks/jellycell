@@ -9,9 +9,9 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from jellycell.cli.app import GlobalOptions, app
+from jellycell.cli.app import GlobalOptions, app, resolve_notebook_and_project
 from jellycell.cli.journal import append_entry as journal_append_entry
-from jellycell.paths import Project, ProjectNotFoundError
+from jellycell.paths import ProjectNotFoundError
 from jellycell.run import Runner, RunReport
 
 _console = Console()
@@ -31,9 +31,8 @@ def run(
 ) -> None:
     """Execute every code cell of ``notebook``. Cache hits are restored from the store."""
     opts: GlobalOptions = ctx.obj
-    notebook = notebook.resolve()
     try:
-        project = Project.from_path(notebook)
+        notebook, project = resolve_notebook_and_project(notebook, opts.project_override)
     except ProjectNotFoundError as exc:
         _fail(opts, str(exc))
 

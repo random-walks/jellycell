@@ -52,6 +52,66 @@ on top if it turns out to be necessary.
   The tag is opt-in and additive; untagged notebooks are byte-for-
   byte identical to the 1.3.1 tearsheet output.
 
+## [1.3.3] — 2026-04-19
+
+CLI ergonomics patch — `jellycell run` and `jellycell export *` now
+honor the global `--project ROOT` flag (previously wired up for
+`render`, `cache`, `checkpoint`, `lint`, `new`, `view` but silently
+ignored by run / export). Closes
+[#12](https://github.com/random-walks/jellycell/issues/12).
+
+### CLI — `--project` resolves notebook paths project-relative
+
+Before 1.3.3, `jellycell run` and `jellycell export *` walked up from
+the notebook path to find `jellycell.toml` but ignored any explicit
+`--project` flag — so automation targeting a specific project root
+had to prefix every notebook path with the project's subdir:
+
+```bash
+# Old: verbose, requires knowing the exact prefix layout.
+for showcase in showcase-*; do
+  for nb in "$showcase"/notebooks/*.py; do
+    uv --directory packages/python-showcase run jellycell export tearsheet \
+       "$showcase/$(basename "$nb")"
+  done
+done
+```
+
+Now `--project` works symmetrically for both commands:
+
+```bash
+# New: notebook path resolves under --project automatically.
+for showcase in packages/python-showcase/showcase-*; do
+  for nb in "$showcase"/notebooks/*.py; do
+    jellycell --project "$showcase" export tearsheet \
+       "notebooks/$(basename "$nb")"
+  done
+done
+```
+
+### Resolution order
+
+The new `resolve_notebook_and_project()` helper in `jellycell.cli.app`:
+
+- **`--project ROOT` set**: load project from `ROOT/jellycell.toml`
+  directly (no walk-up). Resolve notebook as `ROOT/<notebook>` first,
+  falling back to `cwd/<notebook>` if the project-relative path
+  doesn't exist. Absolute notebook paths are honored verbatim.
+- **`--project` not set**: unchanged — resolve notebook against cwd,
+  then walk up to find `jellycell.toml`.
+
+### New API
+
+`Project.from_root(root)` — loads a project directly from a known
+root without walking up. Raises `ProjectNotFoundError` if
+`root/jellycell.toml` is missing.
+
+### Contracts (§10)
+
+- All unchanged. No cache key / JSON schema / agent guide touches.
+  `--project` semantics are already documented globally; wiring the
+  last two commands up is bringing them in line with the others.
+
 ## [1.3.2] — 2026-04-19
 
 Two independent patches landing in the same release slot — both

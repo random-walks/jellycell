@@ -136,3 +136,33 @@ def test_cli_tearsheet_output_override(tmp_path: Path) -> None:
     assert custom.exists()
     # Default subfolder location should NOT have been written to.
     assert not (project.manuscripts_dir / "tearsheets" / "report.md").exists()
+
+
+def test_cli_tearsheet_project_relative_path(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """``jellycell --project ROOT export tearsheet notebooks/foo.py`` resolves under ROOT.
+
+    Regression test for #12 — notebooks given as paths relative to the
+    project root (not cwd) must resolve when ``--project`` is set, so
+    bulk-tearsheet scripts across a monorepo don't need the awkward
+    ``<showcase>/notebooks/<nb>`` prefix in every invocation.
+    """
+    project, _ = _bootstrap(tmp_path)
+    # cwd deliberately elsewhere — the point of --project.
+    outside = tmp_path.parent
+    monkeypatch.chdir(outside)
+
+    cli = CliRunner()
+    result = cli.invoke(
+        app,
+        [
+            "--project",
+            str(project.root),
+            "export",
+            "tearsheet",
+            "notebooks/report.py",
+        ],
+    )
+    assert result.exit_code == 0, result.output
+    assert (project.manuscripts_dir / "tearsheets" / "report.md").exists()
