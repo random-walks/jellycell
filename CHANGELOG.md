@@ -6,6 +6,36 @@ Versioning policy: **patch bumps are cheap**. See [docs/development/releasing.md
 
 ## [Unreleased]
 
+## [1.1.1] — 2026-04-18
+
+Context7 ingestion hygiene — separate dev-facing from consumer-facing.
+
+### Docs — Context7 scoping
+
+- **Hand-curated [`context7.md`](context7.md)** at repo root. Single
+  agent-focused primer covering install, quickstart, project layout,
+  notebook format, `jc.*` API, CLI surface, §10 contracts, and
+  architecture — with deep-link URLs to the RTD-hosted full versions.
+  Context7 was auto-generating one with Claude on each re-ingest; the
+  hand-curated file takes precedence and keeps the summary stable.
+- **[`context7.json`](context7.json) scoping**:
+  - `folders: ["docs/", "examples/"]` (was `["docs/"]`) — examples are
+    consumer-facing patterns and should be indexed.
+  - `excludeFolders` now covers `.claude`, `.github`, `scripts`,
+    `tests`, `docs/development`, `docs/spec` — dev-facing project
+    infrastructure that Context7 was indexing as if it were user
+    docs (the prior ingest surfaced 4 `.claude/skills/**/SKILL.md`
+    files meant for jellycell contributors, not downstream consumers).
+  - `excludeFiles: ["CLAUDE.md", "CONTRIBUTING.md", "CHANGELOG.md"]` —
+    root-level dev-facing files.
+  - `rules: [...]` — five short agent-guidance statements surfacing
+    the §10 contracts, the agent-guide entry point, and the monorepo
+    AGENTS.md policy.
+
+### Contracts (§10)
+
+- §10.1, §10.2, §10.3: all unchanged. Docs-only release.
+
 ## [1.1.0] — 2026-04-18
 
 Agentic-IDE reach + AI-friendly docs delivery. No code breaks anything
@@ -240,6 +270,7 @@ Each contract has a documented ceremony for changes — see [docs/development/re
 - `cache prune` removes manifests but not blobs. diskcache deduplicates content-addressed storage so disk impact is small; a ref-counted blob GC lands in a future release.
 - `jc.cache` argument hashing uses pickle. Unpicklable inputs raise clearly at call time; a JSON-default fallback can come later.
 
-[Unreleased]: https://github.com/random-walks/jellycell/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/random-walks/jellycell/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/random-walks/jellycell/releases/tag/v1.1.1
 [1.1.0]: https://github.com/random-walks/jellycell/releases/tag/v1.1.0
 [1.0.0]: https://github.com/random-walks/jellycell/releases/tag/v1.0.0

@@ -1,7 +1,29 @@
 {
   "projectTitle": "jellycell",
-  "description": "Reproducible-analysis notebook tool: plain-text .py notebooks in jupytext percent format, content-addressed per-cell output cache, live HTML viewer. Agent-friendly via `jellycell prompt` (stdout) or `jellycell prompt --write` (AGENTS.md + CLAUDE.md).",
-  "folders": ["docs/"],
-  "excludeFolders": ["docs/_build", "docs/apidocs"],
+  "description": "Reproducible-analysis notebook tool: plain-text .py notebooks in jupytext percent format, content-addressed per-cell output cache, live HTML viewer.",
+  "folders": ["docs/", "examples/"],
+  "excludeFolders": [
+    ".claude",
+    ".github",
+    "scripts",
+    "tests",
+    "docs/_build",
+    "docs/apidocs",
+    "docs/development",
+    "docs/spec"
+  ],
+  "excludeFiles": [
+    "CLAUDE.md",
+    "CONTRIBUTING.md",
+    "CHANGELOG.md"
+  ],
+  "rules": [
+    "Run `jellycell prompt` or `jellycell prompt --write` for the canonical agent guide — §10.3 stability contract.",
+    "Every CLI command supports `--json` with `schema_version: 1` (§10.1 contract).",
+    "Cache keys are content-addressed: sha256(normalized_source, sorted_dep_keys, env_hash, MINOR_VERSION). See `src/jellycell/cache/hashing.py` for the §10.2 contract.",
+    "Three §10 invariants gate major version bumps: --json schemas, cache key algorithm, and agent guide content.",
+    "One AGENTS.md at repo root covers every jellycell project underneath — `jellycell prompt --write` refuses to scatter inner duplicates without --force.",
+    "Full docs feed: https://jellycell.readthedocs.io/en/latest/llms-full.txt"
+  ],
   "previousVersions": []
 }
