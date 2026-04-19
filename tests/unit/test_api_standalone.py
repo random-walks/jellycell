@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import pickle
 from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -142,3 +143,97 @@ class TestFigurePathOnly:
         monkeypatch.setitem(sys.modules, "matplotlib.pyplot", None)
         with pytest.raises((ImportError, AttributeError)):
             jc.figure("nope.png")
+
+
+class TestTableMixedObjectColumns:
+    """``jc.table`` auto-casts object columns with mixed dtypes to string.
+
+    Regression for
+    https://github.com/random-walks/jellycell/issues/14 — pyarrow rejected
+    mixed float+str object columns with a cryptic error deep in the parquet
+    serializer. Auto-casting to string before write sidesteps the issue and
+    preserves information for the common regression-output case (p-values
+    that may be either a numeric like ``0.84`` or a string like ``"<.001"``).
+    """
+
+    def test_mixed_str_float_column_roundtrips(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        pd = pytest.importorskip("pandas")
+        pytest.importorskip("pyarrow")
+        monkeypatch.chdir(tmp_path)
+
+        df = pd.DataFrame({"var": ["x", "y", "z"], "p": ["<.001", 0.999, 0.84]})
+        out = jc.table(df, name="ols")
+
+        restored = pd.read_parquet(out)
+        assert list(restored.columns) == ["var", "p"]
+        # The mixed column came back as string — values preserved.
+        assert restored["p"].tolist() == ["<.001", "0.999", "0.84"]
+
+    def test_pure_string_column_untouched(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """Pure-str object columns don't trigger the mixed-dtype path."""
+        pd = pytest.importorskip("pandas")
+        pytest.importorskip("pyarrow")
+        monkeypatch.chdir(tmp_path)
+
+        df = pd.DataFrame({"label": ["alpha", "beta", "gamma"]})
+        original = df.copy()
+        out = jc.table(df, name="labels")
+        # Caller's DataFrame must not be mutated — normalization returns a copy.
+        assert df.equals(original)
+        restored = pd.read_parquet(out)
+        assert restored["label"].tolist() == ["alpha", "beta", "gamma"]
+
+    def test_float_column_untouched(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+        """Pure-float columns serialize at native precision — no stringification."""
+        pd = pytest.importorskip("pandas")
+        pytest.importorskip("pyarrow")
+        monkeypatch.chdir(tmp_path)
+
+        df = pd.DataFrame({"x": [1.0, 2.5, 3.25]})
+        out = jc.table(df, name="xs")
+        restored = pd.read_parquet(out)
+        # Dtype preserved; values exact.
+        assert restored["x"].dtype.kind == "f"
+        assert restored["x"].tolist() == [1.0, 2.5, 3.25]
+
+    def test_missing_pyarrow_surfaces_clean_error(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        """If pyarrow is somehow missing at runtime, the error calls out jellycell.
+
+        Belt-and-suspenders for #13: pyarrow is a default dep now, but users
+        who uninstall it (or hit an import failure) should see a message
+        pointing at the `pip install pyarrow` fix rather than a raw pandas
+        ImportError that doesn't mention jellycell.
+        """
+        pd = pytest.importorskip("pandas")
+        monkeypatch.chdir(tmp_path)
+
+        class _FrameWithoutParquet:
+            """Stand-in for a DataFrame whose to_parquet raises ImportError."""
+
+            def __init__(self, df: Any) -> None:
+                self._df = df
+                self.columns = df.columns
+                self.dtypes = df.dtypes
+
+            def copy(self) -> _FrameWithoutParquet:
+                return _FrameWithoutParquet(self._df.copy())
+
+            def __getitem__(self, k: Any) -> Any:
+                return self._df[k]
+
+            def to_parquet(self, target: Any) -> None:
+                raise ImportError("Unable to find a usable engine")
+
+        # Skip the auto-cast path — pass through a plain DataFrame, but swap
+        # its to_parquet attribute so we exercise the ImportError branch.
+        df = pd.DataFrame({"x": [1, 2, 3]})
+        monkeypatch.setattr(df, "to_parquet", _FrameWithoutParquet(df).to_parquet)
+
+        with pytest.raises(ImportError, match=r"jc\.table requires pyarrow"):
+            jc.table(df, name="x")
