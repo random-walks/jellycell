@@ -35,6 +35,12 @@ jellycell view
   flattens `metrics.json` into a two-column table.
 - **Figure inlined in the tearsheet** — `loss_curve.png` drops into
   the tearsheet via a relative path.
+- **`tearsheet` tag filtering** (1.3.5+) — `metrics.json` and
+  `loss_curve.png` carry `tags=["tearsheet"]` alongside their domain
+  tags (`training`, `result`, `diagnostic`); `checkpoint.json` does
+  not. The auto-tearsheet scopes to the training summary — the full
+  loss history lives in `checkpoint.json` for agents/tools that want
+  it, but doesn't clutter the human-readable tearsheet.
 - **Deterministic, CI-friendly** — `SEED = 0` + small dataset means CI
   gets the same loss curve every time. Swap `TRUE_W` or `NOISE` to vary
   the experiment.

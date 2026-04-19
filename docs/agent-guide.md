@@ -91,12 +91,20 @@ Tags live in the `tags=[...]` list on the cell marker:
 | `jc.table`   | Writes a tabular artifact                     | `name=`              |
 | `jc.setup`   | No deps; not cached; runs first               | —                    |
 | `jc.note`    | Markdown-only; not executable                 | —                    |
+| `tearsheet`  | Include this cell/artifact in `jellycell export tearsheet` | — |
 
 `deps=a,b` declares that this cell depends on cells named `a` and `b`. The
 cache key incorporates dep cells' hashes so invalidation propagates correctly.
 
 Untagged code cells default to `jc.step` with an auto-generated name like
 `<notebook>:<ordinal>`.
+
+`tearsheet` is orthogonal — drop it on any cell (`tags=["jc.figure",
+"tearsheet"]`) or pass it to any artifact call (`jc.save(x, path,
+tags=["tearsheet"])`). As soon as *any* artifact in a notebook carries the
+tag, `jellycell export tearsheet` auto-enables filtering and includes only
+tagged artifacts. Notebooks with zero `tearsheet` tags are unaffected —
+every renderable artifact inlines as before.
 
 ## The `jc.*` API
 
@@ -108,6 +116,12 @@ import jellycell.api as jc
 # writes — all take optional caption=/notes=/tags= metadata
 jc.save(obj, "artifacts/summary.json", caption="Headline stats")
 jc.save(df, "artifacts/data.parquet")
+
+# jc.figure — two forms:
+# 1) Path-only: register an existing image file as an artifact (no re-encode).
+jc.figure("artifacts/plot.png", caption="Figure 1: mortality by country")
+
+# 2) Render: save a matplotlib figure.
 jc.figure(
     "artifacts/plot.png",
     fig=plt.gcf(),

@@ -68,7 +68,7 @@ uv run jellycell prompt --write --force
 
 ## Running a showcase
 
-Two equivalent forms. Pick whichever matches your muscle memory:
+Three equivalent forms. Pick whichever matches your muscle memory:
 
 ```bash
 # A) Full path from the monorepo root — jellycell discovers the
@@ -82,24 +82,23 @@ cd showcase-marketing
 uv run jellycell run notebooks/tour.py
 uv run jellycell render
 uv run jellycell view
-```
 
-For commands that don't take a notebook argument (`render` /
-`view` / `lint` / `export`), use `--project` with no notebook:
-
-```bash
+# C) --project global flag — works symmetrically across every command,
+#    including those that take a notebook argument (1.3.3+).
+uv run jellycell --project showcase-marketing run notebooks/tour.py
 uv run jellycell --project showcase-marketing render
 uv run jellycell --project showcase-marketing view            # live viewer on :5179
 uv run jellycell --project showcase-churn    lint --fix
+uv run jellycell --project showcase-churn    export tearsheet notebooks/tour.py
 ```
 
-Either form uses the same `.venv` at the monorepo root — no per-
-showcase environment setup.
+`--project ROOT` resolves a notebook path against `ROOT/` first, falling
+back to cwd if the project-relative path doesn't exist; absolute paths
+are honored verbatim. Works for `run`, `render`, `view`, `lint`, `new`,
+`cache`, `checkpoint`, and every `export *` — one flag, same semantics.
 
-> `jellycell --project X run notebooks/tour.py` does **not** rewrite
-> `notebooks/tour.py` to live under `X/` — that path is resolved
-> against your current working directory. Use form A (full path) or B
-> (`cd`) when running a notebook.
+Every form uses the same `.venv` at the monorepo root — no per-showcase
+environment setup.
 
 ## What gets committed vs git-ignored
 

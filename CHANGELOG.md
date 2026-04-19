@@ -78,11 +78,47 @@ evidence even when attempt 2 saves the run.
 
 ### Contracts (§10)
 
-- All unchanged. No cache-key / JSON schema / agent-guide touches.
-  The tearsheet tag is opt-in and additive; untagged notebooks are
-  byte-for-byte identical to the 1.3.1 tearsheet output. The kernel
-  timeout diagnostics only surface on error paths — healthy kernels
-  see no behavior change.
+- No cache-key / JSON schema touches. The tearsheet tag is opt-in and
+  additive; untagged notebooks are byte-for-byte identical to the
+  1.3.1 tearsheet output. The kernel timeout diagnostics only surface
+  on error paths — healthy kernels see no behavior change.
+- **§10.3 agent guide: additive content** — `tearsheet` tag added to
+  the attribute-tag vocabulary; `jc.figure` example updated to lead
+  with path-only invocation (1.3.2 feature, previously undocumented
+  in the guide). Snapshot `tests/unit/test_prompt_snapshot/test_prompt_snapshot.yml`
+  regenerated (12140 → 12844 bytes; canonical headers preserved).
+
+### Docs + examples — post-PR audit cleanup
+
+Catch-up pass after the six 1.3.5 PRs landed so the user-facing surfaces
+document the new behavior end-to-end:
+
+- **`docs/agent-guide.md`** — `tearsheet` tag added to the attribute-tag
+  vocabulary table; `jc.figure` example rewritten to show the path-only
+  mode (PR #17) alongside the render mode.
+- **`docs/file-format.md`** — `tearsheet` row in the tag vocabulary;
+  short note on `jc.figure` path-only invocation.
+- **`docs/cli-reference.md`** — new "Filtering via the `tearsheet` tag"
+  subsection under `export tearsheet`; one-line note on `--project`
+  symmetry for `jellycell run` (PR #18).
+- **`context7.md`** — mirrors the doc updates so Context7 readers get
+  current guidance on `tearsheet` tag + `jc.figure` path-only mode.
+- **`CLAUDE.md`** — "Agent surface" section now enumerates current
+  `jellycell prompt` flag set (`--write`, `--nested`, `--force`,
+  `--agents-only`).
+- **`examples/demo`** — headline `summary.json` now carries
+  `tags=["tearsheet"]`; `headline.json` left untagged. Regenerated
+  `manuscripts/tearsheets/tour.md` demonstrates the filter
+  end-to-end (only the tagged artifact inlines).
+- **`examples/ml-experiment`** — `metrics.json` + `loss_curve.png`
+  gain `tearsheet` alongside their domain tags; `checkpoint.json` is
+  left untagged so the human-readable tearsheet shows the training
+  summary without the full loss history.
+- **`examples/monorepo/README.md`** — "Running a showcase" section
+  gains a third form (`--project`) with a concrete example using
+  every command (`run`, `render`, `view`, `lint`, `export tearsheet`),
+  and the pre-1.3.3 caveat about `--project X run notebooks/...` is
+  removed since PR #18 fixed the resolution.
 
 ## [1.3.4] — 2026-04-19
 

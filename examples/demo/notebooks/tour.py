@@ -52,7 +52,12 @@ summary = {
     "conversion_rate": round(conversion_rate, 4),
     "conversions": raw["conversions"],
 }
-jc.save(summary, "artifacts/summary.json")
+jc.save(
+    summary,
+    "artifacts/summary.json",
+    caption="Conversion headline",
+    tags=["tearsheet"],
+)
 
 # %% [markdown]
 # ## 5. Round-trip via `jc.load`
