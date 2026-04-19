@@ -33,6 +33,21 @@ my-project/
     └── cache/           # content-addressed cache (git-ignored)
 ```
 
+## Single-project vs monorepo
+
+A **single-project repo** puts one `jellycell.toml` at the repo root — use this
+for a focused analysis. A **jellycell monorepo** is one Python environment
+(`pyproject.toml` at the root) hosting several jellycell projects side by side,
+each with its own `jellycell.toml` in a subdirectory. Caches, artifacts, and
+`site/` output stay scoped to each project's subtree; one `AGENTS.md` at the
+root covers every project inside. `jellycell init <subdir>` and
+`jellycell prompt --write <subdir>` are monorepo-aware — they detect an outer
+`AGENTS.md` and refuse to scatter duplicates without `--force`. From the
+monorepo root, run commands via `jellycell run <subdir>/notebooks/foo.py`
+or `jellycell --project <subdir> render`. See
+[project-layout](project-layout.md#multi-project--monorepo-pattern) for the
+full convention.
+
 ## File format
 
 A notebook is a single `.py` file in jupytext percent format:

@@ -41,6 +41,12 @@ detected at ../AGENTS.md" if one already covers this subtree, or a tip
 showing how to add one. See the [next step](#bootstrap-agent-dx) to act
 on the tip.
 
+**Single project or monorepo?** If you're running one focused analysis,
+keep `jellycell.toml` at your repo root as shown above. If you want
+multiple jellycell projects sharing one Python environment, see
+[project-layout.md](project-layout.md#multi-project--monorepo-pattern)
+and the runnable [`examples/monorepo/`](https://github.com/random-walks/jellycell/tree/main/examples/monorepo).
+
 ## Bootstrap agent DX
 
 If you want Cursor / Codex / GitHub Copilot / Claude Code / Aider to

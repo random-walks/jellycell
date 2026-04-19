@@ -6,6 +6,51 @@ Versioning policy: **patch bumps are cheap**. See [docs/development/releasing.md
 
 ## [Unreleased]
 
+## [1.2.0] — 2026-04-19
+
+Monorepo patterns — one Python env, multiple jellycell projects — now
+have a runnable reference fixture, explicit documentation, and
+agent-guide coverage. §10.3 additive content → minor bump.
+
+### Docs — single-project vs monorepo
+
+- **`docs/agent-guide.md`** gains a "Single-project vs monorepo"
+  section covering the two patterns, the monorepo-aware behavior of
+  `jellycell init` and `jellycell prompt --write`, and the correct
+  command forms (`jellycell run <subdir>/notebooks/foo.py` or
+  `jellycell --project <subdir> <command>`). §10.3 additive —
+  snapshot regenerated; no existing guidance modified.
+- **`docs/project-layout.md` Multi-project / monorepo pattern**
+  expanded with explicit "jellycell monorepo" framing (one
+  `pyproject.toml` / `uv.lock` / `.venv` at the root hosting all
+  projects), a "Running commands in a monorepo" subsection showing
+  both forms, a `--project` vs path-anchored discovery footgun note,
+  and a polyglot subsection for Python packages nested inside a
+  pnpm/turbo/Node repo.
+- **`docs/getting-started.md`** now asks "Single project or monorepo?"
+  right after `jellycell init`, pointing at the runnable example and
+  the full project-layout section.
+
+### Examples
+
+- **New [`examples/monorepo/`](examples/monorepo/)** fixture — a
+  minimal runnable layout with one `pyproject.toml` at the root, two
+  sibling jellycell projects (`showcase-marketing` + `showcase-churn`),
+  and a curated `AGENTS.md` placeholder that agents regenerate with
+  `uv run jellycell prompt --write --force`. Demonstrates cache
+  isolation: running one showcase doesn't invalidate the other's
+  cache; each gets its own `.jellycell/cache/`, `artifacts/`, and
+  `site/`.
+
+### Contracts (§10)
+
+- §10.1 `--json` schemas: unchanged.
+- §10.2 cache key: unchanged. `MINOR_VERSION` stays at 1.
+- §10.3 agent guide content: **additive section** ("Single-project vs
+  monorepo"). Snapshot `tests/unit/test_prompt_snapshot/test_prompt_snapshot.yml`
+  regenerated — length 11066 → 11915 bytes, all four canonical
+  headers still present, existing section content byte-identical.
+
 ## [1.1.2] — 2026-04-18
 
 ### Docs — Context7 config restore
@@ -283,7 +328,8 @@ Each contract has a documented ceremony for changes — see [docs/development/re
 - `cache prune` removes manifests but not blobs. diskcache deduplicates content-addressed storage so disk impact is small; a ref-counted blob GC lands in a future release.
 - `jc.cache` argument hashing uses pickle. Unpicklable inputs raise clearly at call time; a JSON-default fallback can come later.
 
-[Unreleased]: https://github.com/random-walks/jellycell/compare/v1.1.2...HEAD
+[Unreleased]: https://github.com/random-walks/jellycell/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/random-walks/jellycell/releases/tag/v1.2.0
 [1.1.2]: https://github.com/random-walks/jellycell/releases/tag/v1.1.2
 [1.1.1]: https://github.com/random-walks/jellycell/releases/tag/v1.1.1
 [1.1.0]: https://github.com/random-walks/jellycell/releases/tag/v1.1.0
