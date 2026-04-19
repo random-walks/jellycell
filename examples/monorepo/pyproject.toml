@@ -1,0 +1,13 @@
+[project]
+name = "jellycell-monorepo-example"
+version = "0.0.0"
+description = "Reference layout: one uv environment hosting multiple jellycell projects."
+requires-python = ">=3.11"
+dependencies = [
+    "jellycell[server]>=1.1",
+]
+
+# This pyproject.toml is the ONLY Python environment for the whole
+# repo — every jellycell project below (showcase-marketing,
+# showcase-churn, …) runs against the same .venv. One `uv sync` at
+# the root is all you need before running any showcase.

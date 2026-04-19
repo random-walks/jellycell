@@ -20,17 +20,21 @@ All paths are configurable — see the `[paths]` section of `jellycell.toml`.
 
 ## Multi-project / monorepo pattern
 
-One repo can hold several jellycell projects side by side — a
-marketing-analysis project next to a churn-model project, for instance.
-The right layout puts a single `AGENTS.md` at the **repo root**, not
-one per jellycell project:
+A **jellycell monorepo** is one Python environment hosting several
+jellycell projects side by side — a marketing-analysis project next to
+a churn-model project, a paper's experiments next to each other, or a
+personal site's OSS showcases.  One `pyproject.toml` and one `.venv`
+at the root; one `jellycell.toml` per project; one `AGENTS.md` at the
+root covering everything inside.
 
 ```
 my-repo/
-├── AGENTS.md                       # one agent guide covering everything
+├── pyproject.toml                  # one uv/pip environment for the whole repo
+├── uv.lock                         # or requirements.txt, poetry.lock, ...
+├── .python-version
+├── AGENTS.md                       # one agent guide covering every project
 ├── CLAUDE.md                       # 3-line stub → AGENTS.md
 ├── README.md
-├── pyproject.toml                  # or requirements.txt / uv.lock / ...
 ├── marketing-analysis/             # a jellycell project
 │   ├── jellycell.toml
 │   ├── notebooks/
@@ -43,14 +47,51 @@ my-repo/
     └── site/
 ```
 
-One AGENTS.md at repo root covers every jellycell project underneath.
+Run `uv sync` once at the root; every project shares the same
+environment. Each `jellycell.toml` is the **anchor** for its own
+`notebooks/`, `artifacts/`, `site/`, `manuscripts/`, and
+`.jellycell/cache/` — zero cross-leak. Editing one project's notebook
+doesn't invalidate its sibling's cache.
+
+### Running commands in a monorepo
+
+Project discovery walks up from the notebook path OR from cwd. Two
+equivalent forms:
+
+```bash
+# A) Full path from the monorepo root.  Simplest for commands that
+#    take a notebook argument.
+uv run jellycell run marketing-analysis/notebooks/tour.py
+
+# B) cd into the project first.
+cd marketing-analysis
+uv run jellycell run notebooks/tour.py
+uv run jellycell render
+uv run jellycell view
+```
+
+Commands that don't take a notebook (`render` / `view` / `lint` /
+`export`) take `--project <path>`:
+
+```bash
+uv run jellycell --project marketing-analysis render
+uv run jellycell --project churn-model        view
+```
+
+> `jellycell --project X run notebooks/tour.py` does **not** rewrite
+> the notebook path to live under `X/` — the path is resolved against
+> cwd. Use the full path (form A) or a `cd` (form B) when running a
+> notebook.
+
+### One AGENTS.md covers every project
+
 Agentic tools (Cursor, Codex, Copilot, Aider, Zed, Windsurf) compose
 nested AGENTS.md files — an outer file applies to every inner path
 unless an inner one overrides it. Jellycell's tooling is aware of this:
 
 - `jellycell init <subdir>` detects an outer `AGENTS.md` and prints
   `✓ agent guide detected at ../AGENTS.md — Cursor / Codex / Copilot /
-  Claude Code already covered.` (instead of the usual "tip: add one").
+  Claude Code already covered.` instead of the usual "tip: add one".
 - `jellycell prompt --write <subdir>` refuses to scatter a duplicate
   inside `<subdir>` when an outer `AGENTS.md` is found. Pass `--force`
   only if you want an inner override for that subtree.
@@ -58,6 +99,19 @@ unless an inner one overrides it. Jellycell's tooling is aware of this:
 The walk stops at the repo's `.git/` directory (or `$HOME`, or the
 filesystem root — whichever comes first), so AGENTS.md files sitting
 in random ancestor directories above the repo don't trip the check.
+
+### Polyglot monorepos
+
+Nothing about jellycell's walk-up is Python-specific. If your Python
+package lives deep inside a pnpm / turbo / Node repo —
+`packages/python-showcase/showcase-marketing/` — jellycell works
+identically, provided `AGENTS.md` sits somewhere at or above the
+project dir and at or below the git root. Shell out through
+`uv --directory packages/python-showcase run jellycell …` from your
+pnpm scripts.
+
+See [`examples/monorepo/`](https://github.com/random-walks/jellycell/tree/main/examples/monorepo)
+for a minimal, runnable reference.
 
 ## Full `jellycell.toml` reference
 
