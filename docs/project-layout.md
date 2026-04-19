@@ -167,16 +167,23 @@ Jellycell's `--project <path>` is a Typer **global** option — it must
 precede the subcommand (`jellycell --project X render`, not
 `jellycell render --project X`). That's awkward to wire through pnpm
 scripts that accept a positional showcase name at the end. A tiny bash
-wrapper bridges the gap:
+wrapper bridges the gap.
+
+Use `uv --directory packages/python-showcase` (cd's in) in every
+wrapper — **not** `uv --project`. A showcase name like
+`showcase-marketing` only resolves correctly when cwd is the Python
+package root; `uv --project` keeps cwd at the repo root, where
+`showcase-marketing` would resolve to `<repo-root>/showcase-marketing`
+and fail with *No jellycell.toml found*.
 
 ```json
 {
   "scripts": {
-    "showcase:run":    "uv --project packages/python-showcase run jellycell run",
-    "showcase:init":   "uv --project packages/python-showcase run jellycell init",
-    "showcase:render": "bash -c 'uv --project packages/python-showcase run jellycell --project \"$1\" render \"${@:2}\"' --",
-    "showcase:view":   "bash -c 'uv --project packages/python-showcase run jellycell --project \"$1\" view \"${@:2}\"' --",
-    "showcase:lint":   "bash -c 'uv --project packages/python-showcase run jellycell --project \"$1\" lint \"${@:2}\"' --"
+    "showcase:run":    "uv --directory packages/python-showcase run jellycell run",
+    "showcase:init":   "uv --directory packages/python-showcase run jellycell init",
+    "showcase:render": "bash -c 'uv --directory packages/python-showcase run jellycell --project \"$1\" render \"${@:2}\"' --",
+    "showcase:view":   "bash -c 'uv --directory packages/python-showcase run jellycell --project \"$1\" view \"${@:2}\"' --",
+    "showcase:lint":   "bash -c 'uv --directory packages/python-showcase run jellycell --project \"$1\" lint \"${@:2}\"' --"
   }
 }
 ```
@@ -190,9 +197,16 @@ pnpm showcase:view   showcase-churn                   # live viewer on :5179
 pnpm showcase:lint   showcase-marketing --fix         # extras flow through
 ```
 
-`showcase:run` and `showcase:init` don't need the wrapper because
-their first argument already locates the project (a notebook path or a
-target directory).
+`showcase:run` and `showcase:init` don't need the bash-c wrapper
+because their first positional argument already locates the project
+(a notebook path relative to the Python package root, or a target
+directory for `init`).
+
+`uv --project` is still the right choice for the one-shot
+`jellycell prompt --write` under Pattern B (single root AGENTS.md) —
+there you *want* cwd pinned at the monorepo root so the file lands
+there. It's just a bad fit for day-to-day wrappers that accept
+relative showcase paths.
 
 See [`examples/monorepo/`](https://github.com/random-walks/jellycell/tree/main/examples/monorepo)
 for a minimal, runnable reference.
