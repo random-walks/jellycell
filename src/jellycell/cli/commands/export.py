@@ -12,7 +12,7 @@ from rich.console import Console
 from jellycell.cache.index import CacheIndex
 from jellycell.cache.manifest import Manifest
 from jellycell.cache.store import CacheStore
-from jellycell.cli.app import GlobalOptions, app
+from jellycell.cli.app import GlobalOptions, app, resolve_notebook_and_project
 from jellycell.export import export_ipynb, export_md, export_tearsheet
 from jellycell.paths import Project, ProjectNotFoundError
 
@@ -55,9 +55,8 @@ def _prepare(
     ctx: typer.Context, notebook: Path, suffix: str
 ) -> tuple[Project, Path, dict[str, Manifest], CacheStore, Path]:
     opts: GlobalOptions = ctx.obj
-    source = notebook.resolve()
     try:
-        project = Project.from_path(source)
+        source, project = resolve_notebook_and_project(notebook, opts.project_override)
     except ProjectNotFoundError as exc:
         _fail(opts, str(exc))
     notebook_rel = str(source.relative_to(project.root))
@@ -134,12 +133,10 @@ def export_tearsheet_cmd(
     The result is safe to commit and renders inline on GitHub.
     """
     opts: GlobalOptions = ctx.obj
-    opts_obj: GlobalOptions = ctx.obj
-    source = notebook.resolve()
     try:
-        project = Project.from_path(source)
+        source, project = resolve_notebook_and_project(notebook, opts.project_override)
     except ProjectNotFoundError as exc:
-        _fail(opts_obj, str(exc))
+        _fail(opts, str(exc))
     notebook_rel = str(source.relative_to(project.root))
     store = CacheStore(project.cache_dir)
     try:

@@ -68,6 +68,23 @@ class Project:
             current = parent
         raise ProjectNotFoundError(f"No jellycell.toml found walking up from {start}")
 
+    @classmethod
+    def from_root(cls, root: Path) -> Project:
+        """Load a project directly from a known root directory.
+
+        Unlike :meth:`from_path`, doesn't walk up — the caller is asserting
+        ``root`` is the project root. Used when the user passes ``--project``
+        explicitly.
+
+        Raises:
+            ProjectNotFoundError: If ``root/jellycell.toml`` doesn't exist.
+        """
+        root = root.resolve()
+        candidate = root / "jellycell.toml"
+        if not candidate.exists():
+            raise ProjectNotFoundError(f"No jellycell.toml at {root}")
+        return cls(root=root, config=Config.load(candidate))
+
     def resolve(self, *parts: str | Path) -> Path:
         """Resolve a project-relative path. Rejects escapes.
 

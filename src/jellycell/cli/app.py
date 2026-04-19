@@ -12,6 +12,7 @@ from pathlib import Path
 import typer
 
 from jellycell._version import __version__
+from jellycell.paths import Project, ProjectNotFoundError
 
 app = typer.Typer(
     name="jellycell",
@@ -30,6 +31,49 @@ class GlobalOptions:
     quiet: bool
     verbose: bool
     json_output: bool
+
+
+def resolve_notebook_and_project(
+    notebook: Path, project_override: Path | None
+) -> tuple[Path, Project]:
+    """Resolve a notebook argument against a project root.
+
+    Used by every command that takes a ``<notebook>`` argument (``run``,
+    ``export ipynb|md|tearsheet``). Two modes:
+
+    - **Walk-up** (``project_override`` is ``None``): resolve ``notebook``
+      against CWD, then walk up from it to find ``jellycell.toml``. Matches
+      the long-standing default behavior.
+    - **Explicit** (``--project`` set): use ``project_override`` as the root
+      and resolve ``notebook`` against it first, falling back to CWD if
+      nothing exists at the project-relative location. Lets callers run
+      ``jellycell --project showcase-foo run notebooks/01.py`` from anywhere
+      without needing to prefix the showcase path twice.
+
+    Returns the resolved-absolute notebook path and the loaded :class:`Project`.
+
+    Raises:
+        ProjectNotFoundError: If ``jellycell.toml`` cannot be found.
+    """
+    if project_override is not None:
+        project = Project.from_root(project_override)
+        if notebook.is_absolute():
+            resolved = notebook.resolve()
+        else:
+            project_relative = (project.root / notebook).resolve()
+            if project_relative.exists():
+                resolved = project_relative
+            else:
+                cwd_relative = (Path.cwd() / notebook).resolve()
+                resolved = cwd_relative if cwd_relative.exists() else project_relative
+        return resolved, project
+
+    resolved = notebook.resolve()
+    try:
+        project = Project.from_path(resolved)
+    except ProjectNotFoundError:
+        raise
+    return resolved, project
 
 
 def _version_callback(value: bool) -> None:
