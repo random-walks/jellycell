@@ -6,6 +6,19 @@ Versioning policy: **patch bumps are cheap**. See [docs/development/releasing.md
 
 ## [Unreleased]
 
+## [1.1.2] — 2026-04-18
+
+### Docs — Context7 config restore
+
+- **`context7.json`** restored to the scoped-ingest config promised by
+  1.1.1 — `folders`, `excludeFolders` (skipping `.claude`, `tests`,
+  `docs/development`, `docs/spec`, etc.), `excludeFiles`, `rules`,
+  `previousVersions`. 1.1.1 had to minimize the file to just
+  `{url, public_key}` for Context7's library-claim verification
+  (strict `additionalProperties: false` on the claim endpoint);
+  after claim succeeded, the claim fields are no longer needed in
+  the committed file.
+
 ## [1.1.1] — 2026-04-18
 
 Context7 ingestion hygiene — separate dev-facing from consumer-facing.
@@ -270,7 +283,8 @@ Each contract has a documented ceremony for changes — see [docs/development/re
 - `cache prune` removes manifests but not blobs. diskcache deduplicates content-addressed storage so disk impact is small; a ref-counted blob GC lands in a future release.
 - `jc.cache` argument hashing uses pickle. Unpicklable inputs raise clearly at call time; a JSON-default fallback can come later.
 
-[Unreleased]: https://github.com/random-walks/jellycell/compare/v1.1.1...HEAD
+[Unreleased]: https://github.com/random-walks/jellycell/compare/v1.1.2...HEAD
+[1.1.2]: https://github.com/random-walks/jellycell/releases/tag/v1.1.2
 [1.1.1]: https://github.com/random-walks/jellycell/releases/tag/v1.1.1
 [1.1.0]: https://github.com/random-walks/jellycell/releases/tag/v1.1.0
 [1.0.0]: https://github.com/random-walks/jellycell/releases/tag/v1.0.0
