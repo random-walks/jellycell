@@ -147,6 +147,76 @@ class TestWarnOnLargeOutput:
         assert rules.rule_warn_on_large_cell_output(project) == []
 
 
+class TestDepsNoComma:
+    """Regression for issue #25 — nbformat tag schema rejects ``deps=a,b,c``."""
+
+    PEP723 = "# /// script\n# requires-python = '>=3.11'\n# dependencies = []\n# ///\n\n"
+
+    def test_flags_comma_separated_deps(self, tmp_path: Path) -> None:
+        nb = self.PEP723 + (
+            '# %% tags=["jc.step", "name=a"]\nA = 1\n\n'
+            '# %% tags=["jc.step", "name=b"]\nB = 2\n\n'
+            '# %% tags=["jc.step", "name=sink", "deps=a,b"]\nprint(A + B)\n'
+        )
+        project = _project_at(tmp_path, {"n.py": nb})
+        violations = rules.rule_deps_no_comma(project)
+        assert len(violations) == 1
+        v = violations[0]
+        assert v.rule == "deps-no-comma"
+        assert v.fixable
+        # Error message points at the fix.
+        assert '"deps=a"' in v.message and '"deps=b"' in v.message
+
+    def test_flags_three_comma_deps(self, tmp_path: Path) -> None:
+        nb = self.PEP723 + '# %% tags=["jc.step", "deps=a,b,c"]\nx = 1\n'
+        project = _project_at(tmp_path, {"n.py": nb})
+        violations = rules.rule_deps_no_comma(project)
+        assert len(violations) == 1
+        assert '"deps=a", "deps=b", "deps=c"' in violations[0].message
+
+    def test_clean_when_deps_split_correctly(self, tmp_path: Path) -> None:
+        nb = self.PEP723 + (
+            '# %% tags=["jc.step", "name=sink", "deps=a", "deps=b", "deps=c"]\nx = 1\n'
+        )
+        project = _project_at(tmp_path, {"n.py": nb})
+        assert rules.rule_deps_no_comma(project) == []
+
+    def test_clean_when_no_deps(self, tmp_path: Path) -> None:
+        nb = self.PEP723 + '# %% tags=["jc.step", "name=solo"]\nx = 1\n'
+        project = _project_at(tmp_path, {"n.py": nb})
+        assert rules.rule_deps_no_comma(project) == []
+
+    def test_single_quote_form_also_caught(self, tmp_path: Path) -> None:
+        """Cover both quote styles — jupytext emits double, users may paste single."""
+        nb = self.PEP723 + "# %% tags=['jc.step', 'deps=a,b']\nx = 1\n"
+        project = _project_at(tmp_path, {"n.py": nb})
+        violations = rules.rule_deps_no_comma(project)
+        assert len(violations) == 1
+
+    def test_fix_rewrites_to_one_tag_per_dep(self, tmp_path: Path) -> None:
+        nb = self.PEP723 + '# %% tags=["jc.step", "name=sink", "deps=a,b,c"]\nx = 1\n'
+        project = _project_at(tmp_path, {"n.py": nb})
+        violations = rules.rule_deps_no_comma(project)
+        remaining = rules.auto_fix(project, violations)
+        assert remaining == []
+        after = (tmp_path / "notebooks" / "n.py").read_text(encoding="utf-8")
+        assert '"deps=a", "deps=b", "deps=c"' in after
+        assert "deps=a,b,c" not in after
+        # Re-running the rule on the fixed file turns up nothing.
+        assert rules.rule_deps_no_comma(project) == []
+
+    def test_fix_preserves_other_tags_and_whitespace(self, tmp_path: Path) -> None:
+        nb = self.PEP723 + (
+            '# %% tags=["jc.step", "name=sink", "deps=a,b", "tearsheet"]\nprint(A)\n'
+        )
+        project = _project_at(tmp_path, {"n.py": nb})
+        rules.auto_fix(project, rules.rule_deps_no_comma(project))
+        after = (tmp_path / "notebooks" / "n.py").read_text(encoding="utf-8")
+        # Original ordering preserved — name+kind before deps, tearsheet after.
+        assert '"jc.step"' in after and '"name=sink"' in after and '"tearsheet"' in after
+        assert '"deps=a"' in after and '"deps=b"' in after
+
+
 class TestSizeParsing:
     @pytest.mark.parametrize(
         "spec,expected",

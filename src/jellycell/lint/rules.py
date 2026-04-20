@@ -12,6 +12,8 @@ Rules in this file:
 - ``enforce-declared-deps`` — named cells that reference another cell's name
   via ``jc.load`` must declare it in ``deps=`` (or have it picked up by the
   AST walker). Gated by ``lint.enforce_declared_deps``.
+- ``deps-no-comma`` — catches ``deps=a,b,c`` tags that nbformat would
+  reject at validation time; auto-fixes to one ``deps=`` tag per dep.
 - ``warn-on-large-cell-output`` — cached outputs exceeding the size threshold
   get a (non-fixable) warning. Gated by ``lint.warn_on_large_cell_output``.
 """
@@ -211,6 +213,94 @@ def rule_enforce_declared_deps(project: Project) -> list[Violation]:
     return violations
 
 
+# Regex for percent-format cell markers carrying a ``tags=[...]`` literal.
+# We scan raw source (not a parsed notebook) because this rule has to catch
+# comma-in-tag forms that nbformat validation rejects before jupytext can
+# return a Notebook object. Matches either spelling:
+#
+#     # %% tags=["jc.step", "deps=a,b"]           # space
+#     # %%tags=["jc.step", "deps=a,b"]            # no space
+_PERCENT_TAGS_RE = re.compile(r"^#\s*%%.*?tags\s*=\s*\[(.*?)\]", re.MULTILINE)
+
+# Individual quoted tag string inside the tags list.
+_QUOTED_TAG_RE = re.compile(r'"([^"]*)"|\'([^\']*)\'')
+
+
+def rule_deps_no_comma(project: Project) -> list[Violation]:
+    """Catch ``deps=a,b,c`` — nbformat rejects any tag containing a comma.
+
+    nbformat's tag schema enforces ``^[^,]+$`` on every individual tag
+    string, so a comma-separated deps form (``deps=a,b,c``) raises
+    ``NotebookValidationError`` on first ``jellycell run``. The valid
+    form is one ``deps=`` tag per dep — jellycell concatenates them at
+    parse time. Fix is mechanical; registered as fixable.
+    """
+    violations: list[Violation] = []
+    nb_dir = project.notebooks_dir
+    if not nb_dir.exists():
+        return []
+    for path in sorted(nb_dir.rglob("*.py")):
+        try:
+            text = path.read_text(encoding="utf-8")
+        except OSError:
+            continue
+        for match in _PERCENT_TAGS_RE.finditer(text):
+            tag_list_raw = match.group(1)
+            for tag_match in _QUOTED_TAG_RE.finditer(tag_list_raw):
+                tag = tag_match.group(1) or tag_match.group(2)
+                if tag.startswith("deps=") and "," in tag:
+                    line_num = text[: match.start()].count("\n") + 1
+                    relative = path.relative_to(project.root)
+                    parts = [n.strip() for n in tag[len("deps=") :].split(",") if n.strip()]
+                    suggested = ", ".join(f'"deps={n}"' for n in parts)
+                    violations.append(
+                        Violation(
+                            rule="deps-no-comma",
+                            path=path,
+                            line=line_num,
+                            message=(
+                                f"{relative}:{line_num}: tag {tag!r} uses comma-separated "
+                                f"deps, which nbformat's tag schema rejects. Split into "
+                                f"one tag per dep: {suggested}."
+                            ),
+                            fixable=True,
+                        )
+                    )
+    return violations
+
+
+def fix_deps_no_comma(project: Project, violation: Violation) -> bool:
+    """Rewrite ``"deps=a,b,c"`` into ``"deps=a", "deps=b", "deps=c"`` in place."""
+    if violation.path is None or not violation.path.exists():
+        return False
+    text = violation.path.read_text(encoding="utf-8")
+
+    def _rewrite_tag(tag_match: re.Match[str]) -> str:
+        tag = tag_match.group(1) or tag_match.group(2) or ""
+        if not (tag.startswith("deps=") and "," in tag):
+            return tag_match.group(0)
+        parts = [n.strip() for n in tag[len("deps=") :].split(",") if n.strip()]
+        return ", ".join(f'"deps={n}"' for n in parts)
+
+    def _rewrite_line(marker_match: re.Match[str]) -> str:
+        line = marker_match.group(0)
+        tag_list_start = line.find("[")
+        tag_list_end = line.rfind("]")
+        if tag_list_start == -1 or tag_list_end == -1:
+            return line
+        head = line[: tag_list_start + 1]
+        body = line[tag_list_start + 1 : tag_list_end]
+        tail = line[tag_list_end:]
+        new_body = _QUOTED_TAG_RE.sub(_rewrite_tag, body)
+        return f"{head}{new_body}{tail}"
+
+    new_text = _PERCENT_TAGS_RE.sub(_rewrite_line, text)
+    if new_text == text:
+        return False
+    violation.path.write_text(new_text, encoding="utf-8")
+    return True
+
+
 def rule_warn_on_large_cell_output(project: Project) -> list[Violation]:
     """Cached cells whose total output size exceeds ``warn_on_large_cell_output``."""
     limit_spec = project.config.lint.warn_on_large_cell_output
@@ -334,12 +424,14 @@ RULES: dict[str, RuleFn] = {
     "pep723-position": rule_pep723_position,
     "enforce-artifact-paths": rule_enforce_artifact_paths,
     "enforce-declared-deps": rule_enforce_declared_deps,
+    "deps-no-comma": rule_deps_no_comma,
     "warn-on-large-cell-output": rule_warn_on_large_cell_output,
 }
 
 FIXERS: dict[str, FixerFn] = {
     "layout": fix_layout,
     "pep723-position": fix_pep723_position,
+    "deps-no-comma": fix_deps_no_comma,
 }
 
 

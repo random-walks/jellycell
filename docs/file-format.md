@@ -88,9 +88,17 @@ The `tags=[...]` list on the marker line. Two classes of tags:
 | Attr               | Meaning                                           | Example         |
 | ------------------ | ------------------------------------------------- | --------------- |
 | `name=...`         | Cell's name. Referenceable via `deps=` elsewhere. | `name=summary`  |
-| `deps=a,b,c`       | Explicit deps. Comma-separated list of names.     | `deps=raw,env`  |
+| `deps=<name>`      | Explicit dep. **One tag per dep — never comma-separated.** | `deps=raw`, `deps=env` |
 | `timeout=N`        | Per-cell timeout in seconds                       | `timeout=60`    |
 | `tearsheet`        | Include this cell/artifact in `export tearsheet`  | `tearsheet`     |
+
+> **`deps=a,b,c` does not work** — nbformat enforces the regex
+> `^[^,]+$` on each individual tag, so a single tag containing a
+> comma (e.g. `deps=a,b,c`) raises `NotebookValidationError` before
+> jellycell sees it. Always use one `deps=` tag per dep:
+> `tags=["jc.step", "name=sink", "deps=a", "deps=b", "deps=c"]`.
+> `jellycell lint` has a `deps-no-comma` rule that catches the
+> broken form with a clear pointer to the fix.
 
 Tags round-trip losslessly through jupytext — verified by tests.
 
