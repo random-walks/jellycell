@@ -6,6 +6,97 @@ Versioning policy: **patch bumps are cheap**. See [docs/development/releasing.md
 
 ## [Unreleased]
 
+## [1.4.0] — 2026-04-20
+
+Closes [#24](https://github.com/random-walks/jellycell/issues/24) and
+[#25](https://github.com/random-walks/jellycell/issues/25). New public
+Python API for manuscript generation plus a long-needed lint/docs fix
+for multi-dep tags.
+
+### Added — `jellycell.tearsheets` Python API
+
+New top-level module with three helpers for producing curated markdown
+output **from inside a `jc.step`-tagged cell** (so the rendered
+document lives in the cache graph, rather than outside it via the
+post-hoc `jellycell export tearsheet` CLI):
+
+```python
+import jellycell.tearsheets as jt
+
+jt.findings(
+    results={"twfe": {"att": 0.2, "n_obs": 1234}, "cs": {...}},
+    out_path="manuscripts/FINDINGS.md",
+    project="showcase-rat-containerization",
+    template_overrides={"author": "Blaise", "month_year": "April 2026"},
+)
+
+jt.methodology(
+    spec={"Data source": "...", "Identification": "..."},
+    out_path="manuscripts/METHODOLOGY.md",
+    project="showcase-rat-containerization",
+)
+
+jt.audit(
+    "notebooks/03_temporal_and_equity.py",
+    out_path="manuscripts/tearsheets/audit_03.md",
+)
+```
+
+- `findings(results, ...)` — one `## <estimator>` heading + two-column
+  metric table per top-level key in `results`. Nested dicts flatten
+  with dotted keys (`{"cs": {"att": 0.2}}` → `cs.att` row).
+- `methodology(spec, ...)` — ordered `section_title → markdown_body`
+  mapping; each section rendered as `## title` followed by body
+  verbatim (markdown passes through untouched).
+- `audit(notebook, ...)` — thin wrapper over
+  `jellycell.export.tearsheet.export_tearsheet`; reads manifests from
+  the project's cache.
+
+All three share a pinnable header — author, author_url, month_year,
+version, project — via `template_overrides`, so callers get
+**byte-identical regeneration** when inputs don't change. Each returns
+the resolved `Path` so callers can chain into `jc.save` or similar.
+Parent directories are created automatically.
+
+Agent guide gains a new "Manuscript generation: `jellycell.tearsheets`"
+section covering the three helpers with a full example; §10.3 additive
+snapshot regenerated.
+
+### Fixed — `deps=a,b,c` comma form now detected by lint
+
+Previously the docs (agent guide + `file-format.md` tag table) showed
+`deps=a,b,c` as the explicit-multi-dep tag syntax. That form is
+**rejected at notebook validation time** by nbformat — the tag schema
+enforces `^[^,]+$` on each individual tag, so any tag containing a
+comma raises `NotebookValidationError` on first `jellycell run`. The
+valid form is one `deps=` tag per dep (which jellycell already handles
+correctly at runtime — the bug was purely in documentation).
+
+Three changes:
+
+1. **`docs/agent-guide.md`** and **`docs/file-format.md`** now show the
+   correct multi-tag form and explicitly call out the trap:
+   `tags=["jc.step", "deps=a", "deps=b", "deps=c"]`.
+2. **New `deps-no-comma` lint rule** (auto-fixable) scans raw notebook
+   source for comma-bearing `deps=` tags and rewrites them to one tag
+   per dep. Bypasses jupytext parsing so it catches files that
+   currently fail nbformat validation. Always on.
+3. **`context7.md`** updated to match.
+
+§10.3 additive content in the agent guide; snapshot regenerated.
+
+### Contracts (§10)
+
+- §10.1 `--json` schemas: unchanged. (`jellycell lint --json` already
+  surfaces any rule by name — `deps-no-comma` flows through without a
+  shape change.)
+- §10.2 cache key: unchanged. `MINOR_VERSION` stays at 1.
+- §10.3 agent guide content: **additive** — two new sections
+  ("Multiple deps: one tag per dep" under Cell tags, and
+  "Manuscript generation: `jellycell.tearsheets`" under the `jc.*` API).
+  Existing guidance is byte-identical apart from the one `deps=a,b`
+  correction. Snapshot regenerated.
+
 ## [1.3.5] — 2026-04-19
 
 Two bundled patches: tearsheet artifact filtering via a declarative
@@ -784,7 +875,9 @@ Each contract has a documented ceremony for changes — see [docs/development/re
 - `cache prune` removes manifests but not blobs. diskcache deduplicates content-addressed storage so disk impact is small; a ref-counted blob GC lands in a future release.
 - `jc.cache` argument hashing uses pickle. Unpicklable inputs raise clearly at call time; a JSON-default fallback can come later.
 
-[Unreleased]: https://github.com/random-walks/jellycell/compare/v1.3.1...HEAD
+[Unreleased]: https://github.com/random-walks/jellycell/compare/v1.4.0...HEAD
+[1.4.0]: https://github.com/random-walks/jellycell/releases/tag/v1.4.0
+[1.3.5]: https://github.com/random-walks/jellycell/releases/tag/v1.3.5
 [1.3.1]: https://github.com/random-walks/jellycell/releases/tag/v1.3.1
 [1.3.0]: https://github.com/random-walks/jellycell/releases/tag/v1.3.0
 [1.2.0]: https://github.com/random-walks/jellycell/releases/tag/v1.2.0

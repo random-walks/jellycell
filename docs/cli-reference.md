@@ -132,6 +132,14 @@ when iterating on templates so every request re-renders.
   `tearsheet` tagging behave as before — every renderable artifact is
   inlined. Closes [#15](https://github.com/random-walks/jellycell/issues/15).
 
+  **Programmatic alternative** (1.4.0+): `jellycell.tearsheets.audit(nb,
+  out_path=...)` calls the same exporter from inside a `jc.step` cell,
+  so the rendered tearsheet lives in the cache graph. Two sibling
+  helpers, `jellycell.tearsheets.findings()` and
+  `.methodology()`, render FINDINGS / METHODOLOGY manuscripts from
+  in-memory dicts (no notebook-file round-trip). See
+  [agent-guide.md](agent-guide.md#manuscript-generation-jellycelltearsheets-140).
+
 ### `jellycell checkpoint ...`
 
 Bundle reproducible project snapshots (self-contained `.tar.gz`).

@@ -86,15 +86,24 @@ Tags live in the `tags=[...]` list on the cell marker:
 | Tag          | Meaning                                       | Extra attrs          |
 | ------------ | --------------------------------------------- | -------------------- |
 | `jc.load`    | Loads input data (conventionally from `data/`) | `name=`              |
-| `jc.step`    | Default — transform or compute                | `name=`, `deps=a,b`  |
+| `jc.step`    | Default — transform or compute                | `name=`, `deps=a`, `deps=b` |
 | `jc.figure`  | Writes an image artifact                      | `name=`              |
 | `jc.table`   | Writes a tabular artifact                     | `name=`              |
 | `jc.setup`   | No deps; not cached; runs first               | —                    |
 | `jc.note`    | Markdown-only; not executable                 | —                    |
 | `tearsheet`  | Include this cell/artifact in `jellycell export tearsheet` | — |
 
-`deps=a,b` declares that this cell depends on cells named `a` and `b`. The
-cache key incorporates dep cells' hashes so invalidation propagates correctly.
+**Multiple deps: one tag per dep.** nbformat's tag schema rejects commas
+inside a single tag, so write each dep as its own `deps=` entry:
+
+```
+# %% tags=["jc.step", "name=sink", "deps=a", "deps=b", "deps=c"]
+```
+
+Not `deps=a,b,c` — that form raises `NotebookValidationError` on first run.
+Jellycell concatenates the list at parse time; order doesn't matter. The
+cache key incorporates dep cells' hashes so invalidation propagates
+correctly. `jellycell lint` catches the comma form with a clear pointer.
 
 Untagged code cells default to `jc.step` with an auto-generated name like
 `<notebook>:<ordinal>`.
@@ -156,6 +165,55 @@ All `jc.*` calls work standalone (plain file ops) OR inside `jellycell run`
 cell's manifest).
 
 Supported `jc.save` formats: `.parquet`, `.csv`, `.json`, `.pkl`, `.png`.
+
+## Manuscript generation: `jellycell.tearsheets` (1.4.0+)
+
+For analyses that emit manuscript-style markdown (FINDINGS.md,
+METHODOLOGY.md, per-notebook audit reports) as part of the cache
+graph — not as a post-hoc CLI step — call the three helpers in
+`jellycell.tearsheets` from inside a `jc.step`-tagged cell:
+
+```python
+import jellycell.tearsheets as jt
+
+# Summary of estimator results — one H2 + table per top-level key.
+jt.findings(
+    results={
+        "twfe": {"att": 0.2, "n_obs": 1234},
+        "cs":   {"att": 0.25, "n_obs": 1180},
+    },
+    out_path="manuscripts/FINDINGS.md",
+    project="showcase-rat-containerization",
+    template_overrides={
+        "author":     "Blaise",
+        "author_url": "https://ubik.studio",
+        "month_year": "April 2026",  # pin for byte-stable regen
+    },
+)
+
+# Procedural narrative — ordered `section_title → markdown_body`.
+jt.methodology(
+    spec={
+        "Data source":    "Panel of 132 stations over 60 weeks.",
+        "Identification": "TWFE + Callaway-Sant'Anna robustness checks.",
+    },
+    out_path="manuscripts/METHODOLOGY.md",
+    project="showcase-rat-containerization",
+)
+
+# Per-notebook tearsheet (cells, artifacts, JSON summaries) — wraps
+# the existing `jellycell export tearsheet` logic. Reads manifests
+# from the project's cache.
+jt.audit(
+    "notebooks/03_temporal_and_equity.py",
+    out_path="manuscripts/tearsheets/audit_03.md",
+)
+```
+
+Every helper shares a pinnable header (author / author_url / month_year
+/ version) via `template_overrides` so regeneration is byte-stable
+when inputs don't change. Each returns the resolved `Path` so callers
+can chain into `jc.save` or similar. Parent directories are created.
 
 ## CLI commands
 

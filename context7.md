@@ -100,6 +100,16 @@ jc.table(summary, caption="Sales summary")
 | `jc.path("name")` | Resolve an artifact path by producer name |
 | `jc.ctx` | Access the current `RunContext` (cell id, cache key, project paths) |
 
+**Manuscript generation API** (`import jellycell.tearsheets as jt`, 1.4.0+):
+
+| Call | Purpose |
+| --- | --- |
+| `jt.findings(results, *, out_path, project, template_overrides=...)` | Render FINDINGS.md from an estimator-results dict (one H2 + two-col table per top-level key). |
+| `jt.methodology(spec, *, out_path, project, template_overrides=...)` | Render METHODOLOGY.md from an ordered `section_title → markdown_body` mapping. |
+| `jt.audit(notebook, *, out_path, template_overrides=...)` | Per-notebook tearsheet (wraps `jellycell export tearsheet` for call-from-`jc.step`-cell use; reads manifests from cache). |
+
+All three share a pinnable header (`template_overrides={"author": ..., "month_year": ..., "version": ...}`) for byte-stable regeneration. They return the resolved `Path`. Parent directories are created.
+
 ## CLI commands
 
 - `jellycell init <path>` — scaffold a project.
